@@ -1,0 +1,70 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1e3a8a, #3b82f6); /* degradado azul */
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 30px 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+    border-radius: 0 15px 15px 0;
+    transition: all 0.3s ease;
+}
+
+/* Lista del menú */
+.sidebar ul {
+    list-style: none;
+}
+
+/* Elementos del menú */
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+/* Links del menú */
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* espacio para iconos */
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Efecto hover */
+.sidebar ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+/* Link activo (opcional) */
+.sidebar ul li a.active {
+    background-color: rgba(255, 255, 255, 0.25);
+    font-weight: bold;
+}
+
+/* Iconos (puedes usar <i> o <svg>) */
+.sidebar ul li a i {
+    font-size: 18px;
+}
+
+/* Ajuste de contenido principal */
+.main-content {
+    margin-left: 240px;
+    padding: 30px;
+    background-color: #f3f4f6; /* gris muy claro */
+    min-height: 100vh;
+}
