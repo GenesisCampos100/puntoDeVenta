@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menú Lateral</title>
+  <title>Punto de Venta</title>
   <link href="../src/styles/output.css" rel="stylesheet">
 </head>
 <body class="bg-white">
-
-  <!-- Header -->
   <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow">
     <!-- Botón hamburguesa -->
     <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
     <!-- Logo -->
-    <img src="img/logo.jpeg" alt="logo" class="h-12">
+    <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
     <!-- Barra de búsqueda -->
     <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-180">
       <input type="text" placeholder="Buscar..." class="w-full px-4 py-2 text-black focus:outline-none">
     </div>
     <!-- Botón filtro -->
-    <button class="ml-2 bg-botonVerde hover:bg-botonVerde-hover text-black px-6 py-2 rounded-full">
+    <button class="ml-2 bg-botonVerde hover:bg-botonVerde-hover text-white px-6 py-2 rounded-full">
       Filtros
     </button>
   </header>
@@ -27,7 +25,7 @@
   <!-- Sidebar (menú izquierdo) -->
   <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white -translate-x-64 transition-transform duration-300 z-50">
     <div class="flex items-center justify-center p-4 border-b border-gray-700">
-    <img src="img/logo2.png" alt="Logo" class="h-12">
+    <img src="img/logo-menu.png" alt="Logo" class="h-12">
   </div>
     <div class="flex justify-end p-4">
       <button id="close-btn" class="text-2xl">&times;</button>
@@ -35,7 +33,7 @@
     <!-- Botón Nueva Compra -->
   <div class="p-4">
     <a href="../src/pages/nuevaCompra.html" 
-       class="flex items-center justify-center gap-2 bg-red-500 hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded-full">
+       class="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-400 text-white font-semibold py-2 px-4 rounded-full">
       <span class="text-xl">+</span> Nueva Compra
     </a>
   </div>
@@ -101,7 +99,7 @@
       <li>
         <details>
           <summary class="flex items-center gap-2 hover:bg-red-500 p-2 rounded cursor-pointer">
-            <!-- Icono original -->
+            <!-- Icono -->
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
             </svg>
@@ -235,30 +233,13 @@
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-lg font-bold">Orden</h2>
     <div class="flex gap-2">
-      <!-- Icono de descuento -->
-      <div class="relative">
-        <button id="discount-btn" class="bg-yellow-100 p-2 rounded-full hover:bg-yellow-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M6 2a2 2 0 00-2 2v2h12V4a2 2 0 00-2-2H6zM4 8v8a2 2 0 002 2h8a2 2 0 002-2V8H4z" />
-          </svg>
-        </button>
-
-        <!-- Tooltip/Card de descuento -->
-        <div id="discount-card" class="absolute top-full right-0 mt-2 w-64 bg-white border rounded-lg shadow-lg p-4 hidden">
-          <h3 class="text-sm font-semibold mb-2">Aplicar descuento</h3>
-          <input id="discount-input" type="text" placeholder="Cupón o %" 
-                 class="border p-2 rounded w-full mb-2">
-          <div class="flex justify-end gap-2">
-            <button id="apply-discount" 
-                    class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-sm">
-              Aplicar
-            </button>
-            <button id="close-discount" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 text-sm">
-              X
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Botón de descuento global -->
+      <button id="discount-btn" class="bg-yellow-300 p-2 text-white rounded-full hover:bg-yellow-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+        </svg>
+      </button>
 
       <!-- Botón para vaciar carrito -->
       <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">
@@ -289,14 +270,104 @@
       <span id="total">$0.00</span>
     </div>
     <button class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-      Finalizar Compra
+      Realizar Pago
     </button>
   </div>
 </aside>
 
+<!-- MODAL DE DESCUENTO GLOBAL -->
+<div id="discount-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-700">Aplicar Descuento</h3>
+      <button id="close-discount" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+
+    <!-- tabs -->
+    <div class="flex border rounded-lg overflow-hidden mb-4 text-sm">
+      <button id="tab-amount" class="flex-1 py-2 text-center bg-lime-500 text-white font-medium">Cantidad ($)</button>
+      <button id="tab-percent" class="flex-1 py-2 text-center bg-gray-100 ">Porcentaje (%)</button>
+    </div>
+
+    <!-- Input -->
+    <div class="mb-4">
+      <label for="discount-input" class="block text-xs text-gray-500 mb-1">Cantidad del descuento:</label>
+      <div class="flex items-center border rounded-lg overflow-hidden">
+        <span id="input-prefix" class="px-2 text-gray-600">$</span>
+        <input id="discount-input" type="number" placeholder="0" class="flex-1 p-2 outline-none" />
+      </div>
+    </div>
+
+    <!-- Vista previa -->
+    <div class="text-sm mb-4">
+      <p class="text-gray-500 line-through" id="before-total">$0.00</p>
+      <p class="font-semibold text-green-600" id="after-total">$0.00</p>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-2">
+      <button id="apply-discount" class="bg-lime-500 text-white px-4 py-2 rounded-lg hover:bg-lime-600 text-sm">
+        Aplicar
+      </button>
+      <button id="cancel-discount" class="px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-600 text-sm">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!--  MODAL DE DESCUENTO POR PRODUCTO -->
+<div id="product-discount-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-700">Descuento al Producto</h3>
+      <button id="close-product-discount" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+
+    <!-- Informacion del producto -->
+    <div id="product-info" class="flex items-center gap-3 border rounded-lg p-3 mb-4 bg-gray-50">
+      <!-- Aquí se pone dinámicamente la info del producto -->
+    </div>
+
+    <!-- los tabs -->
+    <div class="flex border rounded-lg overflow-hidden mb-4 text-sm">
+      <button id="product-tab-amount" class="flex-1 py-2 text-center bg-lime-500 text-white font-medium">Cantidad ($)</button>
+      <button id="product-tab-percent" class="flex-1 py-2 text-center bg-gray-100 ">Porcentaje (%)</button>
+    </div>
+
+    <!-- input cantidad del descuento -->
+    <div class="mb-4">
+      <label for="product-discount-input" class="block text-xs text-gray-500 mb-1">Cantidad del descuento:</label>
+      <div class="flex items-center border rounded-lg overflow-hidden">
+        <span id="product-input-prefix" class="px-2 text-gray-600">$</span>
+        <input id="product-discount-input" type="number" placeholder="0" class="flex-1 p-2 outline-none" />
+      </div>
+    </div>
+
+    <!-- vista previa -->
+    <div class="text-sm mb-4">
+      <p class="text-gray-500 line-through" id="product-before-total">$0.00</p>
+      <p class="font-semibold text-green-600" id="product-after-total">$0.00</p>
+    </div>
+
+    <!-- botones -->
+    <div class="flex justify-end gap-2">
+      <button id="apply-product-discount" class="bg-lime-500 text-white px-4 py-2 rounded-lg hover:bg-lime-600 text-sm">
+        Aplicar
+      </button>
+      <button id="cancel-product-discount" class="px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-600 text-sm">
+        Cancelar
+      </button>
+      </div>
+    </div>
+  </div>
+
   <footer class="text-red-500 text-center py-4"></footer>
 
   <script type="module" src="../src/index.js"></script>
+  
 </body>
 </html>
 
