@@ -33,7 +33,7 @@ session_start();
     <div class="login-box">
         <h2>Iniciar Sesión</h2>
 
-        <form action="validar_login.php" method="POST">
+        <form action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
             <!-- Usuario -->
             <div class="mb-3">
                 <label for="usuario" class="form-label">Usuario</label>

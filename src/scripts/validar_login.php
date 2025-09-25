@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php'; // archivo con la conexión PDO
+include(__DIR__ . '/../config/db.php'); // conexión PDO
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
@@ -16,17 +16,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($user && md5($password) === $user['password']) {
         // Guardar sesión
-        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['rol'] = $user['rol'];
 
-        echo json_encode([
-            "status" => "success",
-            "rol" => $user['rol']
-        ]);
+        // ✅ Ahora redirige al index con la vista de caja
+        header("Location: ../index.php?view=caja");
+        exit;
     } else {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Usuario o contraseña incorrectos"
-        ]);
+        // En caso de error, volver al login con mensaje
+        $_SESSION['error'] = "Usuario o contraseña incorrectos";
+        header("Location: ../pages/login.php");
+        exit;
     }
 }
