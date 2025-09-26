@@ -14,11 +14,11 @@ $view = $_GET['view'] ?? 'caja'; // por defecto carga "caja"
 $views = [
     'caja' => __DIR__ . "/pages/caja_contenido.php",
     'ventas' => __DIR__ . "/pages/ventas_contenido.php",
-    'clientes' => __DIR__ . "/pages/clientes.html",
-    'empleados' => __DIR__ . "/pages/empleados.html",
-    'productos' => __DIR__ . "/pages/productos.html",
-    'proveedores' => __DIR__ . "/pages/proveedores.html",
-    'reportes' => __DIR__ . "/pages/reportes.html",
+    'clientes' => __DIR__ . "/pages/clientes_contenido.php",
+    'empleados' => __DIR__ . "/pages/empleados_contenido.php",
+    'productos' => __DIR__ . "/pages/productos_contenido.php",
+    'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
+    'reportes' => __DIR__ . "/pages/reportes_contenido.php",
 ];
 
 // Si la vista no existe, mostrar error 404
