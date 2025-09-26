@@ -47,9 +47,9 @@ if (!isset($permisos[$rol])) {
   <ul class="mt-4 space-y-2 pl-4">
     <?php foreach ($permisos[$rol] as $modulo): ?>
       <li>
-        <a href="<?= $modulo ?>.php" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">
-          <?= ucfirst($modulo) ?>
-        </a>
+       <a href="index.php?view=<?= $modulo ?>" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">
+  <?= ucfirst($modulo) ?>
+</a>
       </li>
     <?php endforeach; ?>
   </ul>
