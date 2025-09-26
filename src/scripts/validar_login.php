@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['rol'] = $user['rol'];
 
         // ✅ Ahora redirige al index con la vista de caja
-        header("Location: ../index.php?view=caja_contenido.php");
+        header("Location: ../index.php?view=caja");
         exit;
     } else {
         // En caso de error, volver al login con mensaje

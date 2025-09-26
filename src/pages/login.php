@@ -3,54 +3,73 @@ session_start();
 ?>
 
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Punto de Venta</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #f0f2f5;
-        }
-        .login-box {
-            width: 400px;
-            padding: 30px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
-        }
-        .login-box h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/login.css">
 </head>
-<body>
-    <div class="login-box">
-        <h2>Iniciar Sesión</h2>
+<body class="fondo_login">
 
-        <form action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
-            <!-- Usuario -->
-            <div class="mb-3">
-                <label for="usuario" class="form-label">Usuario</label>
-                <input type="text" id="usuario" name="usuario" class="form-control" required>
-            </div>
+    <main class="contenedor">
+     
+    <section class="contenedor-login"> <!--Inicio de login-->
+    
+        <div class="formulario">
 
-            <!-- Contraseña -->
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
+        </div>    
 
-            <!-- Botón -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Ingresar</button>
+
+        <div class="formulario "> <!--Inicio formulario-->
+            <div class="login-logo">
+                <img src="../../public/img/logo2.png">
             </div>
-        </form>
-    </div>
+            <H1 class="login-titulo">Tu punto de venta favorito</H1>
+            
+            <form action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
+
+            <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
+
+                <div class="campo">
+                    <label for="usuario">Usuario:</label>
+                    <input type="usuario" id="usuario" name="usuario" required placeholder="Usuario">
+                </div>
+
+                <!-- <div class="campo">
+                    <label for="email">Correo electrónico:</label>
+                    <div class="input-icono">
+                        <i class=""></i>
+                        <input type="email" id="email" name="email" required placeholder="@ email">
+                    </div>
+                </div> -->
+
+                <div class="campo">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required placeholder="Contraseña">
+                </div>
+
+                <button class="boton" type="submit">Entrar</button>
+
+            </div> <!--Fin contenedor de campos-->
+
+            <div class="login-navegacion"> <!--Inicio de navegación-->
+                <a href="/src/pages/recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
+
+            </div>  <!--Final de navegación-->
+           
+        </div> <!--Fin formulario-->
+
+    </section> <!--Fin de login-->
+        
+        
+    </main>
+
 </body>
 </html>
