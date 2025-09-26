@@ -247,7 +247,7 @@ body > section {
 }
 
 .fondo_login {
-  background-image: url("../../src/img/Fondo_Login.jpg");
+  background-image: url("../../public/img/Fondo_Login.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
