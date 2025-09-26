@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #09f;
+    --color-secondary: #ceecff;
+    --color-kevin-lol: ;
+    --color-botonVerde:  oklch(0.841 0.238 128.85); 
+    --color-botonVerde-hover: oklch(0.768 0.233 130.85); 
+    --color-botonEtiquetas: oklch(0.645 0.246 16.439);
+
+    
+}
+

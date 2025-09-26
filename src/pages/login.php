@@ -1,0 +1,75 @@
+<?php
+session_start();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/login.css">
+</head>
+<body class="fondo_login">
+
+    <main class="contenedor">
+     
+    <section class="contenedor-login"> <!--Inicio de login-->
+    
+        <div class="formulario">
+
+        </div>    
+
+
+        <div class="formulario "> <!--Inicio formulario-->
+            <div class="login-logo">
+                <img src="../../public/img/logo2.png">
+            </div>
+            <H1 class="login-titulo">Tu punto de venta favorito</H1>
+            
+            <form action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
+
+            <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
+
+                <div class="campo">
+                    <label for="usuario">Usuario:</label>
+                    <input type="usuario" id="usuario" name="usuario" required placeholder="Usuario">
+                </div>
+
+                <!-- <div class="campo">
+                    <label for="email">Correo electrónico:</label>
+                    <div class="input-icono">
+                        <i class=""></i>
+                        <input type="email" id="email" name="email" required placeholder="@ email">
+                    </div>
+                </div> -->
+
+                <div class="campo">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required placeholder="Contraseña">
+                </div>
+
+                <button class="boton" type="submit">Entrar</button>
+
+            </div> <!--Fin contenedor de campos-->
+
+            <div class="login-navegacion"> <!--Inicio de navegación-->
+                <a href="/src/pages/recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
+
+            </div>  <!--Final de navegación-->
+           
+        </div> <!--Fin formulario-->
+
+    </section> <!--Fin de login-->
+        
+        
+    </main>
+
+</body>
+</html>
