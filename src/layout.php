@@ -13,14 +13,15 @@
 
   <?php include __DIR__ . "/pages/menu.php"; ?>
 
-  <main class="main-content p-6">
-    <?php
-      // Aquí se cargará el contenido de cada vista
-      if (isset($contenido)) {
-          include $contenido;
-      }
-    ?>
-  </main>
-    <script src="scripts/menu.js"></script>
+  <main id="content" class="main-content p-6">
+  <?php
+    // Aquí se cargará el contenido de cada vista
+    if (isset($contenido)) {
+        include $contenido;
+    }
+  ?>
+</main id="content" class="pt-20 pl-0 pr-80 transition-all duration-300">
+ 
+    <script src="../src/scripts/menu.js"></script>
 </body>
 </html>

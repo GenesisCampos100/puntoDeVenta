@@ -1009,3 +1009,9 @@
     }
   }
 }
+#sidebar ul li:first-child a {
+  background-color: #dc2626; /* rojo */
+  color: white;
+  font-weight: bold;
+  border-radius: 10rem;
+}
