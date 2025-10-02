@@ -37,8 +37,6 @@ if (!isset($permisos[$rol])) {
   <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
   <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-180">
   </div>
-
- 
 </header> 
 
 <!-- Sidebar -->
