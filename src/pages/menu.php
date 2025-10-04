@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
@@ -32,12 +32,13 @@ if (!isset($permisos[$rol])) {
 </script>
 
 <!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow">
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-16">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
   <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
-  <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-180">
-  </div>
-</header> 
+  <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-180"></div>
+</header>
+
+
 
 <!-- Sidebar -->
 <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white -translate-x-64 transition-transform duration-300 z-50">
