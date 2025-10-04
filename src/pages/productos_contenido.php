@@ -62,54 +62,85 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
   }
 
   /* --- Barra de herramientas --- */
-  .toolbar {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px;
-  }
 
-  .toolbar form {
-    display: flex; 
-    gap: 10px; 
-    align-items: center;
-  }
+  .filtros-container {
+    display: flex;
+    justify-content: space-between; /* espacio entre filtros y botón */
+    align-items: center; /* centra verticalmente */
+    margin: 20px auto;
+    width: 90%;
+    flex-wrap: wrap; /* si la pantalla es pequeña, que se acomode abajo */
+    gap: 10px;
+}
 
-  .toolbar input[type="text"],
-  .toolbar select {
+.filtros-izquierda {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filtros-izquierda input,
+.filtros-izquierda select,
+.filtros-izquierda button {
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     border-radius: 6px;
-    font-size: 14px;
-  }
+}
 
-  .toolbar button {
-    background: #1f2937;
-    color: white;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-  }
+  /* --- Barra de herramientas --- */
+.toolbar {
+  display: flex;
+  justify-content: space-between; /* Izquierda filtros - Derecha botón */
+  align-items: center;
+  margin: 20px auto;
+  width: 95%;
+  flex-wrap: wrap; /* se acomoda abajo en pantallas pequeñas */
+  gap: 15px;
+}
 
-  .toolbar button:hover {
-    background: #374151;
-  }
+.toolbar form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
-  .toolbar a {
-    padding: 8px 16px; 
-    background: #e63946; 
-    color: white; 
-    border-radius: 6px; 
-    text-decoration: none;
-    font-weight: bold;
-    transition: background 0.2s;
-  }
+.toolbar input[type="text"],
+.toolbar select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
 
-  .toolbar a:hover {
-    background: #c92a35;
-  }
+.toolbar button {
+  background: #1f2937;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toolbar button:hover {
+  background: #374151;
+}
+
+.btn-agregar {
+  padding: 10px 16px;
+  background: #e63946;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-agregar:hover {
+  background: #c92a35;
+}
+
 
   /* --- Tabla --- */
   table {
@@ -168,17 +199,18 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 <body>
     <div>
      <h2 style="text-align:center; color:#e63946;">PRODUCTOS</h2>
-</div>
-    <!-- Barra de herramientas -->
-<div class="toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+<!-- Barra de herramientas -->
+<div class="toolbar">
   <!-- Formulario búsqueda/filtro -->
-  <form method="GET" style="display:flex; gap:10px;">
-    <input type="text" name="busqueda" placeholder="Buscar producto..." value="<?= htmlspecialchars($busqueda) ?>">
+  <form method="GET">
+    <input type="text" name="busqueda" placeholder="Buscar producto..." 
+           value="<?= htmlspecialchars($busqueda) ?>">
 
     <select name="categoria">
       <option value="">-- Todas las categorías --</option>
       <?php foreach ($categorias as $cat): ?>
-        <option value="<?= $cat['id_categoria'] ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
+        <option value="<?= $cat['id_categoria'] ?>" 
+          <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
           <?= htmlspecialchars($cat['nombre']) ?>
         </option>
       <?php endforeach; ?>
@@ -197,9 +229,10 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
   </form>
 
   <!-- Botón agregar producto -->
-  <a href="agregar_producto.php" style="padding:8px 15px; background:#e3342f; color:white; border-radius:5px; text-decoration:none;">
-    ➕ Agregar Producto
-  </a>
+  <a href="index.php?view=agregar_producto" class="btn-agregar">
+  ➕ Agregar Producto
+</a>
+
 </div>
 
     <div class="productos-container">
