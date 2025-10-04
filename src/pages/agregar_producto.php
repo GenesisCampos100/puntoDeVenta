@@ -4,29 +4,29 @@ require_once __DIR__ . "/../config/db.php";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $nombre = $_POST['nombre'];
-        $codigo_barras = $_POST['codigo_barras'];
-        $categoria_id = $_POST['categoria_id'] ?? null;
+        $cod_barras = $_POST['cod_barras'];
+        $id_categoria = $_POST['id_categoria'] ?? null;
         $marca = $_POST['marca'] ?? null;
         $descripcion = $_POST['descripcion'] ?? null;
         $cantidad = $_POST['cantidad'] ?? 0;
         $cantidad_min = $_POST['cantidad_min'] ?? 0;
         $costo = $_POST['costo'] ?? 0;
         $tipo_costo = $_POST['tipo_costo'] ?? 'bruto';
-        $precio_venta = $_POST['precio_venta'] ?? 0;
+        $precio_unitario = $_POST['precio_unitario'] ?? 0;
 
         // Imagen
         $imagen = null;
         if (!empty($_FILES['imagen']['name'])) {
             $nombreArchivo = uniqid() . "_" . basename($_FILES['imagen']['name']);
-            $rutaDestino = __DIR__ . "/../uploads/" . $nombreArchivo;
+            $rutaDestino = __DIR__ . "/../../public/img/" . $nombreArchivo;
             move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino);
             $imagen = $nombreArchivo;
         }
 
         $stmt = $pdo->prepare("INSERT INTO productos 
-            (nombre, codigo_barras, categoria_id, marca, descripcion, cantidad, cantidad_min, costo, tipo_costo, precio_venta, imagen)
+            (nombre, cod_barras, id_categoria, marca, descripcion, cantidad, cantidad_min, costo, tipo_costo, precio_unitario, imagen)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nombre, $codigo_barras, $categoria_id, $marca, $descripcion, $cantidad, $cantidad_min, $costo, $tipo_costo, $precio_venta, $imagen]);
+        $stmt->execute([$nombre, $cod_barras, $id_categoria, $marca, $descripcion, $cantidad, $cantidad_min, $costo, $tipo_costo, $precio_unitario, $imagen]);
 
         $producto_id = $pdo->lastInsertId();
 
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div>
           <label>Código de barras</label>
-          <input type="text" name="codigo_barras" required>
+          <input type="text" name="cod_barras" required>
         </div>
         <div>
           <label>Imagen</label>
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="grid">
         <div>
           <label>Precio de venta</label>
-          <input type="number" name="precio_venta" step="0.01" value="0">
+          <input type="number" name="precio_unitario" step="0.01" value="0">
         </div>
       </div>
     </section>
