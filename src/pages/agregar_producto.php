@@ -475,9 +475,6 @@ input:focus, select:focus, textarea:focus {
   gap: 8px;
 }
 .hidden { display: none; }
-<<<<<<< HEAD
-</style>
-=======
 
 /* 🌫️ Estilo visual para campos bloqueados */
 input:disabled, select:disabled, textarea:disabled {
@@ -487,4 +484,3 @@ input:disabled, select:disabled, textarea:disabled {
   opacity: 0.8;
 }
 </style>
->>>>>>> origin/Genesis

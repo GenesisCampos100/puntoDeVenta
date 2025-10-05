@@ -6,7 +6,7 @@
   <title>Punto de Venta</title>
 
   <!-- Tu CSS personalizado -->
-  <link href="src/styles/output.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles/output.css">
 
 </head>
 <body class="bg-gray-100">
@@ -27,5 +27,6 @@
 
  
     <script src="../src/scripts/menu.js"></script>
+    
 </body>
 </html>

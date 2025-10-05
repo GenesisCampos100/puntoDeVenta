@@ -33,7 +33,7 @@ session_start();
             </div>
             <H1 class="login-titulo">Tu punto de venta favorito</H1>
             
-            <form action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
+            <form action="../scripts/validar_login.php" method="POST">
 
             <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
