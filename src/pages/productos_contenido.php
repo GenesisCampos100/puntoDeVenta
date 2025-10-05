@@ -11,7 +11,6 @@ $sql = "SELECT
             p.cod_barras AS producto_cod_barras,
             p.nombre AS producto_nombre,
             p.imagen AS producto_imagen,
-            p.marca,
             c.nombre AS categoria,
             v.id AS id_variante,
             v.cod_barras AS variante_cod_barras,
