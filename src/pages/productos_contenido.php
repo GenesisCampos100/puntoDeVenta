@@ -254,24 +254,24 @@ tr:hover {
                 $stockClass = 'stock-alto';
             }
 
-                $imagen = '../assets/img/sin-imagen.png';
-            if (!empty($producto['imagen'])) {
-                $imagen = 'uploads/' . htmlspecialchars($producto['imagen']);
-            }
-            elseif (!empty($producto['producto_imagen'])) {
-                            $imagen = htmlspecialchars($producto['producto_imagen']);
-                        }
+               $imagen = '../uploads/sin-imagen.png';
+
+              if (!empty($producto['imagen_variante'])) {
+                  $imagen = '../uploads/' . htmlspecialchars($producto['imagen_variante']);
+              } elseif (!empty($producto['producto_imagen'])) {
+                  $imagen = '../uploads/' . htmlspecialchars($producto['producto_imagen']);
+              }
           ?>
           <tr>
             <td><input type="checkbox"></td>
             <td>
-              <div class="producto-info">
-                <?= $imagen ?>
-                <div>
-                  <strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong><br>
-                  <small>Talla: <?= htmlspecialchars($producto['talla']) ?> | Color: <?= htmlspecialchars($producto['color']) ?></small>
-                </div>
-              </div>
+            <div class="producto-info">
+            <img src="<?= htmlspecialchars($imagen) ?>" alt="Imagen del producto">
+            <div>
+              <strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong><br>
+              <small>Talla: <?= htmlspecialchars($producto['talla']) ?> | Color: <?= htmlspecialchars($producto['color']) ?></small>
+            </div>
+          </div>
             </td>
             <td><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
             <td><?= htmlspecialchars($producto['categoria']) ?></td>
