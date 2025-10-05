@@ -326,7 +326,7 @@ document.getElementById('precio_unitario').addEventListener('input', actualizarM
 
 body {
   background: #f3f4f6;
-  font-family: 'Inter', sans-serif;
+   font-family: 'Poppins', sans-serif; 
 }
 
 .producto-form {
