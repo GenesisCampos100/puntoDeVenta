@@ -17,6 +17,7 @@ $sql = "SELECT
             c.nombre AS categoria,
             p.cantidad,
             p.cantidad_min,
+            p.costo,
             p.precio_unitario,
             (SELECT COUNT(*) FROM variantes v2 WHERE v2.id_producto = p.id) AS tiene_variante
         FROM productos p
