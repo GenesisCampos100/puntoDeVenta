@@ -12,7 +12,7 @@ $view = $_GET['view'] ?? 'nueva_venta'; // por defecto carga "caja"
 
 // Definir rutas válidas
 $views = [
-    'nueva venta' => __DIR__ . "/pages/nueva_venta.php",
+    'nueva_venta' => __DIR__ . "/pages/nueva_venta.php",
     'caja' => __DIR__ . "/pages/caja_contenido.php",
     'ventas' => __DIR__ . "/pages/ventas_contenido.php",
     'clientes' => __DIR__ . "/pages/clientes_contenido.php",

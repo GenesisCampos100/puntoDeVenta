@@ -6,7 +6,7 @@
   <title>Punto de Venta</title>
 
   <!-- Tu CSS personalizado -->
-  <link rel="stylesheet" href="styles/output.css">
+  <link href="src/styles/output.css" rel="stylesheet">
 
 </head>
 <body class="bg-gray-100">
