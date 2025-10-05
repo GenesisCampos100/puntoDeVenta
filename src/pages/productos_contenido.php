@@ -5,7 +5,9 @@ $busqueda   = $_GET['busqueda'] ?? '';
 $categoria  = $_GET['categoria'] ?? '';
 $orden      = $_GET['orden'] ?? 'p.nombre ASC';
 
-// Consulta base
+// ================================
+// 1️⃣ Consulta de productos
+// ================================
 $sql = "SELECT 
             p.id AS id_producto,
             p.cod_barras AS producto_cod_barras,
@@ -21,7 +23,6 @@ $sql = "SELECT
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         WHERE 1=1";
 
-// Filtros
 if (!empty($busqueda)) $sql .= " AND (p.nombre LIKE :busqueda OR p.cod_barras LIKE :busqueda)";
 if (!empty($categoria)) $sql .= " AND c.id_categoria = :categoria";
 $sql .= " ORDER BY $orden";
@@ -32,7 +33,33 @@ if (!empty($categoria)) $stmt->bindValue(':categoria', $categoria, PDO::PARAM_IN
 $stmt->execute();
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Categorías para filtro
+// ================================
+// 2️⃣ Consulta de variantes
+// ================================
+$variantesStmt = $pdo->query("
+  SELECT 
+    v.id_producto,
+    v.id,
+    v.cod_barras,
+    v.talla,
+    v.color,
+    v.cantidad,
+    v.cantidad_min,
+    v.precio_unitario,
+    v.costo,
+    v.imagen
+  FROM variantes v
+");
+$variantesRaw = $variantesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$variantesPorProducto = [];
+foreach ($variantesRaw as $v) {
+    $variantesPorProducto[$v['id_producto']][] = $v;
+}
+
+// ================================
+// 3️⃣ Categorías para filtro
+// ================================
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -63,18 +90,10 @@ h2 {
   flex-wrap: wrap;
   gap: 10px;
 }
-.toolbar form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.toolbar input[type="text"],
-.toolbar select {
+.toolbar input, .toolbar select {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 14px;
 }
 .toolbar button {
   background: #1f2937;
@@ -83,21 +102,15 @@ h2 {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
 }
-.toolbar button:hover { background: #374151; }
 .btn-agregar {
-  padding: 10px 16px;
   background: #e63946;
   color: white;
+  padding: 10px 16px;
   border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
-  transition: background 0.2s;
 }
-.btn-agregar:hover { background: #c92a35; }
-
-/* Tabla */
 .productos-container {
   width: 95%;
   margin: 0 auto 40px;
@@ -107,19 +120,8 @@ h2 {
   overflow: hidden;
 }
 table { width: 100%; border-collapse: collapse; }
-thead {
-  background: #1f2937;
-  color: white;
-}
-th, td {
-  padding: 14px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-}
-th:first-child, td:first-child {
-  text-align: center;
-  width: 40px;
-}
+thead { background: #1f2937; color: white; }
+th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
 tr:hover { background: #f3f4f6; }
 .producto-info {
   display: flex;
@@ -133,22 +135,11 @@ tr:hover { background: #f3f4f6; }
   border-radius: 6px;
   background: #f1f1f1;
 }
-.stock {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 15px;
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
-}
-.stock-bajo  { background-color: #ef4444; }
+.stock { padding: 6px 14px; border-radius: 15px; color: white; font-size: 13px; font-weight: 600; }
+.stock-bajo { background-color: #ef4444; }
 .stock-medio { background-color: #f59e0b; }
-.stock-alto  { background-color: #10b981; }
-.precio {
-  color: #e63946;
-  font-weight: bold;
-  font-size: 15px;
-}
+.stock-alto { background-color: #10b981; }
+.precio { color: #e63946; font-weight: bold; font-size: 15px; }
 .btn-mas {
   background: #e63946;
   color: white;
@@ -156,20 +147,29 @@ tr:hover { background: #f3f4f6; }
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
 }
-.btn-mas:hover { background: #c92a35; }
+.fila-variantes table {
+  border-radius: 8px;
+  background: #fff;
+  margin-top: 5px;
+  font-size: 14px;
+}
+.fila-variantes th {
+  background: #f3f4f6;
+  color: #333;
+}
+.fila-variantes img {
+  width: 50px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+}
 
-/* MODAL */
+/* Modal */
 .modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.4);
-  display: none;
-  justify-content: center;
-  align-items: center;
+  display: none; justify-content: center; align-items: center;
   z-index: 1000;
 }
 .modal-content {
@@ -181,51 +181,16 @@ tr:hover { background: #f3f4f6; }
   position: relative;
   animation: aparecer 0.3s ease;
 }
-@keyframes aparecer {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
+@keyframes aparecer { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .modal-content img {
-  width: 150px;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 15px;
+  width: 150px; height: 180px; object-fit: cover;
+  border-radius: 10px; margin-bottom: 15px;
 }
-.modal-content h3 {
-  color: #e63946;
-  margin-bottom: 10px;
-}
-.modal-content p {
-  margin: 5px 0;
-  color: #333;
-  font-size: 15px;
-}
-.modal-buttons {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-.btn-editar, .btn-eliminar {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-editar { background: #e63946; }
-.btn-eliminar { background: #10b981; }
+.modal-content h3 { color: #e63946; margin-bottom: 10px; }
+.modal-content p { margin: 5px 0; color: #333; font-size: 15px; }
+.modal-buttons { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
 .cerrar {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #e63946;
+  position: absolute; top: 10px; left: 10px; border: none; background: none; font-size: 22px; color: #e63946; cursor: pointer;
 }
 </style>
 </head>
@@ -247,10 +212,8 @@ tr:hover { background: #f3f4f6; }
     <select name="orden">
       <option value="p.nombre ASC"  <?= $orden=="p.nombre ASC" ? "selected" : "" ?>>Nombre (A-Z)</option>
       <option value="p.nombre DESC" <?= $orden=="p.nombre DESC" ? "selected" : "" ?>>Nombre (Z-A)</option>
-      <option value="p.precio_unitario ASC"  <?= $orden=="p.precio_unitario ASC" ? "selected" : "" ?>>Precio (menor a mayor)</option>
-      <option value="p.precio_unitario DESC" <?= $orden=="p.precio_unitario DESC" ? "selected" : "" ?>>Precio (mayor a menor)</option>
-      <option value="p.cantidad ASC"  <?= $orden=="p.cantidad ASC" ? "selected" : "" ?>>Stock (menor a mayor)</option>
-      <option value="p.cantidad DESC" <?= $orden=="p.cantidad DESC" ? "selected" : "" ?>>Stock (mayor a menor)</option>
+      <option value="p.precio_unitario ASC"  <?= $orden=="p.precio_unitario ASC" ? "selected" : "" ?>>Precio ↑</option>
+      <option value="p.precio_unitario DESC" <?= $orden=="p.precio_unitario DESC" ? "selected" : "" ?>>Precio ↓</option>
     </select>
     <button type="submit">Aplicar</button>
   </form>
@@ -261,12 +224,7 @@ tr:hover { background: #f3f4f6; }
   <table>
     <thead>
       <tr>
-        <th></th>
-        <th>Producto</th>
-        <th>Stock</th>
-        <th>Categoría</th>
-        <th>Precio</th>
-        <th>Acción</th>
+        <th></th><th>Producto</th><th>Stock</th><th>Categoría</th><th>Precio</th><th>Acción</th>
       </tr>
     </thead>
     <tbody>
@@ -277,7 +235,7 @@ tr:hover { background: #f3f4f6; }
           if ($cantidad <= $cantidad_min) $stockClass = 'stock-bajo';
           elseif ($cantidad <= $cantidad_min + 10) $stockClass = 'stock-medio';
           else $stockClass = 'stock-alto';
-          $imagen = !empty($producto['producto_imagen']) ? "../uploads/{$producto['producto_imagen']}" : "../uploads/sin-imagen.png";
+          $imagen = !empty($producto['producto_imagen']) ? "uploads/{$producto['producto_imagen']}" : "../uploads/sin-imagen.png";
         ?>
         <tr>
           <td><input type="checkbox"></td>
@@ -293,6 +251,45 @@ tr:hover { background: #f3f4f6; }
           <td class="precio">$<?= number_format($producto['precio_unitario'], 2) ?></td>
           <td><button class="btn-mas" onclick='mostrarDetalle(<?= json_encode($producto) ?>)'>➕ Más</button></td>
         </tr>
+
+       <!-- Mostrar tabla de variantes -->
+<?php if ($producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']])): ?>
+<tr class="fila-variantes" style="display:none;" id="variantes-<?= $producto['id_producto'] ?>">
+  <td colspan="6">
+    <table style="width:100%;">
+      <thead>
+        <tr><th>Variante</th><th>Stock</th><th>Precio Venta</th><th>Detalles</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var): ?>
+        <tr>
+          <td>
+            <div class="producto-info">
+              <img src="<?= !empty($var['imagen']) ? 'uploads/'.$var['imagen'] : '../uploads/sin-imagen.png' ?>">
+              <div>
+                <strong><?= htmlspecialchars($var['talla'] ?: '—') ?></strong><br>
+                <small><?= htmlspecialchars($var['color'] ?: '—') ?></small>
+              </div>
+            </div>
+          </td>
+         <?php
+  // Heredamos la categoría del producto padre
+  $var['categoria'] = $producto['categoria'];
+?>
+<td><span class="stock"><?= (int)$var['cantidad'] ?></span></td>
+<td class="precio">$<?= number_format($var['precio_unitario'], 2) ?></td>
+<td>
+  <button class="btn-mas" onclick='mostrarVariante(<?= json_encode($var) ?>)'>➕ Más</button>
+</td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </td>
+</tr>
+<?php endif; ?>
+
+
         <?php endforeach; ?>
       <?php else: ?>
         <tr><td colspan="6" style="text-align:center;">No hay productos registrados.</td></tr>
@@ -301,39 +298,86 @@ tr:hover { background: #f3f4f6; }
   </table>
 </div>
 
-<!-- MODAL -->
+<!-- Modal -->
 <div id="modal" class="modal">
   <div class="modal-content">
     <button class="cerrar" onclick="cerrarModal()">←</button>
     <img id="modal-img" src="" alt="Producto">
-    <h3>Detalle del producto</h3>
-    <p><strong>Nombre:</strong> <span id="modal-nombre"></span></p>
+    <h3 id="modal-nombre"></h3>
     <p><strong>Categoría:</strong> <span id="modal-categoria"></span></p>
     <p><strong>Código de barras:</strong> <span id="modal-codigo"></span></p>
-    <p><strong>Precio:</strong> $<span id="modal-precio"></span></p>
-    <p><strong>Stock:</strong> <span id="modal-stock"></span></p>
-    <p><strong>IVA:</strong> 16%</p>
-    <div class="modal-buttons">
-      <button class="btn-editar">✏️ Editar</button>
-      <button class="btn-eliminar">🗑️ Eliminar</button>
-    </div>
+    <p><strong>Precio venta:</strong> $<span id="modal-precio"></span></p>
+    <p><strong>Precio compra:</strong> $<span id="modal-costo"></span></p>
+    <p><strong>Existencias:</strong> <span id="modal-stock"></span></p>
   </div>
 </div>
 
 <script>
+/**
+ * Muestra detalle o despliega variantes según corresponda.
+ * - si tiene variantes: despliega/oculta la fila <tr id="variantes-<id>">
+ * - si no tiene variantes: abre el modal con los datos del producto
+ */
 function mostrarDetalle(data) {
-  document.getElementById('modal-img').src = data.producto_imagen ? "../uploads/" + data.producto_imagen : "../uploads/sin-imagen.png";
-  document.getElementById('modal-nombre').textContent = data.producto_nombre;
+  // sanity checks: data puede venir como string para tiene_variante; convertir a número
+  const tiene = data.tiene_variante ? parseInt(data.tiene_variante, 10) : 0;
+  // si hay variantes intentamos mostrar la fila correspondiente
+  if (tiene > 0) {
+    const filaId = 'variantes-' + data.id_producto;
+    const filaVar = document.getElementById(filaId);
+
+    if (!filaVar) {
+      // fila no encontrada -> mostrar modal como fallback (evita silencio total)
+      console.warn('Fila de variantes no encontrada para', filaId, '. Abriendo modal como fallback.');
+      mostrarModalProducto(data);
+      return;
+    }
+
+    // alternar visibilidad (soporta estado inicial '' o 'none')
+    const isHidden = (filaVar.style.display === 'none' || filaVar.style.display === '');
+    filaVar.style.display = isHidden ? 'table-row' : 'none';
+
+    // opcional: scrollear suavemente cuando se abre
+    if (isHidden) {
+      filaVar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+  } else {
+    // no tiene variantes -> mostrar modal del producto
+    mostrarModalProducto(data);
+  }
+}
+
+/** abre el modal con los datos de producto (nombre, imagen, precio, costo, stock, etc.) */
+function mostrarModalProducto(data) {
+  // asegúrate de usar las mismas claves que genera PHP en json_encode($producto)
+  document.getElementById('modal-img').src = data.producto_imagen ? "uploads/" + data.producto_imagen : "uploads/sin-imagen.png";
+  document.getElementById('modal-nombre').textContent = data.producto_nombre || 'Sin nombre';
   document.getElementById('modal-categoria').textContent = data.categoria || 'Sin categoría';
   document.getElementById('modal-codigo').textContent = data.producto_cod_barras || 'N/A';
-  document.getElementById('modal-precio').textContent = parseFloat(data.precio_unitario).toFixed(2);
-  document.getElementById('modal-stock').textContent = data.cantidad;
+  document.getElementById('modal-precio').textContent = (typeof data.precio_unitario !== 'undefined' && data.precio_unitario !== null) ? parseFloat(data.precio_unitario).toFixed(2) : '—';
+  document.getElementById('modal-costo').textContent = (typeof data.costo !== 'undefined' && data.costo !== null) ? parseFloat(data.costo).toFixed(2) : '—';
+  document.getElementById('modal-stock').textContent = (typeof data.cantidad !== 'undefined') ? data.cantidad : '—';
   document.getElementById('modal').style.display = 'flex';
 }
+
+/** abre el modal con datos de una variante (misma info que producto) */
+function mostrarVariante(v) {
+  document.getElementById('modal-img').src = v.imagen ? "uploads/" + v.imagen : "uploads/sin-imagen.png";
+  document.getElementById('modal-nombre').textContent = `Variante ${v.talla || '—'} (${v.color || '—'})`;
+  document.getElementById('modal-categoria').textContent = v.categoria || 'Sin categoría';
+  document.getElementById('modal-codigo').textContent = v.cod_barras || 'N/A';
+  document.getElementById('modal-precio').textContent = (typeof v.precio_unitario !== 'undefined' && v.precio_unitario !== null) ? parseFloat(v.precio_unitario).toFixed(2) : '—';
+  document.getElementById('modal-costo').textContent = (typeof v.costo !== 'undefined' && v.costo !== null) ? parseFloat(v.costo).toFixed(2) : '—';
+  document.getElementById('modal-stock').textContent = (typeof v.cantidad !== 'undefined') ? v.cantidad : '—';
+  document.getElementById('modal').style.display = 'flex';
+}
+
 function cerrarModal() {
   document.getElementById('modal').style.display = 'none';
 }
 </script>
+
 
 </body>
 </html>
