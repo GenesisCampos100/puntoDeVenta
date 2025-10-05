@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-// Productos y categorías
+// Productos y variantes
 $sql = "SELECT 
             p.id AS id_producto,
             p.cod_barras AS producto_cod_barras,
@@ -9,16 +9,22 @@ $sql = "SELECT
             p.imagen AS producto_imagen,
             c.nombre AS categoria,
             v.id AS id_variante,
+            v.cod_barras AS variante_cod_barras,
             v.talla,
             v.color,
+            v.imagen AS imagen_variante,
+            v.cantidad,
+            v.cantidad_min,
             v.precio_unitario
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN variantes v ON v.id_producto = p.id
         ORDER BY p.nombre ASC";
+
 $stmt = $pdo->query($sql);
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -29,13 +35,19 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 <title>Nueva Venta</title>
 <link href="../styles/output.css" rel="stylesheet">
 </head>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Página cargada correctamente");
+});
+</script>
 <body class="bg-white">
 
+<!-- HEADER -->
 <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow">
-  <button id="menu-btn" class="text-2xl mr-4">&#9776;</button>
+  <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
   <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
   <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-72">
-    <input type="text" placeholder="Buscar..." class="w-full px-4 py-2 text-black focus:outline-none">
+    <input type="text" id="globalSearch" placeholder="Buscar..." class="w-full px-4 py-2 text-black focus:outline-none">
   </div>
   <button class="ml-2 bg-botonVerde hover:bg-botonVerde-hover text-white px-6 py-2 rounded-full">
     Filtros
@@ -44,24 +56,50 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
 <!-- SIDEBAR -->
 <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white -translate-x-64 transition-transform duration-300 z-50">
-  <div class="flex justify-end p-4"><button id="close-btn" class="text-2xl">&times;</button></div>
-  <ul class="p-4 space-y-2">
-    <li><a href="nueva_venta.php">Nueva Venta</a></li>
-    <li><a href="ventas.php">Ventas</a></li>
+  <div class="flex items-center justify-center p-4 border-b border-gray-700">
+    <img src="../public/img/logo-menu.png" alt="Logo" class="h-12">
+  </div>
+  <div class="flex justify-end p-4">
+    <button id="close-btn" class="text-2xl">&times;</button>
+  </div>
+  <div class="p-4">
+    <a href="nueva_venta.php" class="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-400 text-white font-semibold py-2 px-4 rounded-full">
+      <span class="text-xl">+</span> Nueva Compra
+    </a>
+  </div>
+  <ul class="mt-4 space-y-2 pl-4">
+    <li><a href="ventas.php" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">Ventas</a></li>
+    <li><a href="productos.php" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">Productos</a></li>
+    <li><a href="caja.php" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">Caja</a></li>
+    <li><a href="reportes.php" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">Reportes</a></li>
   </ul>
 </nav>
 
 <!-- MAIN CONTENT -->
-<main id="content" class="pt-20 pl-0 transition-all duration-300">
-  <section class="p-6 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+<main id="content" class="pt-20 pl-0 pr-80 transition-all duration-300">
+  <section id="productos" class="p-6 max-w-[1400px] mx-auto transition-all duration-300">
+    <!-- Filtros -->
+    <div class="flex flex-wrap justify-start gap-4 mb-8">
+      <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Todos</button>
+      <?php foreach($categorias as $cat): ?>
+        <button data-category="<?= strtolower($cat['nombre']) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+          <?= $cat['nombre'] ?>
+        </button>
+      <?php endforeach; ?>
+    </div>
+
+    <!-- GRID PRODUCTOS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" id="productos-grid">
       <?php foreach($productos as $prod): ?>
-      <div class="producto bg-white shadow p-4 text-center">
-        <img src="../public/img/productos/<?= $prod['producto_imagen'] ?>" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold"><?= $prod['producto_nombre'] ?></h3>
-        <p class="text-lg font-bold mt-2">$<?= number_format($prod['precio_unitario'],2) ?></p>
-        <button class="add-to-cart mt-3 bg-gray-800 text-white px-4 py-2 rounded w-full">Agregar</button>
-      </div>
+        <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="<?= strtolower($prod['categoria']) ?>">
+          <img src="../public/img/productos/<?= $prod['producto_imagen'] ?>" alt="<?= $prod['producto_nombre'] ?>" class="w-full h-40 object-cover rounded">
+          <h3 class="mt-2 font-semibold"><?= $prod['producto_nombre'] ?></h3>
+          <p class="text-gray-500 text-sm">Código: <?= $prod['producto_cod_barras'] ?></p>
+          <p class="text-lg font-bold mt-2">$<?= number_format($prod['precio_unitario'],2) ?></p>
+          <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
+            Agregar
+          </button>
+        </article>
       <?php endforeach; ?>
     </div>
   </section>
@@ -76,105 +114,72 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
       <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">🗑</button>
     </div>
   </div>
+
   <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
 
   <form id="checkout-form" method="POST" action="procesar_venta.php" class="mt-4">
     <input type="hidden" name="cart_data" id="cart-data">
     <input type="hidden" name="payments_data" id="payments-data">
     <div class="border-t pt-4 mt-4">
-      <div class="flex justify-between text-sm"><span>Subtotal:</span><span id="subtotal">$0.00</span></div>
-      <div class="flex justify-between text-sm text-red-500"><span>Descuento:</span><span id="discount-amount">-$0.00</span></div>
-      <div class="flex justify-between font-bold text-lg mt-2"><span>Total:</span><span id="total">$0.00</span></div>
-      <button type="button" id="pay-btn" class="w-full bg-lime-500 text-white py-2 mt-4 rounded">Realizar Pago</button>
+      <div class="flex justify-between text-sm">
+        <span>Subtotal:</span><span id="subtotal">$0.00</span>
+      </div>
+      <div class="flex justify-between text-sm text-red-500">
+        <span>Descuento:</span><span id="discount">-$0.00</span>
+      </div>
+      <div class="flex justify-between font-bold text-lg mt-2">
+        <span>Total:</span><span id="total">$0.00</span>
+      </div>
+      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
+        Realizar Pago
+      </button>
       <button type="submit" id="submit-checkout" class="hidden"></button>
     </div>
   </form>
 </aside>
 
-<!-- SCRIPTS -->
+<!-- MODALES -->
+<div id="discount-card" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-80 shadow-lg">
+    <h3 class="font-bold mb-2">Aplicar Descuento</h3>
+    <input id="discount-input" type="text" placeholder="10% o 50" class="border w-full px-3 py-2 mb-3 rounded">
+    <div class="flex justify-end gap-2">
+      <button id="close-discount" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+      <button id="apply-discount" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<div id="payment-card" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-96 shadow-lg">
+    <h3 class="font-bold mb-2">Pagos</h3>
+    <div class="space-y-2">
+      <input type="number" data-method="efectivo" placeholder="Efectivo" class="payment-input border w-full px-3 py-2 rounded">
+      <input type="number" data-method="tarjeta" placeholder="Tarjeta" class="payment-input border w-full px-3 py-2 rounded">
+    </div>
+    <p class="text-right font-bold mt-3">Total: <span id="total">$0.00</span></p>
+    <div class="flex justify-end gap-2 mt-3">
+      <button id="close-payment" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+      <button id="confirm-payment" class="px-4 py-2 bg-lime-500 text-white rounded">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../scripts/menu.js"></script>
+<script src="../scripts/cart.js"></script>
+<script src="../scripts/modal.js"></script>
+
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  // Sidebar
-  const menuBtn = document.getElementById("menu-btn");
-  const closeBtn = document.getElementById("close-btn");
-  const sidebar = document.getElementById("sidebar");
-  const content = document.getElementById("content");
-
-  const isSidebarOpen = localStorage.getItem("sidebarOpen") === "true";
-  if(isSidebarOpen){ sidebar.classList.remove("-translate-x-64"); content?.classList.add("pl-64"); }
-
-  menuBtn?.addEventListener("click", ()=>{ sidebar.classList.remove("-translate-x-64"); content?.classList.add("pl-64"); localStorage.setItem("sidebarOpen", true); });
-  closeBtn?.addEventListener("click", ()=>{ sidebar.classList.add("-translate-x-64"); content?.classList.remove("pl-64"); localStorage.setItem("sidebarOpen", false); });
-
-  // Carrito
-  const cartItems = document.getElementById("cart-items");
-  const subtotalEl = document.getElementById("subtotal");
-  const discountEl = document.getElementById("discount-amount");
-  const totalEl = document.getElementById("total");
-  const clearCartBtn = document.getElementById("clear-cart");
-  const addBtns = document.querySelectorAll(".add-to-cart");
-
-  const getCart = ()=> JSON.parse(localStorage.getItem("cart")) || [];
-  const setCart = (cart)=> localStorage.setItem("cart", JSON.stringify(cart));
-
-  function showEmpty(){ 
-    cartItems.innerHTML = `<div class="flex flex-col items-center justify-center text-gray-500 py-10">
-      <span class="text-5xl mb-2">📦</span><p class="text-lg font-semibold">No hay productos</p></div>`;
-    subtotalEl.textContent="$0.00"; discountEl.textContent="$0.00"; totalEl.textContent="$0.00";
-  }
-
-  function renderCart(){
-    const cart = getCart();
-    if(!cart.length) return showEmpty();
-    cartItems.innerHTML=""; let subtotal=0;
-    cart.forEach((item, index)=>{
-      const itemTotal = item.price*item.quantity; subtotal+=itemTotal;
-      const div = document.createElement("div"); div.className="flex flex-col gap-2 border-b pb-2";
-      div.innerHTML=`
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <img src="${item.img}" class="w-12 h-12 object-cover rounded">
-            <div><p class="font-semibold">${item.name}</p><p class="text-sm text-gray-500">$${item.price.toFixed(2)}</p></div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button class="decrease bg-gray-200 px-2 rounded">-</button>
-            <span class="font-semibold">${item.quantity}</span>
-            <button class="increase bg-gray-200 px-2 rounded">+</button>
-          </div>
-          <div class="text-right">
-            <p class="font-semibold">$${itemTotal.toFixed(2)}</p>
-            <button class="remove text-red-500 text-sm">Eliminar</button>
-          </div>
-        </div>`;
-      div.querySelector(".increase").addEventListener("click", ()=>{ item.quantity++; setCart(cart); renderCart(); });
-      div.querySelector(".decrease").addEventListener("click", ()=>{ if(item.quantity>1)item.quantity--; else cart.splice(index,1); setCart(cart); renderCart(); });
-      div.querySelector(".remove").addEventListener("click", ()=>{ cart.splice(index,1); setCart(cart); renderCart(); });
-      cartItems.appendChild(div);
-    });
-    subtotalEl.textContent=`$${subtotal.toFixed(2)}`; discountEl.textContent="$0.00"; totalEl.textContent=`$${subtotal.toFixed(2)}`;
-  }
-
-  addBtns.forEach(btn=>{
-    btn.addEventListener("click",(e)=>{
-      const product = e.target.closest(".producto");
-      const name = product.querySelector("h3").textContent;
-      const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$",""));
-      const img = product.querySelector("img").src;
-      const cart = getCart();
-      const existing = cart.find(i=>i.name===name && i.size==="M" && i.color==="Negro");
-      if(existing) existing.quantity++; else cart.push({name,price,img,quantity:1,size:"M",color:"Negro"});
-      setCart(cart); renderCart();
-    });
+document.getElementById('globalSearch')?.addEventListener('input', e => {
+  const query = e.target.value.toLowerCase();
+  document.querySelectorAll('.producto').forEach(prod => {
+    const name = prod.querySelector('h3').textContent.toLowerCase();
+    prod.style.display = name.includes(query) ? '' : 'none';
   });
-
-  clearCartBtn?.addEventListener("click", ()=>{ setCart([]); renderCart(); });
-
-  renderCart();
-
 });
 </script>
 
-<script src="modal.js"></script>
 </body>
 </html>

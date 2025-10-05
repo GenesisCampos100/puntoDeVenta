@@ -225,7 +225,7 @@ tr:hover {
     <button type="submit">Aplicar</button>
   </form>
 
-<a href="index.php?view=agregar_producto" class="btn-agregar">➕ Agregar Producto</a>
+<a href="index.php?view=agregar_producto" class="btn-agregar">➕ Agregar Producto</a>
 </div>
 
 <div class="productos-container">

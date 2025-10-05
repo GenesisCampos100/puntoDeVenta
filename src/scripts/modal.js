@@ -12,43 +12,41 @@
   const confirmPaymentBtn = document.getElementById("confirm-payment");
 
   let globalCart = JSON.parse(localStorage.getItem("cart")) || [];
-  let currentProduct = null;
-  let renderCartFn = null;
 
+  // --- DESCUENTO ---
   discountBtn?.addEventListener("click", () => discountCard.classList.remove("hidden"));
   closeDiscount?.addEventListener("click", () => discountCard.classList.add("hidden"));
-
-  document.addEventListener("openProductDiscount", e => {
-    currentProduct = e.detail.item;
-    renderCartFn = e.detail.renderCart;
-    discountCard.classList.remove("hidden");
-    discountInput.value = "";
-  });
 
   applyDiscountBtn?.addEventListener("click", () => {
     const val = discountInput.value.trim();
     if (!val) return alert("Ingrese un descuento válido");
 
+    let discount = 0;
     if (val.endsWith("%")) {
       const perc = parseFloat(val);
       if (isNaN(perc) || perc < 0 || perc > 100) return alert("Porcentaje inválido");
-      if (currentProduct) currentProduct.price -= (currentProduct.price * perc) / 100;
-      else globalCart.forEach(i => i.price -= (i.price * perc) / 100);
+      discount = perc;
+      globalCart = globalCart.map(item => ({
+        ...item,
+        price: item.price - (item.price * perc) / 100
+      }));
     } else {
       const num = parseFloat(val);
       if (isNaN(num) || num < 0) return alert("Valor inválido");
-      if (currentProduct) currentProduct.price -= num;
-      else globalCart.forEach(i => i.price -= num);
+      globalCart = globalCart.map(item => ({
+        ...item,
+        price: item.price - num
+      }));
     }
 
-    renderCartFn?.();
     localStorage.setItem("cart", JSON.stringify(globalCart));
+    document.dispatchEvent(new Event("cartUpdated"));
     discountCard.classList.add("hidden");
   });
 
+  // --- PAGOS ---
   const calculateTotal = () => {
-    globalCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const subtotal = globalCart.reduce((acc, i) => acc + i.price * i.quantity, 0);
+    const subtotal = globalCart.reduce((acc, i) => acc + (i.price * i.quantity), 0);
     totalCartEl.textContent = `$${subtotal.toFixed(2)}`;
     return subtotal;
   };

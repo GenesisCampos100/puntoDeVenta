@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalEl = document.getElementById("total");
   const clearCartBtn = document.getElementById("clear-cart");
   const addToCartBtns = document.querySelectorAll(".add-to-cart");
+  const payBtn = document.getElementById("pay-btn");
 
   function getCart() {
     return JSON.parse(localStorage.getItem("cart")) || [];
@@ -12,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
-    document.dispatchEvent(new Event("renderCart"));
   }
 
   function showEmptyMessage() {
@@ -26,95 +26,191 @@ document.addEventListener("DOMContentLoaded", () => {
     totalEl.textContent = "$0.00";
   }
 
-  function renderCart() {
-    const cart = getCart();
-    if (!cart.length) return showEmptyMessage();
+function renderCart() {
+  const cart = getCart();
+  if (!cart.length) return showEmptyMessage();
 
-    cartItemsContainer.innerHTML = "";
-    let subtotal = 0;
+  cartItemsContainer.innerHTML = "";
+  let subtotal = 0;
 
-    cart.forEach((item, index) => {
-      const itemTotal = item.price * item.quantity;
-      subtotal += itemTotal;
+  cart.forEach((item, index) => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
 
-      const itemDiv = document.createElement("div");
-      itemDiv.className = "flex flex-col gap-2 border-b pb-2";
-      itemDiv.innerHTML = `
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <img src="${item.img}" alt="${item.name}" class="w-12 h-12 object-cover rounded">
-            <div>
-              <p class="font-semibold">${item.name}</p>
-              <p class="text-sm text-gray-500">$${item.price.toFixed(2)}</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button class="decrease bg-gray-200 px-2 rounded">-</button>
-            <span class="font-semibold">${item.quantity}</span>
-            <button class="increase bg-gray-200 px-2 rounded">+</button>
-          </div>
-          <div class="text-right">
-            <p class="font-semibold">$${itemTotal.toFixed(2)}</p>
-            <button class="remove text-red-500 text-sm">Eliminar</button>
-          </div>
-          <div class="mt-2">
-            <button class="discount-product text-blue-500 text-sm">💲 Descuento</button>
-          </div>
-        </div>`;
+    const itemDiv = document.createElement("div");
+    itemDiv.className =
+      "flex items-center justify-between bg-gray-50 rounded-sm p-3 mb-3 transition hover:bg-gray-100";
 
-      itemDiv.querySelector(".increase").addEventListener("click", () => {
-        item.quantity++;
-        setCart(cart);
-        renderCart();
-      });
-      itemDiv.querySelector(".decrease").addEventListener("click", () => {
-        if (item.quantity > 1) item.quantity--;
-        else cart.splice(index, 1);
-        setCart(cart);
-        renderCart();
-      });
-      itemDiv.querySelector(".remove").addEventListener("click", () => {
-        cart.splice(index, 1);
-        setCart(cart);
-        renderCart();
-      });
-      itemDiv.querySelector(".discount-product")?.addEventListener("click", () => {
-        const event = new CustomEvent("openProductDiscount", { detail: { item, renderCart } });
-        document.dispatchEvent(event);
-      });
+    itemDiv.innerHTML = `
+      <div class="flex items-start gap-4">
+  <!-- Imagen del producto -->
+  <img src="${item.img}" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover">
 
-      cartItemsContainer.appendChild(itemDiv);
+  <!-- Información y opciones -->
+  <div class="flex flex-col gap-2">
+    <!-- Nombre -->
+    <p class="font-semibold truncate w-32">${item.name}</p>
+
+    <!-- Selects de tamaño y color -->
+    <div class="flex gap-2">
+      <select class="size-select border rounded-lg text-sm font-medium text-center p-2 focus:ring-1 focus:ring-gray-300">
+        <option value="XS" ${item.size === "XS" ? "selected" : ""}>XS</option>
+        <option value="S" ${item.size === "S" ? "selected" : ""}>S</option>
+        <option value="M" ${item.size === "M" ? "selected" : ""}>M</option>
+        <option value="L" ${item.size === "L" ? "selected" : ""}>L</option>
+        <option value="XL" ${item.size === "XL" ? "selected" : ""}>XL</option>
+      </select>
+
+      <select class="color-select border rounded-lg text-sm font-medium text-center p-2 focus:ring-1 focus:ring-gray-300">
+        <option value="Negro" ${item.color === "Negro" ? "selected" : ""}>Negro</option>
+        <option value="Blanco" ${item.color === "Blanco" ? "selected" : ""}>Blanco</option>
+        <option value="Azul" ${item.color === "Azul" ? "selected" : ""}>Azul</option>
+        <option value="Rojo" ${item.color === "Rojo" ? "selected" : ""}>Rojo</option>
+        <option value="Verde" ${item.color === "Verde" ? "selected" : ""}>Verde</option>
+      </select>
+    </div>
+
+    <!-- Contador de cantidad debajo del select -->
+    <div class="flex items-center gap-2">
+      <button class="decrease bg-rose-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-lg hover:bg-rose-600">−</button>
+      <span class="font-semibold w-6 text-center">${String(item.quantity).padStart(2, "0")}</span>
+      <button class="increase bg-lime-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-lg hover:bg-lime-600">+</button>
+    </div>
+  </div>
+
+  <!-- Total y botones de acción -->
+  <div class="flex flex-col items-end gap-2">
+    <p class="text-lg font-semibold text-gray-700 item-total transition-all duration-200">$${itemTotal.toFixed(2)}</p>
+    <div class="flex gap-2">
+      <button class="discount-btn bg-pink-200 p-1.5 rounded-full text-pink-700 hover:bg-pink-300">🏷️</button>
+      <button class="remove bg-gray-800 p-1.5 rounded-full text-white hover:bg-gray-700">🗑️</button>
+    </div>
+  </div>
+</div>
+
+    `;
+
+    // Eventos cantidad
+    itemDiv.querySelector(".increase").addEventListener("click", () => {
+      item.quantity++;
+      setCart(cart);
+      animateCartTotal();
+      renderCart();
     });
 
-    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-    discountEl.textContent = "$0.00";
-    totalEl.textContent = `$${subtotal.toFixed(2)}`;
-  }
+    itemDiv.querySelector(".decrease").addEventListener("click", () => {
+      if (item.quantity > 1) item.quantity--;
+      else cart.splice(index, 1);
+      setCart(cart);
+      animateCartTotal();
+      renderCart();
+    });
 
+    // Eventos eliminar
+    itemDiv.querySelector(".remove").addEventListener("click", () => {
+      cart.splice(index, 1);
+      setCart(cart);
+      animateCartTotal();
+      renderCart();
+    });
+
+    // Eventos de talla y color
+    itemDiv.querySelector(".size-select").addEventListener("change", (e) => {
+      item.size = e.target.value;
+      setCart(cart);
+    });
+
+    itemDiv.querySelector(".color-select").addEventListener("change", (e) => {
+      item.color = e.target.value;
+      setCart(cart);
+    });
+
+    // Descuento individual
+    itemDiv.querySelector(".discount-btn").addEventListener("click", () => {
+      const event = new CustomEvent("openProductDiscount", {
+        detail: { item, renderCart },
+      });
+      document.dispatchEvent(event);
+    });
+
+    cartItemsContainer.appendChild(itemDiv);
+  });
+
+  // Animación del total
+  animateCartNumber(subtotalEl, subtotal);
+  animateCartNumber(discountEl, 0);
+  animateCartNumber(totalEl, subtotal);
+}
+
+
+
+  // Botón limpiar carrito
   clearCartBtn?.addEventListener("click", () => {
-    setCart([]);
+    localStorage.removeItem("cart");
     renderCart();
   });
 
-  addToCartBtns.forEach(btn => {
-    btn.addEventListener("click", e => {
-      const product = e.target.closest(".producto");
-      if (!product) return;
+addToCartBtns.forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    const product = e.target.closest(".producto");
+    const name = product.querySelector("h3").textContent;
+    const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$", ""));
+    const img = product.querySelector("img").src;
+    const code = product.querySelector("p.text-gray-500")?.textContent.replace("Código:", "").trim() || name;
 
-      const name = product.querySelector("h3").textContent;
-      const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$", ""));
-      const img = product.querySelector("img").src;
-      const cart = getCart();
-      const existing = cart.find(i => i.name === name && i.size === "M" && i.color === "Negro");
+    const cart = getCart();
+    // Buscar por código único
+    const existing = cart.find(i => i.code === code);
 
-      if (existing) existing.quantity++;
-      else cart.push({ name, price, img, quantity: 1, size: "M", color: "Negro" });
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({
+        code,
+        name,
+        price,
+        img,
+        quantity: 1
+      });
+    }
 
-      setCart(cart);
-      renderCart();
-    });
+    setCart(cart);
+    renderCart();
+  });
+});
+
+
+  // Pago
+  payBtn?.addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("openPaymentModal"));
   });
 
   renderCart();
-  document.addEventListener("renderCart", renderCart);
 });
+
+// Animación suave de números (subtotal, total)
+function animateCartNumber(el, newValue) {
+  const current = parseFloat(el.textContent.replace(/[^0-9.-]+/g, "")) || 0;
+  const diff = newValue - current;
+  const duration = 300;
+  const steps = 20;
+  let step = 0;
+
+  const interval = setInterval(() => {
+    step++;
+    const value = current + (diff * step) / steps;
+    el.textContent = `$${value.toFixed(2)}`;
+    if (step >= steps) clearInterval(interval);
+  }, duration / steps);
+
+  // Efecto de resaltado visual al actualizar
+  el.classList.add("text-rose-500");
+  setTimeout(() => el.classList.remove("text-rose-500"), 300);
+}
+
+function animateCartTotal() {
+  const cartContainer = document.querySelector("#cart-items");
+  if (!cartContainer) return;
+  cartContainer.classList.add("scale-95");
+  setTimeout(() => cartContainer.classList.remove("scale-95"), 150);
+}

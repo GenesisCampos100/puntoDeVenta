@@ -4,26 +4,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar = document.getElementById("sidebar");
   const content = document.getElementById("content");
 
-  // Persistencia del sidebar
+  // Recuperar estado anterior
   const isSidebarOpen = localStorage.getItem("sidebarOpen") === "true";
   if (isSidebarOpen) {
     sidebar.classList.remove("-translate-x-64");
     content?.classList.add("pl-64");
   }
 
+  // Abrir sidebar
   menuBtn?.addEventListener("click", () => {
     sidebar.classList.remove("-translate-x-64");
     content?.classList.add("pl-64");
-    localStorage.setItem("sidebarOpen", true);
+    localStorage.setItem("sidebarOpen", "true");
   });
 
+  // Cerrar sidebar
   closeBtn?.addEventListener("click", () => {
     sidebar.classList.add("-translate-x-64");
     content?.classList.remove("pl-64");
-    localStorage.setItem("sidebarOpen", false);
+    localStorage.setItem("sidebarOpen", "false");
   });
 
-  // Resaltar opción activa
+  // Resaltar enlace activo
   const currentPath = window.location.pathname.split("/").pop();
   document.querySelectorAll("#sidebar a").forEach(link => {
     const linkPath = link.getAttribute("href")?.split("/").pop();
