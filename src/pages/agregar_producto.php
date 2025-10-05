@@ -1,28 +1,61 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
+// 🧩 Obtener categorías
+try {
+    $stmt = $pdo->query("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC");
+    $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    die("Error al cargar categorías: " . $e->getMessage());
+}
+
+// 🧾 Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $nombre = $_POST['nombre'];
-        $cod_barras = $_POST['cod_barras'];
+        // Variables limpias
+        $nombre = trim($_POST['nombre'] ?? '');
+        $cod_barras = trim($_POST['cod_barras'] ?? '');
         $id_categoria = $_POST['id_categoria'] ?? null;
-        $marca = $_POST['marca'] ?? null;
-        $descripcion = $_POST['descripcion'] ?? null;
-        $cantidad = $_POST['cantidad'] ?? 0;
-        $cantidad_min = $_POST['cantidad_min'] ?? 0;
-        $costo = $_POST['costo'] ?? 0;
+        $marca = trim($_POST['marca'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $cantidad = (int)($_POST['cantidad'] ?? 0);
+        $cantidad_min = (int)($_POST['cantidad_min'] ?? 0);
+        $costo = (float)($_POST['costo'] ?? 0);
         $tipo_costo = $_POST['tipo_costo'] ?? 'bruto';
-        $precio_unitario = $_POST['precio_unitario'] ?? 0;
+        $precio_unitario = (float)($_POST['precio_unitario'] ?? 0);
 
-        // Imagen
+        // Validaciones básicas
+        if ($nombre === '' || $cod_barras === '') {
+            throw new Exception("El nombre y el código de barras son obligatorios.");
+        }
+
+        // 🖼️ Manejo de imagen
         $imagen = null;
         if (!empty($_FILES['imagen']['name'])) {
-            $nombreArchivo = uniqid() . "_" . basename($_FILES['imagen']['name']);
-            $rutaDestino = __DIR__ . "/../../public/img/" . $nombreArchivo;
-            move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino);
+            $carpetaUploads = __DIR__ . "/../uploads/";
+
+            if (!is_dir($carpetaUploads)) {
+                mkdir($carpetaUploads, 0777, true);
+            }
+
+            $nombreArchivo = uniqid("img_") . "_" . basename($_FILES['imagen']['name']);
+            $rutaDestino = $carpetaUploads . $nombreArchivo;
+
+            if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino)) {
+                throw new Exception("Error al mover la imagen. Verifica permisos de la carpeta 'uploads'.");
+            }
+
             $imagen = $nombreArchivo;
         }
 
+        // 🔎 Validar duplicado de código de barras
+        $check = $pdo->prepare("SELECT COUNT(*) FROM productos WHERE cod_barras = ?");
+        $check->execute([$cod_barras]);
+        if ($check->fetchColumn() > 0) {
+            throw new Exception("El código de barras '$cod_barras' ya está registrado. Usa otro diferente.");
+        }
+
+        // 💾 Insertar producto
         $stmt = $pdo->prepare("INSERT INTO productos 
             (nombre, cod_barras, id_categoria, marca, descripcion, cantidad, cantidad_min, costo, tipo_costo, precio_unitario, imagen)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -30,29 +63,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $producto_id = $pdo->lastInsertId();
 
+        // 🧩 Insertar variantes (si existen)
         if (!empty($_POST['variantes'])) {
             $stmtVar = $pdo->prepare("INSERT INTO producto_variantes 
                 (producto_id, talla, color, cantidad, costo, precio_unitario)
                 VALUES (?, ?, ?, ?, ?, ?)");
+
             foreach ($_POST['variantes'] as $v) {
-                $stmtVar->execute([
-                    $producto_id,
-                    $v['talla'],
-                    $v['color'],
-                    $v['cantidad'],
-                    $v['costo'],
-                    $v['precio_unitario']
-                ]);
+                if (!empty($v['talla']) || !empty($v['color'])) {
+                    $stmtVar->execute([
+                        $producto_id,
+                        $v['talla'] ?? '',
+                        $v['color'] ?? '',
+                        (int)($v['cantidad'] ?? 0),
+                        (float)($v['costo'] ?? 0),
+                        (float)($v['precio_unitario'] ?? 0)
+                    ]);
+                }
             }
         }
 
         echo "<script>alert('✅ Producto agregado correctamente'); window.location='index.php?view=productos';</script>";
+        exit;
     } catch (Exception $e) {
-        echo "Error: " . $e->getMessage();
+        echo "<script>alert('❌ Error: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
 
+<!-- 🧾 FORMULARIO -->
 <div class="producto-form">
   <h2>Agregar nuevo producto</h2>
 
@@ -96,8 +135,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="grid">
         <div>
           <label>Categoría</label>
-          <select name="categoria_id">
+          <select name="id_categoria" required>
             <option value="">Seleccione una categoría</option>
+            <?php foreach ($categorias as $cat): ?>
+              <option value="<?= htmlspecialchars($cat['id_categoria']) ?>">
+                <?= htmlspecialchars($cat['nombre']) ?>
+              </option>
+            <?php endforeach; ?>
           </select>
         </div>
         <div>
@@ -111,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </section>
 
-    <!-- 📦 EXISTENCIAS -->
+    <!-- 📦 INVENTARIO -->
     <section id="inventario-section">
       <h3>📦 Inventario</h3>
       <div class="grid">
@@ -144,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </section>
 
-    <!-- 💸 PRECIO VENTA -->
+    <!-- 💸 PRECIO -->
     <section id="venta-section">
       <h3>💸 Precio de venta</h3>
       <div class="grid">
