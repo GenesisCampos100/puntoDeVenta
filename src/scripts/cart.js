@@ -7,20 +7,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const addToCartBtns = document.querySelectorAll(".add-to-cart");
   const payBtn = document.getElementById("pay-btn");
 
-  // Modal
+  // Modal descuento
   const discountModal = document.getElementById("discount-modal");
   const discountInput = document.getElementById("discount-input");
   const discountApplyBtn = document.getElementById("discount-apply-btn");
   let currentDiscountItem = null;
 
+  // Obtener carrito
   function getCart() {
     return JSON.parse(localStorage.getItem("cart")) || [];
   }
 
+  // Guardar carrito
   function setCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }
 
+  // Mostrar mensaje carrito vacío
   function showEmptyMessage() {
     cartItemsContainer.innerHTML = `
       <div class="flex flex-col items-center justify-center text-gray-500 py-10">
@@ -32,21 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
     totalEl.textContent = "$0.00";
   }
 
+  // Renderizar carrito
   function renderCart() {
     const cart = getCart();
     if (!cart.length) return showEmptyMessage();
 
     cartItemsContainer.innerHTML = "";
-    let subtotal = 0;
-    let totalDiscount = 0;
+    let subtotal = 0, totalDiscount = 0;
 
     cart.forEach((item, index) => {
-      item.size = item.size || "M";
-      item.color = item.color || "Negro";
-      item.discount = item.discount || 0;
-
-      const itemPriceAfterDiscount = item.price * (1 - item.discount / 100);
-      const itemTotal = itemPriceAfterDiscount * item.quantity;
+      const priceAfterDiscount = item.price * (1 - (item.discount || 0)/100);
+      const itemTotal = priceAfterDiscount * item.quantity;
 
       subtotal += itemTotal;
       totalDiscount += (item.price * item.quantity - itemTotal);
@@ -55,13 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
       itemDiv.className = "flex gap-4 mb-3 bg-white rounded-xl shadow-sm p-2 w-full items-stretch";
 
       itemDiv.innerHTML = `
-        <!-- Imagen -->
         <img src="${item.img}" alt="${item.name}" class="w-20 h-full rounded-xl object-cover">
-
-        <!-- Panel derecho -->
         <div class="flex-1 grid grid-rows-3 gap-2">
-
-          <!-- Fila 1: Nombre + botones -->
+          <!-- Nombre + botones -->
           <div class="flex justify-between items-center w-full">
             <p class="font-semibold truncate">${item.name}</p>
             <div class="flex gap-2">
@@ -70,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
 
-          <!-- Fila 2: Selects -->
+          <!-- Selects -->
           <div class="flex gap-2 w-full">
             <select class="size-select border rounded-lg text-sm font-medium text-center p-2 flex-1 focus:ring-1 focus:ring-gray-300">
               <option value="XS" ${item.size==="XS"?"selected":""}>XS</option>
@@ -79,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <option value="L" ${item.size==="L"?"selected":""}>L</option>
               <option value="XL" ${item.size==="XL"?"selected":""}>XL</option>
             </select>
-
             <select class="color-select border rounded-lg text-sm font-medium text-center p-2 flex-1 focus:ring-1 focus:ring-gray-300">
               <option value="Negro" ${item.color==="Negro"?"selected":""}>Negro</option>
               <option value="Blanco" ${item.color==="Blanco"?"selected":""}>Blanco</option>
@@ -89,21 +83,18 @@ document.addEventListener("DOMContentLoaded", () => {
             </select>
           </div>
 
-          <!-- Fila 3: Contador + Precio -->
-<div class="flex w-full">
-  <!-- Contador -->
-  <div class="flex items-center justify-between w-1/2">
-    <button class="decrease bg-rose-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-rose-600 transition">−</button>
-    <span class="flex-1 text-center font-semibold select-none">${String(item.quantity).padStart(2,"0")}</span>
-    <button class="increase bg-lime-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-lime-600 transition">+</button>
-  </div>
-
-  <!-- Precio -->
-  <div class="w-1/2 flex justify-end items-center">
-    <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
-  </div>
-</div>
-
+          <!-- Contador + precio -->
+          <div class="flex w-full">
+            <div class="flex items-center justify-between w-1/2">
+              <button class="decrease bg-rose-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-rose-600 transition">−</button>
+              <span class="flex-1 text-center font-semibold select-none">${String(item.quantity).padStart(2,"0")}</span>
+              <button class="increase bg-lime-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-lime-600 transition">+</button>
+            </div>
+            <div class="w-1/2 flex justify-end items-center">
+              <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
       `;
 
       // Eventos cantidad
@@ -139,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Descuento individual
       itemDiv.querySelector(".discount-btn").addEventListener("click", () => {
         currentDiscountItem = item;
-        discountInput.value = item.discount;
+        discountInput.value = item.discount || 0;
         discountModal.classList.remove("hidden");
       });
 
@@ -148,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
     discountEl.textContent = `$${totalDiscount.toFixed(2)}`;
-    totalEl.textContent = `$${(subtotal).toFixed(2)}`;
+    totalEl.textContent = `$${subtotal.toFixed(2)}`;
   }
 
   // Limpiar carrito
@@ -161,16 +152,19 @@ document.addEventListener("DOMContentLoaded", () => {
   addToCartBtns.forEach(btn => {
     btn.addEventListener("click", (e) => {
       const product = e.target.closest(".producto");
-      const name = product.querySelector("h3").textContent;
-      const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$", ""));
-      const img = product.querySelector("img").src;
-      const code = product.querySelector("p.text-gray-500")?.textContent.replace("Código:", "").trim() || name;
-
       const cart = getCart();
-      const existing = cart.find(i => i.code === code);
+
+      const code  = product.dataset.code;
+      const name  = product.dataset.name;
+      const img   = product.dataset.img;
+      const price = parseFloat(product.dataset.price);
+      const size  = product.dataset.size || "M";
+      const color = product.dataset.color || "Negro";
+
+      const existing = cart.find(item => item.code === code);
 
       if (existing) existing.quantity++;
-      else cart.push({ code, name, price, img, quantity: 1, size: "M", color: "Negro", discount: 0 });
+      else cart.push({ code, name, img, price, size, color, quantity: 1, discount: 0 });
 
       setCart(cart);
       renderCart();
@@ -189,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   discountModal?.addEventListener("click", (e) => {
-    if (e.target.id === "discount-modal" || e.target.classList.contains("close-modal")) {
+    if (e.target.id === "discount-modal") {
       discountModal.classList.add("hidden");
       currentDiscountItem = null;
     }

@@ -13,8 +13,6 @@ $sql = "SELECT
             v.talla,
             v.color,
             v.imagen AS imagen_variante,
-            v.cantidad,
-            v.cantidad_min,
             v.precio_unitario
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
@@ -28,35 +26,51 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nueva Venta</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
 <!-- FILTROS DE CATEGORÍA -->
-<div class="flex flex-wrap justify-start gap-4 mb-8">
+<div class="flex flex-wrap justify-start gap-4 mb-8 mt-4 px-6">
   <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
     Todos
   </button>
   <?php foreach($categorias as $cat): ?>
     <button data-category="<?= strtolower($cat['nombre']) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
-      <?= $cat['nombre'] ?>
+      <?= htmlspecialchars($cat['nombre']) ?>
     </button>
   <?php endforeach; ?>
 </div>
 
 <!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" id="productos-grid">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
   <?php foreach($productos as $prod): ?>
     <?php
-$imagen = 'pages/uploads/sin-imagen.png'; // por defecto
+      $imagen = !empty($prod['imagen_variante']) ? $prod['imagen_variante'] :
+                (!empty($prod['producto_imagen']) ? $prod['producto_imagen'] : 'sin-imagen.png');
 
-if (!empty($prod['imagen_variante'])) {
-    $imagen = 'pages/uploads/' . htmlspecialchars($prod['imagen_variante']);
-} elseif (!empty($prod['producto_imagen'])) {
-    $imagen = 'pages/uploads/' . htmlspecialchars($prod['producto_imagen']);
-}
-?>
-    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="<?= strtolower($prod['categoria']) ?>">
-      <img src="<?= $imagen ?>" alt="<?= htmlspecialchars($prod['producto_nombre']) ?>" class="w-full h-40 object-cover rounded">
+      $size = !empty($prod['talla']) ? $prod['talla'] : 'M';
+      $color = !empty($prod['color']) ? $prod['color'] : 'Negro';
+      $price = !empty($prod['precio_unitario']) ? $prod['precio_unitario'] : 0;
+      $code = !empty($prod['variante_cod_barras']) ? $prod['variante_cod_barras'] : $prod['producto_cod_barras'];
+    ?>
+    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" 
+             data-category="<?= strtolower($prod['categoria']) ?>"
+             data-size="<?= htmlspecialchars($size) ?>"
+             data-color="<?= htmlspecialchars($color) ?>"
+             data-price="<?= htmlspecialchars($price) ?>"
+             data-img="../public/img/productos/<?= htmlspecialchars($imagen) ?>"
+             data-code="<?= htmlspecialchars($code) ?>"
+             data-name="<?= htmlspecialchars($prod['producto_nombre']) ?>">
+      <img src="../public/img/productos/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['producto_nombre']) ?>" class="w-full h-40 object-cover rounded">
       <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['producto_nombre']) ?></h3>
       <p class="text-gray-500 text-sm">Código: <?= htmlspecialchars($prod['producto_cod_barras']) ?></p>
-      <p class="text-lg font-bold mt-2">$<?= number_format($prod['precio_unitario'],2) ?></p>
+      <p class="text-lg font-bold mt-2">$<?= number_format($price,2) ?></p>
       <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
         Agregar
       </button>
@@ -64,7 +78,7 @@ if (!empty($prod['imagen_variante'])) {
   <?php endforeach; ?>
 </div>
 
-<!-- CARRITO -->
+<!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-lg font-bold">Orden</h2>
@@ -78,13 +92,12 @@ if (!empty($prod['imagen_variante'])) {
 
   <form id="checkout-form" method="POST" action="procesar_venta.php" class="mt-4">
     <input type="hidden" name="cart_data" id="cart-data">
-    <input type="hidden" name="payments_data" id="payments-data">
     <div class="border-t pt-4 mt-4">
       <div class="flex justify-between text-sm">
         <span>Subtotal:</span><span id="subtotal">$0.00</span>
       </div>
       <div class="flex justify-between text-sm text-red-500">
-        <span>Descuento:</span><span id="discount">-$0.00</span>
+        <span>Descuento:</span><span id="discount">$0.00</span>
       </div>
       <div class="flex justify-between font-bold text-lg mt-2">
         <span>Total:</span><span id="total">$0.00</span>
@@ -97,54 +110,41 @@ if (!empty($prod['imagen_variante'])) {
   </form>
 </aside>
 
-<!-- MODALES -->
-<div id="discount-card" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<!-- MODAL DESCUENTO -->
+<div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white p-6 rounded-lg w-80 shadow-lg">
-    <h3 class="font-bold mb-2">Aplicar Descuento</h3>
-    <input id="discount-input" type="text" placeholder="10% o 50" class="border w-full px-3 py-2 mb-3 rounded">
+    <h3 class="font-bold mb-2">Aplicar Descuento (%)</h3>
+    <input id="discount-input" type="number" placeholder="10" class="border w-full px-3 py-2 mb-3 rounded">
     <div class="flex justify-end gap-2">
       <button id="close-discount" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-      <button id="apply-discount" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
-    </div>
-  </div>
-</div>
-
-<div id="payment-card" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg w-96 shadow-lg">
-    <h3 class="font-bold mb-2">Pagos</h3>
-    <div class="space-y-2">
-      <input type="number" data-method="efectivo" placeholder="Efectivo" class="payment-input border w-full px-3 py-2 rounded">
-      <input type="number" data-method="tarjeta" placeholder="Tarjeta" class="payment-input border w-full px-3 py-2 rounded">
-    </div>
-    <p class="text-right font-bold mt-3">Total: <span id="total">$0.00</span></p>
-    <div class="flex justify-end gap-2 mt-3">
-      <button id="close-payment" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-      <button id="confirm-payment" class="px-4 py-2 bg-lime-500 text-white rounded">Confirmar</button>
+      <button id="discount-apply-btn" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
     </div>
   </div>
 </div>
 
 <!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
-<script src="../src/scripts/modal.js"></script>
-
 <script>
-// Búsqueda global
-document.getElementById('globalSearch')?.addEventListener('input', e => {
-  const query = e.target.value.toLowerCase();
-  document.querySelectorAll('.producto').forEach(prod => {
-    const name = prod.querySelector('h3').textContent.toLowerCase();
-    prod.style.display = name.includes(query) ? '' : 'none';
+  // Enviar carrito al backend antes de procesar venta
+  document.getElementById("checkout-form").addEventListener("submit", (e) => {
+    const cartData = localStorage.getItem("cart") || "[]";
+    document.getElementById("cart-data").value = cartData;
   });
-});
 
-// Filtros de categoría
-document.querySelectorAll('.category-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const cat = btn.dataset.category;
-    document.querySelectorAll('.producto').forEach(prod => {
-      prod.style.display = (cat === 'all' || prod.dataset.category === cat) ? '' : 'none';
+  // Filtrar productos por categoría
+  document.querySelectorAll(".category-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const category = btn.dataset.category;
+      document.querySelectorAll("#productos-grid .producto").forEach(prod => {
+        if(category === "all" || prod.dataset.category === category) {
+          prod.classList.remove("hidden");
+        } else {
+          prod.classList.add("hidden");
+        }
+      });
     });
   });
-});
 </script>
+
+</body>
+</html>
