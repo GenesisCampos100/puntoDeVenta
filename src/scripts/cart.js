@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const addToCartBtns = document.querySelectorAll(".add-to-cart");
   const payBtn = document.getElementById("pay-btn");
 
+  // Modal
+  const discountModal = document.getElementById("discount-modal");
+  const discountInput = document.getElementById("discount-input");
+  const discountApplyBtn = document.getElementById("discount-apply-btn");
+  let currentDiscountItem = null;
+
   function getCart() {
     return JSON.parse(localStorage.getItem("cart")) || [];
   }
@@ -26,191 +32,172 @@ document.addEventListener("DOMContentLoaded", () => {
     totalEl.textContent = "$0.00";
   }
 
-function renderCart() {
-  const cart = getCart();
-  if (!cart.length) return showEmptyMessage();
+  function renderCart() {
+    const cart = getCart();
+    if (!cart.length) return showEmptyMessage();
 
-  cartItemsContainer.innerHTML = "";
-  let subtotal = 0;
+    cartItemsContainer.innerHTML = "";
+    let subtotal = 0;
+    let totalDiscount = 0;
 
-  cart.forEach((item, index) => {
-    const itemTotal = item.price * item.quantity;
-    subtotal += itemTotal;
+    cart.forEach((item, index) => {
+      item.size = item.size || "M";
+      item.color = item.color || "Negro";
+      item.discount = item.discount || 0;
 
-    const itemDiv = document.createElement("div");
-    itemDiv.className =
-      "flex items-center justify-between bg-gray-50 rounded-sm p-3 mb-3 transition hover:bg-gray-100";
+      const itemPriceAfterDiscount = item.price * (1 - item.discount / 100);
+      const itemTotal = itemPriceAfterDiscount * item.quantity;
 
-    itemDiv.innerHTML = `
-      <div class="flex items-start gap-4">
-  <!-- Imagen del producto -->
-  <img src="${item.img}" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover">
+      subtotal += itemTotal;
+      totalDiscount += (item.price * item.quantity - itemTotal);
 
-  <!-- Información y opciones -->
-  <div class="flex flex-col gap-2">
-    <!-- Nombre -->
-    <p class="font-semibold truncate w-32">${item.name}</p>
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "flex gap-4 mb-3 bg-white rounded-xl shadow-sm p-2 w-full items-stretch";
 
-    <!-- Selects de tamaño y color -->
-    <div class="flex gap-2">
-      <select class="size-select border rounded-lg text-sm font-medium text-center p-2 focus:ring-1 focus:ring-gray-300">
-        <option value="XS" ${item.size === "XS" ? "selected" : ""}>XS</option>
-        <option value="S" ${item.size === "S" ? "selected" : ""}>S</option>
-        <option value="M" ${item.size === "M" ? "selected" : ""}>M</option>
-        <option value="L" ${item.size === "L" ? "selected" : ""}>L</option>
-        <option value="XL" ${item.size === "XL" ? "selected" : ""}>XL</option>
-      </select>
+      itemDiv.innerHTML = `
+        <!-- Imagen -->
+        <img src="${item.img}" alt="${item.name}" class="w-20 h-full rounded-xl object-cover">
 
-      <select class="color-select border rounded-lg text-sm font-medium text-center p-2 focus:ring-1 focus:ring-gray-300">
-        <option value="Negro" ${item.color === "Negro" ? "selected" : ""}>Negro</option>
-        <option value="Blanco" ${item.color === "Blanco" ? "selected" : ""}>Blanco</option>
-        <option value="Azul" ${item.color === "Azul" ? "selected" : ""}>Azul</option>
-        <option value="Rojo" ${item.color === "Rojo" ? "selected" : ""}>Rojo</option>
-        <option value="Verde" ${item.color === "Verde" ? "selected" : ""}>Verde</option>
-      </select>
-    </div>
+        <!-- Panel derecho -->
+        <div class="flex-1 grid grid-rows-3 gap-2">
 
-    <!-- Contador de cantidad debajo del select -->
-    <div class="flex items-center gap-2">
-      <button class="decrease bg-rose-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-lg hover:bg-rose-600">−</button>
-      <span class="font-semibold w-6 text-center">${String(item.quantity).padStart(2, "0")}</span>
-      <button class="increase bg-lime-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-lg hover:bg-lime-600">+</button>
-    </div>
+          <!-- Fila 1: Nombre + botones -->
+          <div class="flex justify-between items-center w-full">
+            <p class="font-semibold truncate">${item.name}</p>
+            <div class="flex gap-2">
+              <button class="discount-btn bg-yellow-400 text-white text-sm px-2 py-1 rounded hover:bg-yellow-500 transition">%</button>
+              <button class="remove bg-rose-500 text-white text-sm px-2 py-1 rounded hover:bg-rose-600 transition">✕</button>
+            </div>
+          </div>
+
+          <!-- Fila 2: Selects -->
+          <div class="flex gap-2 w-full">
+            <select class="size-select border rounded-lg text-sm font-medium text-center p-2 flex-1 focus:ring-1 focus:ring-gray-300">
+              <option value="XS" ${item.size==="XS"?"selected":""}>XS</option>
+              <option value="S" ${item.size==="S"?"selected":""}>S</option>
+              <option value="M" ${item.size==="M"?"selected":""}>M</option>
+              <option value="L" ${item.size==="L"?"selected":""}>L</option>
+              <option value="XL" ${item.size==="XL"?"selected":""}>XL</option>
+            </select>
+
+            <select class="color-select border rounded-lg text-sm font-medium text-center p-2 flex-1 focus:ring-1 focus:ring-gray-300">
+              <option value="Negro" ${item.color==="Negro"?"selected":""}>Negro</option>
+              <option value="Blanco" ${item.color==="Blanco"?"selected":""}>Blanco</option>
+              <option value="Azul" ${item.color==="Azul"?"selected":""}>Azul</option>
+              <option value="Rojo" ${item.color==="Rojo"?"selected":""}>Rojo</option>
+              <option value="Verde" ${item.color==="Verde"?"selected":""}>Verde</option>
+            </select>
+          </div>
+
+          <!-- Fila 3: Contador + Precio -->
+<div class="flex w-full">
+  <!-- Contador -->
+  <div class="flex items-center justify-between w-1/2">
+    <button class="decrease bg-rose-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-rose-600 transition">−</button>
+    <span class="flex-1 text-center font-semibold select-none">${String(item.quantity).padStart(2,"0")}</span>
+    <button class="increase bg-lime-500 h-8 w-8 rounded-full text-white flex justify-center items-center hover:bg-lime-600 transition">+</button>
   </div>
 
-  <!-- Total y botones de acción -->
-  <div class="flex flex-col items-end gap-2">
-    <p class="text-lg font-semibold text-gray-700 item-total transition-all duration-200">$${itemTotal.toFixed(2)}</p>
-    <div class="flex gap-2">
-      <button class="discount-btn bg-pink-200 p-1.5 rounded-full text-pink-700 hover:bg-pink-300">🏷️</button>
-      <button class="remove bg-gray-800 p-1.5 rounded-full text-white hover:bg-gray-700">🗑️</button>
-    </div>
+  <!-- Precio -->
+  <div class="w-1/2 flex justify-end items-center">
+    <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
   </div>
 </div>
 
-    `;
+      `;
 
-    // Eventos cantidad
-    itemDiv.querySelector(".increase").addEventListener("click", () => {
-      item.quantity++;
-      setCart(cart);
-      animateCartTotal();
-      renderCart();
-    });
-
-    itemDiv.querySelector(".decrease").addEventListener("click", () => {
-      if (item.quantity > 1) item.quantity--;
-      else cart.splice(index, 1);
-      setCart(cart);
-      animateCartTotal();
-      renderCart();
-    });
-
-    // Eventos eliminar
-    itemDiv.querySelector(".remove").addEventListener("click", () => {
-      cart.splice(index, 1);
-      setCart(cart);
-      animateCartTotal();
-      renderCart();
-    });
-
-    // Eventos de talla y color
-    itemDiv.querySelector(".size-select").addEventListener("change", (e) => {
-      item.size = e.target.value;
-      setCart(cart);
-    });
-
-    itemDiv.querySelector(".color-select").addEventListener("change", (e) => {
-      item.color = e.target.value;
-      setCart(cart);
-    });
-
-    // Descuento individual
-    itemDiv.querySelector(".discount-btn").addEventListener("click", () => {
-      const event = new CustomEvent("openProductDiscount", {
-        detail: { item, renderCart },
+      // Eventos cantidad
+      itemDiv.querySelector(".increase").addEventListener("click", () => {
+        item.quantity++;
+        setCart(cart);
+        renderCart();
       });
-      document.dispatchEvent(event);
+      itemDiv.querySelector(".decrease").addEventListener("click", () => {
+        if (item.quantity > 1) item.quantity--;
+        else cart.splice(index, 1);
+        setCart(cart);
+        renderCart();
+      });
+
+      // Eliminar
+      itemDiv.querySelector(".remove").addEventListener("click", () => {
+        cart.splice(index, 1);
+        setCart(cart);
+        renderCart();
+      });
+
+      // Selects
+      itemDiv.querySelector(".size-select").addEventListener("change", (e) => {
+        item.size = e.target.value;
+        setCart(cart);
+      });
+      itemDiv.querySelector(".color-select").addEventListener("change", (e) => {
+        item.color = e.target.value;
+        setCart(cart);
+      });
+
+      // Descuento individual
+      itemDiv.querySelector(".discount-btn").addEventListener("click", () => {
+        currentDiscountItem = item;
+        discountInput.value = item.discount;
+        discountModal.classList.remove("hidden");
+      });
+
+      cartItemsContainer.appendChild(itemDiv);
     });
 
-    cartItemsContainer.appendChild(itemDiv);
-  });
+    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    discountEl.textContent = `$${totalDiscount.toFixed(2)}`;
+    totalEl.textContent = `$${(subtotal).toFixed(2)}`;
+  }
 
-  // Animación del total
-  animateCartNumber(subtotalEl, subtotal);
-  animateCartNumber(discountEl, 0);
-  animateCartNumber(totalEl, subtotal);
-}
-
-
-
-  // Botón limpiar carrito
+  // Limpiar carrito
   clearCartBtn?.addEventListener("click", () => {
     localStorage.removeItem("cart");
     renderCart();
   });
 
-addToCartBtns.forEach(btn => {
-  btn.addEventListener("click", (e) => {
-    const product = e.target.closest(".producto");
-    const name = product.querySelector("h3").textContent;
-    const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$", ""));
-    const img = product.querySelector("img").src;
-    const code = product.querySelector("p.text-gray-500")?.textContent.replace("Código:", "").trim() || name;
+  // Agregar al carrito
+  addToCartBtns.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const product = e.target.closest(".producto");
+      const name = product.querySelector("h3").textContent;
+      const price = parseFloat(product.querySelector("p.font-bold").textContent.replace("$", ""));
+      const img = product.querySelector("img").src;
+      const code = product.querySelector("p.text-gray-500")?.textContent.replace("Código:", "").trim() || name;
 
-    const cart = getCart();
-    // Buscar por código único
-    const existing = cart.find(i => i.code === code);
+      const cart = getCart();
+      const existing = cart.find(i => i.code === code);
 
-    if (existing) {
-      existing.quantity++;
-    } else {
-      cart.push({
-        code,
-        name,
-        price,
-        img,
-        quantity: 1
-      });
-    }
+      if (existing) existing.quantity++;
+      else cart.push({ code, name, price, img, quantity: 1, size: "M", color: "Negro", discount: 0 });
 
-    setCart(cart);
-    renderCart();
+      setCart(cart);
+      renderCart();
+    });
   });
-});
 
+  // Aplicar descuento
+  discountApplyBtn?.addEventListener("click", () => {
+    if (currentDiscountItem) {
+      currentDiscountItem.discount = parseFloat(discountInput.value) || 0;
+      setCart(getCart());
+      renderCart();
+      discountModal.classList.add("hidden");
+      currentDiscountItem = null;
+    }
+  });
 
-  // Pago
+  discountModal?.addEventListener("click", (e) => {
+    if (e.target.id === "discount-modal" || e.target.classList.contains("close-modal")) {
+      discountModal.classList.add("hidden");
+      currentDiscountItem = null;
+    }
+  });
+
   payBtn?.addEventListener("click", () => {
     document.dispatchEvent(new CustomEvent("openPaymentModal"));
   });
 
   renderCart();
 });
-
-// Animación suave de números (subtotal, total)
-function animateCartNumber(el, newValue) {
-  const current = parseFloat(el.textContent.replace(/[^0-9.-]+/g, "")) || 0;
-  const diff = newValue - current;
-  const duration = 300;
-  const steps = 20;
-  let step = 0;
-
-  const interval = setInterval(() => {
-    step++;
-    const value = current + (diff * step) / steps;
-    el.textContent = `$${value.toFixed(2)}`;
-    if (step >= steps) clearInterval(interval);
-  }, duration / steps);
-
-  // Efecto de resaltado visual al actualizar
-  el.classList.add("text-rose-500");
-  setTimeout(() => el.classList.remove("text-rose-500"), 300);
-}
-
-function animateCartTotal() {
-  const cartContainer = document.querySelector("#cart-items");
-  if (!cartContainer) return;
-  cartContainer.classList.add("scale-95");
-  setTimeout(() => cartContainer.classList.remove("scale-95"), 150);
-}

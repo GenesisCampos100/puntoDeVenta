@@ -44,11 +44,16 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" id="productos-grid">
   <?php foreach($productos as $prod): ?>
     <?php
-      $imagen = !empty($prod['imagen_variante']) ? $prod['imagen_variante'] :
-                (!empty($prod['producto_imagen']) ? $prod['producto_imagen'] : 'sin-imagen.png');
-    ?>
+$imagen = 'pages/uploads/sin-imagen.png'; // por defecto
+
+if (!empty($prod['imagen_variante'])) {
+    $imagen = 'pages/uploads/' . htmlspecialchars($prod['imagen_variante']);
+} elseif (!empty($prod['producto_imagen'])) {
+    $imagen = 'pages/uploads/' . htmlspecialchars($prod['producto_imagen']);
+}
+?>
     <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="<?= strtolower($prod['categoria']) ?>">
-      <img src="../public/img/productos/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['producto_nombre']) ?>" class="w-full h-40 object-cover rounded">
+      <img src="<?= $imagen ?>" alt="<?= htmlspecialchars($prod['producto_nombre']) ?>" class="w-full h-40 object-cover rounded">
       <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['producto_nombre']) ?></h3>
       <p class="text-gray-500 text-sm">Código: <?= htmlspecialchars($prod['producto_cod_barras']) ?></p>
       <p class="text-lg font-bold mt-2">$<?= number_format($prod['precio_unitario'],2) ?></p>
