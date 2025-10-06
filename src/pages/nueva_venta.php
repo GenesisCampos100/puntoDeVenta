@@ -47,36 +47,105 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
   <?php endforeach; ?>
 </div>
 
-<!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
-  <?php foreach($productos as $prod): ?>
-    <?php
-      $imagen = !empty($prod['imagen_variante']) ? $prod['imagen_variante'] :
-                (!empty($prod['producto_imagen']) ? $prod['producto_imagen'] : 'sin-imagen.png');
+<?php
+require_once __DIR__ . "/../config/db.php";
 
-      $size = !empty($prod['talla']) ? $prod['talla'] : 'M';
-      $color = !empty($prod['color']) ? $prod['color'] : 'Negro';
-      $price = !empty($prod['precio_unitario']) ? $prod['precio_unitario'] : 0;
-      $code = !empty($prod['variante_cod_barras']) ? $prod['variante_cod_barras'] : $prod['producto_cod_barras'];
+$sql = "SELECT 
+            p.id AS id_producto,
+            p.cod_barras AS producto_cod_barras,
+            p.nombre AS producto_nombre,
+            p.imagen AS producto_imagen,
+            c.nombre AS categoria,
+            v.id AS id_variante,
+            v.cod_barras AS variante_cod_barras,
+            v.talla,
+            v.color,
+            v.imagen AS imagen_variante,
+            v.precio_unitario
+        FROM productos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN variantes v ON v.id_producto = p.id
+        ORDER BY p.nombre ASC";
+
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar por producto
+$productos = [];
+foreach ($rows as $row) {
+    $id = $row['id_producto'];
+    if (!isset($productos[$id])) {
+        $productos[$id] = [
+            'codigo' => $row['producto_cod_barras'],
+            'nombre' => $row['producto_nombre'],
+            'precio' => $row['precio_unitario'],
+            'imagen' => $row['producto_imagen'],
+            'categoria' => $row['categoria'],
+            'variantes' => []
+        ];
+    }
+
+    if (!empty($row['talla']) || !empty($row['color'])) {
+        $productos[$id]['variantes'][] = [
+            'size' => $row['talla'],
+            'color' => $row['color'],
+            'price' => $row['precio_unitario'] ?: $productos[$id]['precio'],
+            'image' => $row['imagen_variante'] ?: $productos[$id]['imagen'],
+            'code'  => $row['variante_cod_barras'] ?: $productos[$id]['codigo']
+        ];
+    }
+}
+?>
+
+<!-- GRID PRODUCTOS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" id="productos-grid">
+  <?php foreach($productos as $prod): ?>
+    <?php 
+      $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
+      $sizes = array_unique(array_filter(array_column($prod['variantes'], 'size')));
+      $colors = array_unique(array_filter(array_column($prod['variantes'], 'color')));
+
+      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
+      $precio = $prod['precio'] ?: 0;
     ?>
     <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" 
-             data-category="<?= strtolower($prod['categoria']) ?>"
-             data-size="<?= htmlspecialchars($size) ?>"
-             data-color="<?= htmlspecialchars($color) ?>"
-             data-price="<?= htmlspecialchars($price) ?>"
-             data-img="../public/img/productos/<?= htmlspecialchars($imagen) ?>"
-             data-code="<?= htmlspecialchars($code) ?>"
-             data-name="<?= htmlspecialchars($prod['producto_nombre']) ?>">
-      <img src="../public/img/productos/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['producto_nombre']) ?>" class="w-full h-40 object-cover rounded">
-      <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['producto_nombre']) ?></h3>
-      <p class="text-gray-500 text-sm">Código: <?= htmlspecialchars($prod['producto_cod_barras']) ?></p>
-      <p class="text-lg font-bold mt-2">$<?= number_format($price,2) ?></p>
+             data-name="<?= htmlspecialchars($prod['nombre']) ?>"
+             data-code="<?= htmlspecialchars($prod['codigo']) ?>"
+             data-img="../uploads/<?= htmlspecialchars($imagen) ?>"
+             data-price="<?= htmlspecialchars($precio) ?>"
+             data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
+
+      <img src="../uploads/<?= htmlspecialchars($imagen) ?>" 
+           alt="<?= htmlspecialchars($prod['nombre']) ?>" 
+           class="w-full h-40 object-cover rounded product-image">
+
+      <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
+      <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
+      <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
+
+      <?php if ($sizes): ?>
+        <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+          <?php foreach ($sizes as $size): ?>
+            <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+          <?php endforeach; ?>
+        </select>
+      <?php endif; ?>
+
+      <?php if ($colors): ?>
+        <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+          <?php foreach ($colors as $color): ?>
+            <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+          <?php endforeach; ?>
+        </select>
+      <?php endif; ?>
+
       <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
         Agregar
       </button>
     </article>
   <?php endforeach; ?>
 </div>
+
 
 <!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
