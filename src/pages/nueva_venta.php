@@ -115,7 +115,7 @@ foreach ($rows as $row) {
              data-price="<?= htmlspecialchars($precio) ?>"
              data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
 
-      <img src="../uploads/<?= htmlspecialchars($imagen) ?>" 
+      <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
            alt="<?= htmlspecialchars($prod['nombre']) ?>" 
            class="w-full h-40 object-cover rounded product-image">
 
