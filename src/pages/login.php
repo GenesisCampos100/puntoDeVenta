@@ -438,7 +438,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
 
             <div class="formulario "> <!--Inicio formulario-->
                 <div class="login-logo">
-                    <img src="/src/img/Logo_prisma.png">
+                    <img src="/../../public/img/logo2.png">
                 </div>
                 <H1 class="login-titulo">Tu punto de venta favorito</H1>
 
@@ -446,7 +446,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
-                            <label for="email">Ingrese su correo:</label>
+                            <label for="usuario">Ingrese su usuario:</label>
                             <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                 fill="currentColor" class="size-6">
                                 <path
@@ -454,7 +454,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
                                 <path
                                     d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
                             </svg>
-                            <input type="email" id="email" name="email" required placeholder="">
+                            <input type="text" id="usuario" name="usuario" required placeholder="">
                         </div>
 
                         <div class="campo">
@@ -496,9 +496,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
                 <div class="login-navegacion"> <!--Inicio de navegación-->
                     <a href="/src/pages/recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
 
-                    <p>¿No tienes cuenta? <a href="/src/pages/registrate.html">Registrate</a></p>
-
-                    <a href="#">Inicio</a>
+                    
                 </div> <!--Final de navegación-->
 
             </div> <!--Fin formulario-->
