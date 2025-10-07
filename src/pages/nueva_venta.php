@@ -56,6 +56,11 @@ foreach ($rows as $row) {
 
 // Traer categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
+
+// Función para normalizar nombres de categoría
+function normalizeCategory($name) {
+    return strtolower(trim(preg_replace('/\s+/', '', $name)));
+}
 ?>
 
 <!DOCTYPE html>
@@ -69,15 +74,17 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
 <!-- FILTROS DE CATEGORÍA -->
 <div class="flex flex-wrap justify-start gap-4 mb-8 mt-4 px-6">
-  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Todos</button>
+  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+    Todos
+  </button>
   <?php foreach($categorias as $cat): ?>
-    <button data-category="<?= strtolower(trim($cat['nombre'])) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+    <button data-category="<?= normalizeCategory($cat['nombre']) ?>" 
+            class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
       <?= htmlspecialchars($cat['nombre']) ?>
     </button>
   <?php endforeach; ?>
 </div>
 
-<!-- GRID PRODUCTOS -->
 <!-- GRID PRODUCTOS -->
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
   <?php foreach($productos as $prod): ?>
@@ -96,7 +103,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
              data-code="<?= htmlspecialchars($prod['codigo']) ?>"
              data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
              data-price="<?= htmlspecialchars($precio) ?>"
-             data-category="<?= strtolower(trim($prod['categoria'])) ?>"
+             data-category="<?= normalizeCategory($prod['categoria']) ?>"
              data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
 
       <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
@@ -107,7 +114,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
       <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
       <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
 
-      <!-- Siempre mostrar selects, aunque tenga una sola opción -->
+      <!-- Selects de talla y color -->
       <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
         <?php foreach ($sizes as $size): ?>
           <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
@@ -124,7 +131,6 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
     </article>
   <?php endforeach; ?>
 </div>
-
 
 <!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
@@ -155,53 +161,58 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
     </div>
   </form>
 </aside>
+
 <script>
-// --- Actualizar colores según talla seleccionada ---
+// Filtrado de productos por categoría
 document.addEventListener('DOMContentLoaded', () => {
+  const buttons = document.querySelectorAll('.category-btn');
   const productos = document.querySelectorAll('.producto');
 
-  productos.forEach(prod => {
-    const sizeSelect = prod.querySelector('.variant-size');
-    const colorSelect = prod.querySelector('.variant-color');
-    const variants = JSON.parse(prod.dataset.variants || '[]');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const selectedCat = btn.dataset.category.toLowerCase().trim();
 
-    // Si no hay variantes, no hacemos nada
-    if (!variants.length) return;
-
-    // Guardamos todos los colores posibles por talla
-    const colorMap = {};
-    variants.forEach(v => {
-      if (!colorMap[v.size]) colorMap[v.size] = [];
-      if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
-    });
-
-    // Evento: al cambiar la talla
-    sizeSelect.addEventListener('change', () => {
-      const selectedSize = sizeSelect.value;
-      const validColors = colorMap[selectedSize] || [];
-
-      // Limpiar y actualizar el select de colores
-      colorSelect.innerHTML = '';
-      validColors.forEach(color => {
-        const opt = document.createElement('option');
-        opt.value = color;
-        opt.textContent = color;
-        colorSelect.appendChild(opt);
+      productos.forEach(prod => {
+        const prodCat = prod.dataset.category.toLowerCase().trim();
+        if (selectedCat === 'all' || prodCat === selectedCat) {
+          prod.style.display = 'block';
+        } else {
+          prod.style.display = 'none';
+        }
       });
-
-      // Si no hay colores para esa talla, usar el color actual por defecto
-      if (validColors.length === 0) {
-        const defaultColor = prod.dataset.colorDefault || 'Sin color';
-        const opt = document.createElement('option');
-        opt.value = defaultColor;
-        opt.textContent = defaultColor;
-        colorSelect.appendChild(opt);
-      }
     });
   });
 });
-</script>
 
+// Actualizar colores según talla seleccionada
+document.querySelectorAll('.producto').forEach(prod => {
+  const sizeSelect = prod.querySelector('.variant-size');
+  const colorSelect = prod.querySelector('.variant-color');
+  const variants = JSON.parse(prod.dataset.variants || '[]');
+
+  if (!variants.length) return;
+
+  const colorMap = {};
+  variants.forEach(v => {
+    if (!colorMap[v.size]) colorMap[v.size] = [];
+    if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
+  });
+
+  const updateColors = () => {
+    const validColors = colorMap[sizeSelect.value] || [];
+    colorSelect.innerHTML = '';
+    validColors.forEach(color => {
+      const opt = document.createElement('option');
+      opt.value = color;
+      opt.textContent = color;
+      colorSelect.appendChild(opt);
+    });
+  };
+
+  sizeSelect.addEventListener('change', updateColors);
+  updateColors();
+});
+</script>
 
 <script src="../src/scripts/cart.js"></script>
 </body>

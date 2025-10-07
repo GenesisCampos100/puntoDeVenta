@@ -13,7 +13,11 @@ const totalEl = document.getElementById("total");
 function updateCart() {
   cartContainer.innerHTML = "";
   if (!cart.length) {
-    cartContainer.innerHTML = `<div class="text-center text-gray-500 py-10"><p class="text-lg font-medium">🛒 Tu carrito está vacío</p><p class="text-sm mt-2">Agrega productos desde el catálogo.</p></div>`;
+    cartContainer.innerHTML = `
+      <div class="text-center text-gray-500 py-10">
+        <p class="text-lg font-medium">🛒 Tu carrito está vacío</p>
+        <p class="text-sm mt-2">Agrega productos desde el catálogo.</p>
+      </div>`;
     subtotalEl.textContent = "$0.00";
     discountEl.textContent = "-$0.00";
     totalEl.textContent = "$0.00";
@@ -41,8 +45,8 @@ function updateCart() {
               </div>
             </div>
 
-            <!-- Selects solo si hay más de una opción o variantes -->
-            ${(item.sizes && item.sizes.length > 1 ? `
+            <!-- Selects -->
+            ${(item.sizes && item.sizes.length > 0 ? `
             <div class="flex gap-2 mt-1">
               <select class="size-select border rounded-lg text-sm font-medium text-center p-2 w-24 focus:ring-1 focus:ring-blue-400">
                 ${item.sizes.map(s => `<option value="${s}" ${s===item.size?'selected':''}>${s}</option>`).join('')}
@@ -67,6 +71,7 @@ function updateCart() {
           </div>
         </div>
       </div>`;
+
     const card = wrapper.firstElementChild;
 
     // --- BOTONES DE CANTIDAD ---
@@ -85,23 +90,59 @@ function updateCart() {
     // --- VARIANTES ---
     const sizeSelect = card.querySelector(".size-select");
     const colorSelect = card.querySelector(".color-select");
+
     if(sizeSelect && colorSelect && item.variants && item.variants.length){
-      const updateColors = ()=>{
-        const validColors = item.variants.filter(v=>v.size===sizeSelect.value).map(v=>v.color);
-        colorSelect.querySelectorAll("option").forEach(opt=>opt.disabled=!validColors.includes(opt.value));
-        if(!validColors.includes(item.color)) item.color = validColors[0]||"";
+      const colorMap = {};
+
+      // Construir mapa talla → colores
+      item.variants.forEach(v => {
+        if (!colorMap[v.size]) colorMap[v.size] = [];
+        if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
+      });
+
+      // Función: actualizar color segun talla
+      const updateColors = () => {
+        const validColors = colorMap[sizeSelect.value] || [];
+
+        colorSelect.innerHTML = "";
+        validColors.forEach(color => {
+          const opt = document.createElement("option");
+          opt.value = color;
+          opt.textContent = color;
+          colorSelect.appendChild(opt);
+        });
+
+        if (!validColors.includes(item.color)) {
+          item.color = validColors[0] || "Sin color";
+        }
+
         colorSelect.value = item.color;
         updateVariant();
       };
-      const updateVariant = ()=>{
-        const v = item.variants.find(vv=>vv.size===sizeSelect.value && vv.color===colorSelect.value);
-        if(v){ item.price=parseFloat(v.price); item.img=v.image||item.img; }
-        card.querySelector("p.font-semibold.text-lg").textContent=`$${(item.price*item.quantity-(item.discount||0)).toFixed(2)}`;
+
+      // Función: actualizar precio e imagen segun combinación
+      const updateVariant = () => {
+        const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
+        if (v) {
+  item.price = parseFloat(v.price);
+  item.img = v.image ? `uploads/${v.image}` : item.img;
+}
+
+        card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - (item.discount || 0)).toFixed(2)}`;
         card.querySelector("img").src = item.img;
         recalcTotals();
       };
-      sizeSelect.addEventListener("change",()=>{item.size=sizeSelect.value; updateColors();});
-      colorSelect.addEventListener("change",()=>{item.color=colorSelect.value; updateVariant();});
+
+      // Eventos
+      sizeSelect.addEventListener("change", () => {
+        item.size = sizeSelect.value;
+        updateColors();
+      });
+      colorSelect.addEventListener("change", () => {
+        item.color = colorSelect.value;
+        updateVariant();
+      });
+
       updateColors();
     }
 
@@ -132,13 +173,15 @@ document.querySelectorAll(".add-to-cart").forEach(btn=>{
     const id=card.dataset.id;
     const name=card.dataset.name;
     const price=parseFloat(card.dataset.price);
-    const img=card.dataset.img||"src/uploads/sin-imagen.png";
+    const img = card.dataset.img ? `uploads/${card.dataset.img}` : "uploads/sin-imagen.png";
     const variants=card.dataset.variants?JSON.parse(card.dataset.variants):[];
+
     const sizeSelect=card.querySelector(".variant-size");
     const colorSelect=card.querySelector(".variant-color");
 
-    const size = sizeSelect ? sizeSelect.value : (card.dataset.size || "Única");
-    const color = colorSelect ? colorSelect.value : (card.dataset.color || "Sin color");
+    // Detectar talla/color según si tiene variantes
+    const size = sizeSelect ? sizeSelect.value : (card.dataset.sizeDefault || "Única");
+    const color = colorSelect ? colorSelect.value : (card.dataset.colorDefault || "Sin color");
 
     // Crear arrays para selects (aunque tenga solo un valor)
     const sizes = sizeSelect ? Array.from(sizeSelect.options).map(o=>o.value) : [size];
@@ -156,3 +199,4 @@ function addToCart(product){
 }
 
 updateCart();
+ 
