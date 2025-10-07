@@ -7,9 +7,15 @@
 
   <!-- Tu CSS personalizado -->
   <link rel="stylesheet" href="styles/output.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 </head>
 <body class="bg-gray-100">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
 
   <?php include __DIR__ . "/pages/menu.php"; ?>
 

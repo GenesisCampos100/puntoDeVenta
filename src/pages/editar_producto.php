@@ -218,12 +218,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </section>
 
+
     <section>
       <h3>💵 Precio de venta</h3>
       <div class="grid">
         <div>
           <label>Precio unitario</label>
-          <input type="number" step="0.01" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
+           <input type="number" step="0.01" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
+        </div>
+        <div>
+          <label>Margen (%)</label>
+          <input type="text" id="margen" readonly>
+        </div>
+        <div>
+          <label>Ganancia ($)</label>
+          <input type="text" id="ganancia" readonly>
         </div>
       </div>
     </section>
@@ -263,7 +272,29 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<link rel="stylesheet" href="agregar_producto.css">
+<script>
+// 💵 Cálculo automático de margen y ganancia
+function actualizarMargenGanancia() {
+  const costo = parseFloat(document.getElementById('costo').value) || 0;
+  const precio = parseFloat(document.getElementById('precio_unitario').value) || 0;
+  const margenInput = document.getElementById('margen');
+  const gananciaInput = document.getElementById('ganancia');
+
+  if (costo > 0 && precio > 0) {
+    const ganancia = precio - costo;
+    const margen = (ganancia / costo) * 100;
+    margenInput.value = margen.toFixed(2) + '%';
+    gananciaInput.value = '$' + ganancia.toFixed(2);
+  } else {
+    margenInput.value = '';
+    gananciaInput.value = '';
+  }
+}
+
+document.getElementById('costo').addEventListener('input', actualizarMargenGanancia);
+document.getElementById('precio_unitario').addEventListener('input', actualizarMargenGanancia);
+window.addEventListener('load', actualizarMargenGanancia);
+</script>
 
 <style>
 :root {
