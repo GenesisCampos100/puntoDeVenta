@@ -7,22 +7,54 @@ $sql = "SELECT
             p.cod_barras AS producto_cod_barras,
             p.nombre AS producto_nombre,
             p.imagen AS producto_imagen,
+            p.talla AS producto_talla,
+            p.color AS producto_color,
+            p.precio_unitario AS producto_precio,
             c.nombre AS categoria,
             v.id AS id_variante,
             v.cod_barras AS variante_cod_barras,
-            v.talla,
-            v.color,
-            v.imagen AS imagen_variante,
-            v.precio_unitario
+            v.talla AS variante_talla,
+            v.color AS variante_color,
+            v.imagen AS variante_imagen,
+            v.precio_unitario AS variante_precio
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN variantes v ON v.id_producto = p.id
         ORDER BY p.nombre ASC";
 
 $stmt = $pdo->query($sql);
-$productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Traer categorías para filtros
+// Agrupar productos con sus variantes
+$productos = [];
+foreach ($rows as $row) {
+    $id = $row['id_producto'];
+    if (!isset($productos[$id])) {
+        $productos[$id] = [
+            'id' => $id,
+            'codigo' => $row['producto_cod_barras'],
+            'nombre' => $row['producto_nombre'],
+            'imagen' => $row['producto_imagen'],
+            'precio' => $row['producto_precio'] ?: 0,
+            'categoria' => $row['categoria'],
+            'variantes' => [],
+            'size_default' => $row['producto_talla'] ?: 'Única',
+            'color_default' => $row['producto_color'] ?: 'Sin color',
+        ];
+    }
+
+    if ($row['variante_talla'] || $row['variante_color']) {
+        $productos[$id]['variantes'][] = [
+            'size' => $row['variante_talla'] ?: $productos[$id]['size_default'],
+            'color' => $row['variante_color'] ?: $productos[$id]['color_default'],
+            'price' => $row['variante_precio'] ?: $productos[$id]['precio'],
+            'image' => $row['variante_imagen'] ?: $productos[$id]['imagen'],
+            'code' => $row['variante_cod_barras'] ?: $productos[$id]['codigo'],
+        ];
+    }
+}
+
+// Traer categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -37,82 +69,34 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
 <!-- FILTROS DE CATEGORÍA -->
 <div class="flex flex-wrap justify-start gap-4 mb-8 mt-4 px-6">
-  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
-    Todos
-  </button>
+  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Todos</button>
   <?php foreach($categorias as $cat): ?>
-    <button data-category="<?= strtolower($cat['nombre']) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+    <button data-category="<?= strtolower(trim($cat['nombre'])) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
       <?= htmlspecialchars($cat['nombre']) ?>
     </button>
   <?php endforeach; ?>
 </div>
 
-<?php
-require_once __DIR__ . "/../config/db.php";
-
-$sql = "SELECT 
-            p.id AS id_producto,
-            p.cod_barras AS producto_cod_barras,
-            p.nombre AS producto_nombre,
-            p.imagen AS producto_imagen,
-            c.nombre AS categoria,
-            v.id AS id_variante,
-            v.cod_barras AS variante_cod_barras,
-            v.talla,
-            v.color,
-            v.imagen AS imagen_variante,
-            v.precio_unitario
-        FROM productos p
-        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-        LEFT JOIN variantes v ON v.id_producto = p.id
-        ORDER BY p.nombre ASC";
-
-$stmt = $pdo->query($sql);
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Agrupar por producto
-$productos = [];
-foreach ($rows as $row) {
-    $id = $row['id_producto'];
-    if (!isset($productos[$id])) {
-        $productos[$id] = [
-            'codigo' => $row['producto_cod_barras'],
-            'nombre' => $row['producto_nombre'],
-            'precio' => $row['precio_unitario'],
-            'imagen' => $row['producto_imagen'],
-            'categoria' => $row['categoria'],
-            'variantes' => []
-        ];
-    }
-
-    if (!empty($row['talla']) || !empty($row['color'])) {
-        $productos[$id]['variantes'][] = [
-            'size' => $row['talla'],
-            'color' => $row['color'],
-            'price' => $row['precio_unitario'] ?: $productos[$id]['precio'],
-            'image' => $row['imagen_variante'] ?: $productos[$id]['imagen'],
-            'code'  => $row['variante_cod_barras'] ?: $productos[$id]['codigo']
-        ];
-    }
-}
-?>
-
 <!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center" id="productos-grid">
+<!-- GRID PRODUCTOS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
   <?php foreach($productos as $prod): ?>
     <?php 
       $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
-      $sizes = array_unique(array_filter(array_column($prod['variantes'], 'size')));
-      $colors = array_unique(array_filter(array_column($prod['variantes'], 'color')));
-
+      $sizes = array_unique(array_map(fn($v)=>$v['size'],$prod['variantes']));
+      $colors = array_unique(array_map(fn($v)=>$v['color'],$prod['variantes']));
+      if(empty($sizes)) $sizes = [$prod['size_default']];
+      if(empty($colors)) $colors = [$prod['color_default']];
       $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
       $precio = $prod['precio'] ?: 0;
     ?>
-    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" 
+    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
+             data-id="<?= $prod['id'] ?>"
              data-name="<?= htmlspecialchars($prod['nombre']) ?>"
              data-code="<?= htmlspecialchars($prod['codigo']) ?>"
-             data-img="../uploads/<?= htmlspecialchars($imagen) ?>"
+             data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
              data-price="<?= htmlspecialchars($precio) ?>"
+             data-category="<?= strtolower(trim($prod['categoria'])) ?>"
              data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
 
       <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
@@ -123,25 +107,20 @@ foreach ($rows as $row) {
       <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
       <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
 
-      <?php if ($sizes): ?>
-        <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-          <?php foreach ($sizes as $size): ?>
-            <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-          <?php endforeach; ?>
-        </select>
-      <?php endif; ?>
+      <!-- Siempre mostrar selects, aunque tenga una sola opción -->
+      <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+        <?php foreach ($sizes as $size): ?>
+          <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+        <?php endforeach; ?>
+      </select>
 
-      <?php if ($colors): ?>
-        <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-          <?php foreach ($colors as $color): ?>
-            <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-          <?php endforeach; ?>
-        </select>
-      <?php endif; ?>
+      <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+        <?php foreach ($colors as $color): ?>
+          <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+        <?php endforeach; ?>
+      </select>
 
-      <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-        Agregar
-      </button>
+      <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
     </article>
   <?php endforeach; ?>
 </div>
@@ -171,49 +150,59 @@ foreach ($rows as $row) {
       <div class="flex justify-between font-bold text-lg mt-2">
         <span>Total:</span><span id="total">$0.00</span>
       </div>
-      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-        Realizar Pago
-      </button>
+      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">Realizar Pago</button>
       <button type="submit" id="submit-checkout" class="hidden"></button>
     </div>
   </form>
 </aside>
-
-<!-- MODAL DESCUENTO -->
-<div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg w-80 shadow-lg">
-    <h3 class="font-bold mb-2">Aplicar Descuento (%)</h3>
-    <input id="discount-input" type="number" placeholder="10" class="border w-full px-3 py-2 mb-3 rounded">
-    <div class="flex justify-end gap-2">
-      <button id="close-discount" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-      <button id="discount-apply-btn" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
-    </div>
-  </div>
-</div>
-
-<!-- SCRIPTS -->
-<script src="../src/scripts/cart.js"></script>
 <script>
-  // Enviar carrito al backend antes de procesar venta
-  document.getElementById("checkout-form").addEventListener("submit", (e) => {
-    const cartData = localStorage.getItem("cart") || "[]";
-    document.getElementById("cart-data").value = cartData;
-  });
+// --- Actualizar colores según talla seleccionada ---
+document.addEventListener('DOMContentLoaded', () => {
+  const productos = document.querySelectorAll('.producto');
 
-  // Filtrar productos por categoría
-  document.querySelectorAll(".category-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const category = btn.dataset.category;
-      document.querySelectorAll("#productos-grid .producto").forEach(prod => {
-        if(category === "all" || prod.dataset.category === category) {
-          prod.classList.remove("hidden");
-        } else {
-          prod.classList.add("hidden");
-        }
+  productos.forEach(prod => {
+    const sizeSelect = prod.querySelector('.variant-size');
+    const colorSelect = prod.querySelector('.variant-color');
+    const variants = JSON.parse(prod.dataset.variants || '[]');
+
+    // Si no hay variantes, no hacemos nada
+    if (!variants.length) return;
+
+    // Guardamos todos los colores posibles por talla
+    const colorMap = {};
+    variants.forEach(v => {
+      if (!colorMap[v.size]) colorMap[v.size] = [];
+      if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
+    });
+
+    // Evento: al cambiar la talla
+    sizeSelect.addEventListener('change', () => {
+      const selectedSize = sizeSelect.value;
+      const validColors = colorMap[selectedSize] || [];
+
+      // Limpiar y actualizar el select de colores
+      colorSelect.innerHTML = '';
+      validColors.forEach(color => {
+        const opt = document.createElement('option');
+        opt.value = color;
+        opt.textContent = color;
+        colorSelect.appendChild(opt);
       });
+
+      // Si no hay colores para esa talla, usar el color actual por defecto
+      if (validColors.length === 0) {
+        const defaultColor = prod.dataset.colorDefault || 'Sin color';
+        const opt = document.createElement('option');
+        opt.value = defaultColor;
+        opt.textContent = defaultColor;
+        colorSelect.appendChild(opt);
+      }
     });
   });
+});
 </script>
 
+
+<script src="../src/scripts/cart.js"></script>
 </body>
 </html>
