@@ -18,6 +18,7 @@ $sql = "SELECT
             p.marca,
             c.nombre AS categoria,
             p.cantidad,
+            p.color,
             p.cantidad_min,
             p.costo,
             p.precio_unitario,
@@ -90,12 +91,13 @@ foreach ($variantesRaw as $v) {
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
-<!DOCTYPE html>
-<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Productos</title>
-     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
 /* --- ESTILOS BASE Y GENERALES --- */
 body {
@@ -599,11 +601,12 @@ tbody tr:last-child {
 </head>
 <body>
 
-<h2>PRODUCTOS</h2>
-
 <div class="toolbar">
     <form method="GET" id="toolbar-form" action="index.php"> 
         
+        
+
+
         <input type="hidden" name="view" value="productos"> 
 
         <div class="search-container">
@@ -674,6 +677,7 @@ tbody tr:last-child {
                         <div class="producto-info">
                             <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto">
                             <div><strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong></div>
+                             <div><small class="producto-color"><?= htmlspecialchars($producto['color']) ?></small></div>
                         </div>
                     </td>
                     <td><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
@@ -781,16 +785,35 @@ tbody tr:last-child {
         </div>
         
        <div class="modal-actions">
-     <button id="modal-btn-eliminar" class="btn-eliminar" onclick="confirmarEliminar(this)">
-         🗑️ Eliminar
-     </button>
+    <button 
+  id="modal-btn-eliminar" 
+  class="btn-eliminar" 
+  data-id="<?= $producto['id_producto'] ?>" 
+  data-type="producto" 
+  onclick="confirmarEliminar(this)">
+  🗑️ Eliminar
+</button>
      <a id="modal-btn-editar" class="btn-editar">✏️ Editar</a> 
 </div>
         
     </div>
 </div>
 
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
+      <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Confirmar eliminación</h3>
+        <p class="text-gray-600 mb-6" id="confirmMessage"></p>
+        <div class="flex justify-center gap-4">
+          <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-gray-300 text-gray-700 hover:bg-gray-400 transition">Cancelar</button>
+          <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
+
 <script>
+
+
 /**
  * Alterna la visibilidad del select nativo y posiciona la lista desplegable (Filtro/Ordenar).
  * @param {Event} event - El evento click.
@@ -872,21 +895,21 @@ function openCustomModal(data, type) {
     document.getElementById('modal-stock-min').textContent = stockMin; 
     
     // ===========================================
-// 4. LÓGICA CLAVE DE BOTONES ELIMINAR/EDITAR
-// ===========================================
-const btnEliminar = document.getElementById('modal-btn-eliminar');
-const btnEditar = document.getElementById('modal-btn-editar');
-let id;
- 
-if (isVariant) {
-    id = data.id; 
-    // Si es variante, DEBE apuntar al script que edita variantes
-    btnEditar.href = `index.php?view=editar_variante&id=${id}&prod_id=${data.id_producto}`;
-} else {
-    id = data.id_producto; 
-    // Si es producto principal, DEBE apuntar a editar_producto.php
-    btnEditar.href = `index.php?view=editar_producto&id=${id}`; 
-} 
+    // 4. LÓGICA CLAVE DE BOTONES ELIMINAR/EDITAR
+    // ===========================================
+    const btnEliminar = document.getElementById('modal-btn-eliminar');
+    const btnEditar = document.getElementById('modal-btn-editar');
+    let id;
+    
+    if (isVariant) {
+        id = data.id; 
+        // Si es variante, DEBE apuntar al script que edita variantes
+        btnEditar.href = `index.php?view=editar_variante&id=${id}&prod_id=${data.id_producto}`;
+    } else {
+        id = data.id_producto; 
+        // Si es producto principal, DEBE apuntar a editar_producto.php
+        btnEditar.href = `index.php?view=editar_producto&id=${id}`; 
+    } 
     // Configuración del botón ELIMINAR (los atributos se usan en confirmarEliminar)
     btnEliminar.setAttribute('data-id', id);
     btnEliminar.setAttribute('data-type', type);
@@ -900,27 +923,43 @@ if (isVariant) {
  * Función que maneja la confirmación y la redirección de eliminación.
  * @param {HTMLElement} element - El botón 'Eliminar' que contiene los data-atributos.
  */
+let deleteId = null;
+let deleteType = null;
+
 function confirmarEliminar(element) {
-    // 1. Obtener ID y tipo del botón
-    const id = element.getAttribute('data-id');
-    const type = element.getAttribute('data-type'); 
-    
-    if (!id || !type) {
-        alert("Error: No se encontró el ID o el tipo de producto/variante.");
-        return;
-    }
-    
-    const nombre = (type === 'variante') ? 'esta variante' : 'este producto';
-    
-    if (confirm(`¿Estás seguro de que quieres eliminar ${nombre} (ID: ${id})? Esta acción es irreversible.`)) {
-        
-        // 🎯 RUTA CLAVE: Apunta al archivo PHP en el mismo directorio (src/pages/)
-        let deleteUrl = `pages/productos_eliminar.php?type=${type}&id=${id}`;
-        
-        // Ejecuta la redirección para procesar la eliminación
-        window.location.href = deleteUrl;
-    }
+  // Obtener ID y tipo
+  deleteId = element.getAttribute('data-id');
+  deleteType = element.getAttribute('data-type');
+
+  if (!deleteId || !deleteType) {
+    console.error("Falta el ID o el tipo de producto/variante.");
+    return;
+  }
+
+  const nombre = (deleteType === 'variante') ? 'esta variante' : 'este producto';
+  
+  // Mostrar el modal de confirmación, asegurando la visibilidad
+  const confirmModal = document.getElementById("confirmModal");
+  confirmModal.classList.remove("hidden");
+  confirmModal.style.display = 'flex'; // 👈 AGREGAR ESTO PARA FORZAR LA VISIBILIDAD
+  
+  document.getElementById("confirmMessage").textContent =
+    `¿Estás seguro de que quieres eliminar?. Esta acción no se puede deshacer.`;
 }
+
+// Botones del modal de confirmación
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  const confirmModal = document.getElementById("confirmModal");
+  confirmModal.classList.add("hidden");
+  confirmModal.style.display = 'none'; // 👈 AGREGAR ESTO PARA ASEGURAR QUE SE OCULTE
+});
+
+document.getElementById("confirmBtn").addEventListener("click", () => {
+  if (deleteId && deleteType) {
+    // Redirección con los parámetros correctos
+    window.location.href = `pages/productos_eliminar.php?type=${deleteType}&id=${deleteId}`;
+  }
+});
 
 
 /**
@@ -951,7 +990,10 @@ function toggleVariantes(productId) {
 function cerrarModal() {
     document.getElementById('modal').style.display = 'none';
 }
+
+
 </script>
+
 
 </body>
 </html>

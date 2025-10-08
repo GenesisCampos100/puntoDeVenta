@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['nombre_completo'] = $user['nombre_completo'];
     
         // ✅ Ahora redirige al index con la vista de caja
-        header("Location: ../index.php?view=nueva venta");
+        header("Location: ../index.php?view=nueva_venta");
         exit;
     } else {
         // En caso de error, volver al login con mensaje
