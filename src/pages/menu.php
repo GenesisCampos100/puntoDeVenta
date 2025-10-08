@@ -68,7 +68,7 @@ if (!isset($permisos[$rol])) {
     <div class="flex items-center bg-blue-900 rounded-xl p-3 mx-4 gap-3 shadow-lg">
   <img src="../public/img/1.png" alt="Foto usuario" class="w-12 h-12 rounded-full object-cover border-2 border-white mt-2">
       <div class="flex flex-col justify-center">
-        <span class="text-lg font-semibold text-yellow-100 leading-tight"><?= htmlspecialchars($_SESSION['nombre_usuario'] ?? '') ?></span>
+        <span class="text-lg font-semibold text-yellow-100 leading-tight"><?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?></span>
         <span class="text-sm text-blue-100"><?= htmlspecialchars($_SESSION['rol'] ?? '') ?></span>
       </div>
     </div>

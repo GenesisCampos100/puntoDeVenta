@@ -442,7 +442,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
                 </div>
                 <H1 class="login-titulo">Tu punto de venta favorito</H1>
 
-                <form id="loginFormulario">
+                <form id="loginFormulario" action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
