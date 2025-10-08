@@ -178,6 +178,18 @@ function normalizeCategory($name) {
     </div>
   </div>
 </div>
+<!-- MODAL DESCUENTO PRODUCTO -->
+<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-80 shadow-lg">
+    <h3 class="font-bold mb-2">Aplicar Descuento al Producto</h3>
+    <input id="product-discount-input" type="number" placeholder="10" class="border w-full px-3 py-2 mb-3 rounded">
+    <div class="flex justify-end gap-2">
+      <button id="product-discount-close" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+      <button id="product-discount-apply" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
+    </div>
+  </div>
+</div>
+
 
 
 
