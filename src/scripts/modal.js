@@ -1,79 +1,59 @@
 (() => {
-  const discountBtn = document.getElementById("discount-btn");
-  const discountCard = document.getElementById("discount-card");
-  const closeDiscount = document.getElementById("close-discount");
+  // ======================
+  // ELEMENTOS DEL DOM
+  // ======================
+  const discountModal = document.getElementById("discount-modal");
   const discountInput = document.getElementById("discount-input");
-  const applyDiscountBtn = document.getElementById("apply-discount");
+  const discountApply = document.getElementById("apply-discount");
+  const discountClose = document.getElementById("close-discount");
 
-  const paymentCard = document.getElementById("payment-card");
-  const closePayment = document.getElementById("close-payment");
-  const paymentInputs = document.querySelectorAll(".payment-input");
-  const totalCartEl = document.getElementById("total");
-  const confirmPaymentBtn = document.getElementById("confirm-payment");
+  const productDiscountModal = document.getElementById("product-discount-modal");
+  const productDiscountInput = document.getElementById("product-discount-input");
+  const productDiscountApply = document.getElementById("product-discount-apply");
+  const productDiscountClose = document.getElementById("product-discount-close");
 
-  let globalCart = JSON.parse(localStorage.getItem("cart")) || [];
+  let currentItemIndex = null;
 
-  // --- DESCUENTO ---
-  discountBtn?.addEventListener("click", () => discountCard.classList.remove("hidden"));
-  closeDiscount?.addEventListener("click", () => discountCard.classList.add("hidden"));
-
-  applyDiscountBtn?.addEventListener("click", () => {
-    const val = discountInput.value.trim();
-    if (!val) return alert("Ingrese un descuento válido");
-
-    let discount = 0;
-    if (val.endsWith("%")) {
-      const perc = parseFloat(val);
-      if (isNaN(perc) || perc < 0 || perc > 100) return alert("Porcentaje inválido");
-      discount = perc;
-      globalCart = globalCart.map(item => ({
-        ...item,
-        price: item.price - (item.price * perc) / 100
-      }));
-    } else {
-      const num = parseFloat(val);
-      if (isNaN(num) || num < 0) return alert("Valor inválido");
-      globalCart = globalCart.map(item => ({
-        ...item,
-        price: item.price - num
-      }));
-    }
-
-    localStorage.setItem("cart", JSON.stringify(globalCart));
-    document.dispatchEvent(new Event("cartUpdated"));
-    discountCard.classList.add("hidden");
+  // ======================
+  // MODAL GLOBAL
+  // ======================
+  document.getElementById("discount-btn")?.addEventListener("click", () => {
+    discountModal.classList.remove("hidden");
+    discountModal.classList.add("flex");
   });
 
-  // --- PAGOS ---
-  const calculateTotal = () => {
-    const subtotal = globalCart.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-    totalCartEl.textContent = `$${subtotal.toFixed(2)}`;
-    return subtotal;
+  discountClose?.addEventListener("click", () => {
+    discountModal.classList.add("hidden");
+  });
+
+  discountApply?.addEventListener("click", () => {
+    const value = parseFloat(discountInput.value) || 0;
+    discountModal.classList.add("hidden");
+    document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value } }));
+  });
+
+  // ======================
+  // MODAL INDIVIDUAL
+  // ======================
+  window.openProductDiscountModal = function (index, currentDiscount = 0) {
+    currentItemIndex = index;
+    productDiscountInput.value = currentDiscount;
+    productDiscountModal.classList.remove("hidden");
+    productDiscountModal.classList.add("flex");
   };
 
-  document.addEventListener("openPaymentModal", () => {
-    globalCart = JSON.parse(localStorage.getItem("cart")) || [];
-    if (!globalCart.length) return alert("El carrito está vacío");
-    paymentCard.classList.remove("hidden");
-    calculateTotal();
-    paymentInputs.forEach(input => input.value = 0);
+  productDiscountClose?.addEventListener("click", () => {
+    productDiscountModal.classList.add("hidden");
+    currentItemIndex = null;
   });
 
-  closePayment?.addEventListener("click", () => paymentCard.classList.add("hidden"));
-
-  confirmPaymentBtn?.addEventListener("click", () => {
-    const payments = {};
-    let totalPayment = 0;
-    paymentInputs.forEach(input => {
-      const val = parseFloat(input.value) || 0;
-      payments[input.dataset.method] = val;
-      totalPayment += val;
-    });
-    const totalCart = calculateTotal();
-    if (totalPayment < totalCart) return alert("El total pagado es menor al total del carrito");
-
-    document.getElementById("cart-data").value = JSON.stringify(globalCart);
-    document.getElementById("payments-data").value = JSON.stringify(payments);
-    document.getElementById("submit-checkout")?.click();
+  productDiscountApply?.addEventListener("click", () => {
+    if (currentItemIndex !== null) {
+      const value = parseFloat(productDiscountInput.value) || 0;
+      productDiscountModal.classList.add("hidden");
+      document.dispatchEvent(new CustomEvent("applyProductDiscount", { detail: { index: currentItemIndex, value } }));
+      currentItemIndex = null;
+    }
   });
 })();
+

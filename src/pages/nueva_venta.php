@@ -246,5 +246,6 @@ document.querySelectorAll('.producto').forEach(prod => {
 </script>
 
 <script src="../src/scripts/cart.js"></script>
+<script src="../src/scripts/modal.js"></script>
 </body>
 </html>

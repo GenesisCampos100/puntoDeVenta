@@ -13,17 +13,6 @@ const clearCartBtn = document.getElementById("clear-cart");
 const discountBtn = document.getElementById("discount-btn");
 const payBtn = document.getElementById("pay-btn");
 
-// Modal
-const discountModal = document.getElementById("discount-modal");
-const discountInput = document.getElementById("discount-input");
-const discountApply = document.getElementById("apply-discount");
-const discountClose = document.getElementById("close-discount");
-
-// Modal descuento individual
-const productDiscountModal = document.getElementById("product-discount-modal");
-const productDiscountInput = document.getElementById("product-discount-input");
-const productDiscountApply = document.getElementById("product-discount-apply");
-const productDiscountClose = document.getElementById("product-discount-close");
 
 let currentItemIndex = null; // Para saber qué producto estamos editando
 
@@ -99,32 +88,17 @@ function updateCart() {
     card.querySelector(".increase-btn").addEventListener("click", () => { item.quantity++; saveCart(); });
     card.querySelector(".decrease-btn").addEventListener("click", () => { if(item.quantity>1)item.quantity--; saveCart(); });
 
+    // --- DESCUENTO INDIVIDUAL ---
+card.querySelector(".discount-btn").addEventListener("click", () => {
+  window.openProductDiscountModal(index, item.discount || 0);
+});
+
+
     // --- ELIMINAR ---
     card.querySelector(".remove-btn").addEventListener("click", () => { cart.splice(index,1); saveCart(); });
 
-    // --- DESCUENTO INDIVIDUAL ---
-card.querySelector(".discount-btn").addEventListener("click", () => {
-  currentItemIndex = index; // Guardar el índice del producto
-  productDiscountInput.value = cart[index].discount || 0;
-  productDiscountModal.classList.remove("hidden");
-  productDiscountModal.classList.add("flex");
-});
 
-// Cerrar modal
-productDiscountClose?.addEventListener("click", () => {
-  productDiscountModal.classList.add("hidden");
-});
 
-// Aplicar descuento
-productDiscountApply?.addEventListener("click", () => {
-  if (currentItemIndex !== null) {
-    const value = parseFloat(productDiscountInput.value) || 0;
-    cart[currentItemIndex].discount = Math.max(0, value);
-    currentItemIndex = null;
-    productDiscountModal.classList.add("hidden");
-    saveCart();
-  }
-});
 
 
     // --- VARIANTES ---
@@ -255,29 +229,6 @@ function addToCart(product){
   saveCart();
 }
 
-// ======================
-// EVENTOS GLOBALES
-// ======================
-
-// Abrir modal descuento general
-discountBtn?.addEventListener("click", () => {
-  discountInput.value = globalDiscount || 0;
-  discountModal.classList.remove("hidden");
-  discountModal.classList.add("flex");
-});
-
-// Cerrar modal
-discountClose?.addEventListener("click", () => {
-  discountModal.classList.add("hidden");
-});
-
-// Aplicar descuento
-discountApply?.addEventListener("click", () => {
-  globalDiscount = parseFloat(discountInput.value) || 0;
-  discountModal.classList.add("hidden");
-  saveCart();
-});
-
 // Vaciar carrito (sin confirmación)
 clearCartBtn?.addEventListener("click", () => {
   cart = [];
@@ -290,5 +241,28 @@ clearCartBtn?.addEventListener("click", () => {
 payBtn?.addEventListener("click", () => {
   document.dispatchEvent(new CustomEvent("openPaymentModal"));
 });
+
+// ======================
+// DESCUENTOS GLOBALES E INDIVIDUALES
+// ======================
+
+// Aplicar descuento global (%)
+document.addEventListener("applyGlobalDiscount", (e) => {
+  globalDiscount = e.detail.value;
+  localStorage.setItem("globalDiscount", globalDiscount);
+  recalcTotals();
+});
+
+// Aplicar descuento individual ($)
+document.addEventListener("applyProductDiscount", (e) => {
+  const { index, value } = e.detail;
+  if (cart[index]) {
+    cart[index].discount = value;
+    saveCart();
+  }
+});
+
 updateCart();
+
+
  
