@@ -21,6 +21,7 @@ $views = [
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
+    'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
 ];   
 
 // Si la vista no existe, mostrar error 404

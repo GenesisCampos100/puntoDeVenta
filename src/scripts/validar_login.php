@@ -7,18 +7,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Buscar usuario
-    $stmt = $pdo->prepare("SELECT u.id, u.password, r.nombre as rol 
+    $stmt = $pdo->prepare("SELECT u.id, u.nombre_completo, u.password, r.nombre as rol 
                            FROM usuarios u
                            INNER JOIN roles r ON u.rol_id = r.id
-                           WHERE u.nombre_usuario = :usuario OR u.correo = :usuario");
+                           WHERE u.nombre_completo = :usuario OR u.correo = :usuario");
     $stmt->execute(['usuario' => $usuario]);
     $user = $stmt->fetch();
 
     if ($user && md5($password) === $user['password']) {
-        // Guardar sesión
-        $_SESSION['usuario_id'] = $user['id'];
-        $_SESSION['rol'] = $user['rol'];
-
+    // Guardar sesión
+    $_SESSION['usuario_id'] = $user['id'];
+    $_SESSION['rol'] = $user['rol'];
+    $_SESSION['nombre_completo'] = $user['nombre_completo'];
+    
         // ✅ Ahora redirige al index con la vista de caja
         header("Location: ../index.php?view=nueva venta");
         exit;
