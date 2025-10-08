@@ -22,6 +22,9 @@ $views = [
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
+    'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
+    'eliminar_empleado' => __DIR__ . "/pages/eliminar_empleado.php",
+    'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
 
     // 🎯 AÑADE ESTAS LÍNEAS 🎯
     'editar_producto' => __DIR__ . "/pages/editar_producto.php", // La vista que falta
