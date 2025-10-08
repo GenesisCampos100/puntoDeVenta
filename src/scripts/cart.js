@@ -53,7 +53,7 @@ function updateCart() {
     wrapper.innerHTML = `
       <div class="flex items-center justify-between bg-white shadow-md rounded-2xl p-3 mb-3 w-full">
         <div class="flex items-center gap-3 w-full">
-          <img src="${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover">
+          <img src="../${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover">
           <div class="flex flex-col w-full">
             <div class="flex justify-between items-center">
               <p class="font-semibold truncate text-gray-800">${item.name}</p>
@@ -130,16 +130,17 @@ function updateCart() {
       };
 
       const updateVariant = () => {
-        const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
-        if (v) {
-          item.price = parseFloat(v.price);
-          item.img = v.image ? `uploads/${v.image}` : item.img;
-        }
-        const itemDiscount = getItemDiscountAmount(item);
-        card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - itemDiscount).toFixed(2)}`;
-        card.querySelector("img").src = item.img;
-        recalcTotals();
-      };
+  const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
+  if (v) {
+    item.price = parseFloat(v.price);
+    if (v.image) item.img = `uploads/${v.image}`;
+  }
+  const itemDiscount = getItemDiscountAmount(item);
+  card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - itemDiscount).toFixed(2)}`;
+  card.querySelector("img").src = item.img; // Siempre usar item.img existente
+  recalcTotals();
+};
+
 
       sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; updateColors(); });
       colorSelect.addEventListener("change", () => { item.color = colorSelect.value; updateVariant(); });
