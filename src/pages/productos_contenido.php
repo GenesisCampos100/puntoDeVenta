@@ -944,7 +944,7 @@ function confirmarEliminar(element) {
   confirmModal.style.display = 'flex'; // 👈 AGREGAR ESTO PARA FORZAR LA VISIBILIDAD
   
   document.getElementById("confirmMessage").textContent =
-    `¿Estás seguro de que quieres eliminar ${nombre} (ID: ${deleteId})? Esta acción no se puede deshacer.`;
+    `¿Estás seguro de que quieres eliminar?. Esta acción no se puede deshacer.`;
 }
 
 // Botones del modal de confirmación

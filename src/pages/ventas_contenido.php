@@ -6,9 +6,8 @@
     <title>Document</title>
 </head>
 <body>
-    <main id="content" class="pt-20 pl-0 pr-80 transition-all duration-300">
-        <h1>Ventas</h1>
-    </main>
-   
+    <h1>
+        Ventas
+    </h1>
 </body>
 </html>

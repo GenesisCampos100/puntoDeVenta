@@ -86,7 +86,7 @@ if (!isset($permisos[$rol])) {
            style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
       <div class="flex flex-col leading-tight">
         <span style="color:#32CD32; font-weight:600; font-size:14px;">
-          <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? '') ?>
+          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
         </span>
         <span style="color:#cbd5e1; font-size:12px;">
           <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
