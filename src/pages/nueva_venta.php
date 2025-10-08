@@ -164,31 +164,46 @@ function normalizeCategory($name) {
   </form>
 </aside>
 
-<!-- MODAL DESCUENTO GENERAL -->
-<div id="discount-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-2xl shadow-lg w-80">
-    <h3 class="text-lg font-semibold text-gray-800 mb-3">Descuento general</h3>
-    <p class="text-sm text-gray-500 mb-4">Aplica un descuento porcentual al total de la orden.</p>
-    <input id="discount-input" type="number" min="0" max="100" step="0.01"
-           class="w-full border rounded-lg p-2 mb-4 focus:ring-2 focus:ring-yellow-400"
-           placeholder="Porcentaje (%)">
+<!-- MODAL DESCUENTO GLOBAL -->
+<div id="discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
+    <h2 class="text-lg font-bold mb-3">Descuento General</h2>
+
+    <div class="flex gap-2 mb-3">
+      <select id="discount-type" class="border rounded-lg p-2 w-1/3 text-center">
+        <option value="percent">%</option>
+        <option value="amount">$</option>
+      </select>
+      <input type="number" id="discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
+    </div>
+
     <div class="flex justify-end gap-2">
-      <button id="close-discount" class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-      <button id="apply-discount" class="px-3 py-1 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">Aplicar</button>
+      <button id="close-discount" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1">Cancelar</button>
+      <button id="apply-discount" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1">Aplicar</button>
     </div>
   </div>
 </div>
-<!-- MODAL DESCUENTO PRODUCTO -->
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg w-80 shadow-lg">
-    <h3 class="font-bold mb-2">Aplicar Descuento al Producto</h3>
-    <input id="product-discount-input" type="number" placeholder="10" class="border w-full px-3 py-2 mb-3 rounded">
+
+<!-- MODAL DESCUENTO INDIVIDUAL -->
+<div id="product-discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
+    <h2 class="text-lg font-bold mb-3">Descuento del Producto</h2>
+
+    <div class="flex gap-2 mb-3">
+      <select id="product-discount-type" class="border rounded-lg p-2 w-1/3 text-center">
+        <option value="percent">%</option>
+        <option value="amount">$</option>
+      </select>
+      <input type="number" id="product-discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
+    </div>
+
     <div class="flex justify-end gap-2">
-      <button id="product-discount-close" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-      <button id="product-discount-apply" class="px-4 py-2 bg-lime-500 text-white rounded">Aplicar</button>
+      <button id="product-discount-close" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1">Cancelar</button>
+      <button id="product-discount-apply" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1">Aplicar</button>
     </div>
   </div>
 </div>
+
 
 
 

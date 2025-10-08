@@ -13,15 +13,26 @@ const clearCartBtn = document.getElementById("clear-cart");
 const discountBtn = document.getElementById("discount-btn");
 const payBtn = document.getElementById("pay-btn");
 
-
 let currentItemIndex = null; // Para saber qué producto estamos editando
 
+// ======================
+// FUNCIONES AUXILIARES
+// ======================
+function getItemDiscountAmount(item) {
+  if (!item.discount) return 0;
+  if (typeof item.discount === "object") {
+    if (item.discount.type === "percent") {
+      return item.price * item.quantity * (item.discount.value / 100);
+    } else {
+      return Number(item.discount.value) || 0;
+    }
+  }
+  return Number(item.discount) || 0; // compatibilidad antigua
+}
 
-// ======================
-// ACTUALIZAR CARRITO
-// ======================
 function updateCart() {
   cartContainer.innerHTML = "";
+
   if (!cart.length) {
     cartContainer.innerHTML = `
       <div class="text-center text-gray-500 py-10">
@@ -34,12 +45,9 @@ function updateCart() {
     return;
   }
 
-  let subtotal = 0, totalDiscount = 0;
-
   cart.forEach((item, index) => {
-    const itemTotal = item.price * item.quantity - (item.discount || 0);
-    subtotal += item.price * item.quantity;
-    totalDiscount += item.discount || 0;
+    const itemDiscount = getItemDiscountAmount(item);
+    const itemTotal = item.price * item.quantity - itemDiscount;
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = `
@@ -84,22 +92,17 @@ function updateCart() {
 
     const card = wrapper.firstElementChild;
 
-    // --- BOTONES DE CANTIDAD ---
+    // --- CANTIDAD ---
     card.querySelector(".increase-btn").addEventListener("click", () => { item.quantity++; saveCart(); });
     card.querySelector(".decrease-btn").addEventListener("click", () => { if(item.quantity>1)item.quantity--; saveCart(); });
 
     // --- DESCUENTO INDIVIDUAL ---
-card.querySelector(".discount-btn").addEventListener("click", () => {
-  window.openProductDiscountModal(index, item.discount || 0);
-});
-
+    card.querySelector(".discount-btn").addEventListener("click", () => {
+      window.openProductDiscountModal(index, item.discount || 0);
+    });
 
     // --- ELIMINAR ---
     card.querySelector(".remove-btn").addEventListener("click", () => { cart.splice(index,1); saveCart(); });
-
-
-
-
 
     // --- VARIANTES ---
     const sizeSelect = card.querySelector(".size-select");
@@ -107,17 +110,13 @@ card.querySelector(".discount-btn").addEventListener("click", () => {
 
     if(sizeSelect && colorSelect && item.variants && item.variants.length){
       const colorMap = {};
-
-      // Construir mapa talla → colores
       item.variants.forEach(v => {
         if (!colorMap[v.size]) colorMap[v.size] = [];
         if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
       });
 
-      // Función: actualizar color segun talla
       const updateColors = () => {
         const validColors = colorMap[sizeSelect.value] || [];
-
         colorSelect.innerHTML = "";
         validColors.forEach(color => {
           const opt = document.createElement("option");
@@ -125,38 +124,25 @@ card.querySelector(".discount-btn").addEventListener("click", () => {
           opt.textContent = color;
           colorSelect.appendChild(opt);
         });
-
-        if (!validColors.includes(item.color)) {
-          item.color = validColors[0] || "Sin color";
-        }
-
+        if (!validColors.includes(item.color)) item.color = validColors[0] || "Sin color";
         colorSelect.value = item.color;
         updateVariant();
       };
 
-      // Función: actualizar precio e imagen segun combinación
       const updateVariant = () => {
         const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
         if (v) {
-  item.price = parseFloat(v.price);
-  item.img = v.image ? `uploads/${v.image}` : item.img;
-}
-
-        card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - (item.discount || 0)).toFixed(2)}`;
+          item.price = parseFloat(v.price);
+          item.img = v.image ? `uploads/${v.image}` : item.img;
+        }
+        const itemDiscount = getItemDiscountAmount(item);
+        card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - itemDiscount).toFixed(2)}`;
         card.querySelector("img").src = item.img;
         recalcTotals();
       };
 
-      // Eventos
-
-      sizeSelect.addEventListener("change", () => {
-        item.size = sizeSelect.value;
-        updateColors();
-      });
-      colorSelect.addEventListener("change", () => {
-        item.color = colorSelect.value;
-        updateVariant();
-      });
+      sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; updateColors(); });
+      colorSelect.addEventListener("change", () => { item.color = colorSelect.value; updateVariant(); });
 
       updateColors();
     }
@@ -170,72 +156,72 @@ card.querySelector(".discount-btn").addEventListener("click", () => {
 // ======================
 // GUARDAR Y RECALCULAR
 // ======================
-function saveCart(){ localStorage.setItem("cart",JSON.stringify(cart)); updateCart(); }
-function recalcTotals() {
-  let subtotal = 0;
-  let individualDiscounts = 0;
+function saveCart() { 
+  localStorage.setItem("cart", JSON.stringify(cart)); 
+  updateCart(); 
+}
 
-  // Calcular subtotal y descuentos individuales
+function recalcTotals() {
+  let subtotal = 0, individualDiscounts = 0;
+
   cart.forEach(item => {
     subtotal += item.price * item.quantity;
-    individualDiscounts += item.discount || 0;
+    individualDiscounts += getItemDiscountAmount(item);
   });
 
-  // Aplicar descuento global (porcentaje)
   const subtotalAfterIndividual = subtotal - individualDiscounts;
-  const globalDiscountAmount = subtotalAfterIndividual * (globalDiscount / 100);
+  let globalDiscountAmount = 0;
+  const globalType = localStorage.getItem("globalDiscountType") || "percent";
+
+  if (globalType === "percent") globalDiscountAmount = subtotalAfterIndividual * (globalDiscount / 100);
+  else globalDiscountAmount = globalDiscount;
 
   const totalDiscount = individualDiscounts + globalDiscountAmount;
   const total = subtotal - totalDiscount;
 
-  // Mostrar resultados en pantalla
   subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
   discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
   totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
-
 // ======================
 // AGREGAR AL CARRITO DESDE GRID
 // ======================
-document.querySelectorAll(".add-to-cart").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const card=btn.closest(".producto");
-    const id=card.dataset.id;
-    const name=card.dataset.name;
-    const price=parseFloat(card.dataset.price);
+document.querySelectorAll(".add-to-cart").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const card = btn.closest(".producto");
+    const id = card.dataset.id;
+    const name = card.dataset.name;
+    const price = parseFloat(card.dataset.price);
     const img = card.dataset.img ? `uploads/${card.dataset.img}` : "uploads/sin-imagen.png";
-    const variants=card.dataset.variants?JSON.parse(card.dataset.variants):[];
+    const variants = card.dataset.variants ? JSON.parse(card.dataset.variants) : [];
 
-    const sizeSelect=card.querySelector(".variant-size");
-    const colorSelect=card.querySelector(".variant-color");
+    const sizeSelect = card.querySelector(".variant-size");
+    const colorSelect = card.querySelector(".variant-color");
 
-    // Detectar talla/color según si tiene variantes
     const size = sizeSelect ? sizeSelect.value : (card.dataset.sizeDefault || "Única");
     const color = colorSelect ? colorSelect.value : (card.dataset.colorDefault || "Sin color");
 
-    // Crear arrays para selects (aunque tenga solo un valor)
-    const sizes = sizeSelect ? Array.from(sizeSelect.options).map(o=>o.value) : [size];
-    const colors = colorSelect ? Array.from(colorSelect.options).map(o=>o.value) : [color];
+    const sizes = sizeSelect ? Array.from(sizeSelect.options).map(o => o.value) : [size];
+    const colors = colorSelect ? Array.from(colorSelect.options).map(o => o.value) : [color];
 
-    addToCart({id,name,price,img,size,color,sizes,colors,variants,quantity:1,discount:0});
+    addToCart({id, name, price, img, size, color, sizes, colors, variants, quantity:1, discount:0});
   });
 });
 
 function addToCart(product){
-  const existing=cart.find(p=>p.id===product.id && p.size===product.size && p.color===product.color);
-  if(existing){ existing.quantity+=product.quantity; existing.price=product.price; existing.img=product.img; }
+  const existing = cart.find(p => p.id===product.id && p.size===product.size && p.color===product.color);
+  if(existing){ existing.quantity += product.quantity; existing.price = product.price; existing.img = product.img; }
   else cart.push(product);
   saveCart();
 }
 
-// Vaciar carrito (sin confirmación)
+// Vaciar carrito
 clearCartBtn?.addEventListener("click", () => {
   cart = [];
   globalDiscount = 0;
   saveCart();
 });
-
 
 // Pagar
 payBtn?.addEventListener("click", () => {
@@ -245,24 +231,20 @@ payBtn?.addEventListener("click", () => {
 // ======================
 // DESCUENTOS GLOBALES E INDIVIDUALES
 // ======================
-
-// Aplicar descuento global (%)
 document.addEventListener("applyGlobalDiscount", (e) => {
-  globalDiscount = e.detail.value;
+  const { value, type } = e.detail;
+  globalDiscount = value;
   localStorage.setItem("globalDiscount", globalDiscount);
+  localStorage.setItem("globalDiscountType", type);
   recalcTotals();
 });
 
-// Aplicar descuento individual ($)
 document.addEventListener("applyProductDiscount", (e) => {
-  const { index, value } = e.detail;
+  const { index, value, type } = e.detail;
   if (cart[index]) {
-    cart[index].discount = value;
+    cart[index].discount = { value, type };
     saveCart();
   }
 });
 
 updateCart();
-
-
- 

@@ -3,11 +3,13 @@
   // ELEMENTOS DEL DOM
   // ======================
   const discountModal = document.getElementById("discount-modal");
+  const discountType = document.getElementById("discount-type");
   const discountInput = document.getElementById("discount-input");
   const discountApply = document.getElementById("apply-discount");
   const discountClose = document.getElementById("close-discount");
 
   const productDiscountModal = document.getElementById("product-discount-modal");
+  const productDiscountType = document.getElementById("product-discount-type");
   const productDiscountInput = document.getElementById("product-discount-input");
   const productDiscountApply = document.getElementById("product-discount-apply");
   const productDiscountClose = document.getElementById("product-discount-close");
@@ -28,8 +30,9 @@
 
   discountApply?.addEventListener("click", () => {
     const value = parseFloat(discountInput.value) || 0;
+    const type = discountType.value; // "percent" o "amount"
     discountModal.classList.add("hidden");
-    document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value } }));
+    document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
   });
 
   // ======================
@@ -50,10 +53,10 @@
   productDiscountApply?.addEventListener("click", () => {
     if (currentItemIndex !== null) {
       const value = parseFloat(productDiscountInput.value) || 0;
+      const type = productDiscountType.value; // "percent" o "amount"
       productDiscountModal.classList.add("hidden");
-      document.dispatchEvent(new CustomEvent("applyProductDiscount", { detail: { index: currentItemIndex, value } }));
+      document.dispatchEvent(new CustomEvent("applyProductDiscount", { detail: { index: currentItemIndex, value, type } }));
       currentItemIndex = null;
     }
   });
 })();
-
