@@ -156,11 +156,30 @@ function normalizeCategory($name) {
       <div class="flex justify-between font-bold text-lg mt-2">
         <span>Total:</span><span id="total">$0.00</span>
       </div>
-      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">Realizar Pago</button>
+      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
+        Realizar Pago
+      </button>
       <button type="submit" id="submit-checkout" class="hidden"></button>
     </div>
   </form>
 </aside>
+
+<!-- MODAL DESCUENTO GENERAL -->
+<div id="discount-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-2xl shadow-lg w-80">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">Descuento general</h3>
+    <p class="text-sm text-gray-500 mb-4">Aplica un descuento porcentual al total de la orden.</p>
+    <input id="discount-input" type="number" min="0" max="100" step="0.01"
+           class="w-full border rounded-lg p-2 mb-4 focus:ring-2 focus:ring-yellow-400"
+           placeholder="Porcentaje (%)">
+    <div class="flex justify-end gap-2">
+      <button id="close-discount" class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+      <button id="apply-discount" class="px-3 py-1 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
 // Filtrado de productos por categoría

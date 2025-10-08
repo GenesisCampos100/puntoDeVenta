@@ -2,10 +2,22 @@
 // VARIABLES GLOBALES
 // ======================
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
+
 const cartContainer = document.getElementById("cart-items");
 const subtotalEl = document.getElementById("subtotal");
 const discountEl = document.getElementById("discount");
 const totalEl = document.getElementById("total");
+
+const clearCartBtn = document.getElementById("clear-cart");
+const discountBtn = document.getElementById("discount-btn");
+const payBtn = document.getElementById("pay-btn");
+
+// Modal
+const discountModal = document.getElementById("discount-modal");
+const discountInput = document.getElementById("discount-input");
+const discountApply = document.getElementById("apply-discount");
+const discountClose = document.getElementById("close-discount");
 
 // ======================
 // ACTUALIZAR CARRITO
@@ -156,12 +168,20 @@ function updateCart() {
 // GUARDAR Y RECALCULAR
 // ======================
 function saveCart(){ localStorage.setItem("cart",JSON.stringify(cart)); updateCart(); }
-function recalcTotals(){
-  let subtotal=0,totalDiscount=0;
-  cart.forEach(item=>{ subtotal+=item.price*item.quantity; totalDiscount+=item.discount||0; });
-  subtotalEl.textContent=`$${subtotal.toFixed(2)}`;
-  discountEl.textContent=`-$${totalDiscount.toFixed(2)}`;
-  totalEl.textContent=`$${(subtotal-totalDiscount).toFixed(2)}`;
+function recalcTotals() {
+  let subtotal = 0, totalDiscount = 0;
+  cart.forEach(item => {
+    subtotal += item.price * item.quantity;
+    totalDiscount += item.discount || 0;
+  });
+
+  const subtotalAfter = subtotal - totalDiscount;
+  const generalDiscountAmount = subtotalAfter * (globalDiscount / 100);
+  const total = subtotalAfter - generalDiscountAmount;
+
+  subtotalEl.textContent = `$${subtotalAfter.toFixed(2)}`;
+  discountEl.textContent = `-$${generalDiscountAmount.toFixed(2)}`;
+  totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
 // ======================
@@ -198,5 +218,40 @@ function addToCart(product){
   saveCart();
 }
 
+// ======================
+// EVENTOS GLOBALES
+// ======================
+
+// Abrir modal descuento general
+discountBtn?.addEventListener("click", () => {
+  discountInput.value = globalDiscount || 0;
+  discountModal.classList.remove("hidden");
+  discountModal.classList.add("flex");
+});
+
+// Cerrar modal
+discountClose?.addEventListener("click", () => {
+  discountModal.classList.add("hidden");
+});
+
+// Aplicar descuento
+discountApply?.addEventListener("click", () => {
+  globalDiscount = parseFloat(discountInput.value) || 0;
+  discountModal.classList.add("hidden");
+  saveCart();
+});
+
+// Vaciar carrito (sin confirmación)
+clearCartBtn?.addEventListener("click", () => {
+  cart = [];
+  globalDiscount = 0;
+  saveCart();
+});
+
+
+// Pagar
+payBtn?.addEventListener("click", () => {
+  document.dispatchEvent(new CustomEvent("openPaymentModal"));
+});
 updateCart();
  
