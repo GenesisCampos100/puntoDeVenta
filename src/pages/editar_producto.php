@@ -205,9 +205,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <h3>💰 Costo</h3>
       <div class="grid">
         <div>
-          <label>Costo</label>
-          <input type="number" name="costo" step="0.01" value="<?= htmlspecialchars($producto['costo']) ?>">
-        </div>
+      <label>Costo ($)</label>
+      <input type="number" step="0.01" id="costo" name="costo" value="<?= htmlspecialchars($producto['costo'] ?? '') ?>">
+    </div>
         <div>
           <label>Tipo de costo</label>
           <select name="tipo_costo">
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="grid">
         <div>
           <label>Precio unitario</label>
-           <input type="number" step="0.01" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
+           <input type="number" step="0.01" id="precio_unitario" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
         </div>
         <div>
           <label>Margen (%)</label>

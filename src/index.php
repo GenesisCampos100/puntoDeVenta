@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 
 // Si no hay login, mándalo al login

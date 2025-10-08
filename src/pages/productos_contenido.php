@@ -18,6 +18,7 @@ $sql = "SELECT
             p.marca,
             c.nombre AS categoria,
             p.cantidad,
+            p.color,
             p.cantidad_min,
             p.costo,
             p.precio_unitario,
@@ -676,6 +677,7 @@ tbody tr:last-child {
                         <div class="producto-info">
                             <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto">
                             <div><strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong></div>
+                             <div><small class="producto-color"><?= htmlspecialchars($producto['color']) ?></small></div>
                         </div>
                     </td>
                     <td><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
