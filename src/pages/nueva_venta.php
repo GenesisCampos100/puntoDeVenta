@@ -70,16 +70,16 @@ function normalizeCategory($name) {
 <title>Nueva Venta</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-0">
 
 <!-- FILTROS DE CATEGORÍA -->
-<div class="flex flex-wrap justify-start gap-4 mb-8 mt-4 px-6">
-  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+<div class="flex flex-wrap justify-start gap-2 mb-8 px-6">
+  <button data-category="all" class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
     Todos
   </button>
   <?php foreach($categorias as $cat): ?>
     <button data-category="<?= normalizeCategory($cat['nombre']) ?>" 
-            class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+            class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
       <?= htmlspecialchars($cat['nombre']) ?>
     </button>
   <?php endforeach; ?>
