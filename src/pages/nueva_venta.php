@@ -1,0 +1,208 @@
+<?php
+require_once __DIR__ . "/../config/db.php";
+
+// Traer productos y variantes
+$sql = "SELECT 
+            p.id AS id_producto,
+            p.cod_barras AS producto_cod_barras,
+            p.nombre AS producto_nombre,
+            p.imagen AS producto_imagen,
+            p.talla AS producto_talla,
+            p.color AS producto_color,
+            p.precio_unitario AS producto_precio,
+            c.nombre AS categoria,
+            v.id AS id_variante,
+            v.cod_barras AS variante_cod_barras,
+            v.talla AS variante_talla,
+            v.color AS variante_color,
+            v.imagen AS variante_imagen,
+            v.precio_unitario AS variante_precio
+        FROM productos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN variantes v ON v.id_producto = p.id
+        ORDER BY p.nombre ASC";
+
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar productos con sus variantes
+$productos = [];
+foreach ($rows as $row) {
+    $id = $row['id_producto'];
+    if (!isset($productos[$id])) {
+        $productos[$id] = [
+            'id' => $id,
+            'codigo' => $row['producto_cod_barras'],
+            'nombre' => $row['producto_nombre'],
+            'imagen' => $row['producto_imagen'],
+            'precio' => $row['producto_precio'] ?: 0,
+            'categoria' => $row['categoria'],
+            'variantes' => [],
+            'size_default' => $row['producto_talla'] ?: 'Única',
+            'color_default' => $row['producto_color'] ?: 'Sin color',
+        ];
+    }
+
+    if ($row['variante_talla'] || $row['variante_color']) {
+        $productos[$id]['variantes'][] = [
+            'size' => $row['variante_talla'] ?: $productos[$id]['size_default'],
+            'color' => $row['variante_color'] ?: $productos[$id]['color_default'],
+            'price' => $row['variante_precio'] ?: $productos[$id]['precio'],
+            'image' => $row['variante_imagen'] ?: $productos[$id]['imagen'],
+            'code' => $row['variante_cod_barras'] ?: $productos[$id]['codigo'],
+        ];
+    }
+}
+
+// Traer categorías
+$categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nueva Venta</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<!-- FILTROS DE CATEGORÍA -->
+<div class="flex flex-wrap justify-start gap-4 mb-8 mt-4 px-6">
+  <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Todos</button>
+  <?php foreach($categorias as $cat): ?>
+    <button data-category="<?= strtolower(trim($cat['nombre'])) ?>" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">
+      <?= htmlspecialchars($cat['nombre']) ?>
+    </button>
+  <?php endforeach; ?>
+</div>
+
+<!-- GRID PRODUCTOS -->
+<!-- GRID PRODUCTOS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
+  <?php foreach($productos as $prod): ?>
+    <?php 
+      $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
+      $sizes = array_unique(array_map(fn($v)=>$v['size'],$prod['variantes']));
+      $colors = array_unique(array_map(fn($v)=>$v['color'],$prod['variantes']));
+      if(empty($sizes)) $sizes = [$prod['size_default']];
+      if(empty($colors)) $colors = [$prod['color_default']];
+      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
+      $precio = $prod['precio'] ?: 0;
+    ?>
+    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
+             data-id="<?= $prod['id'] ?>"
+             data-name="<?= htmlspecialchars($prod['nombre']) ?>"
+             data-code="<?= htmlspecialchars($prod['codigo']) ?>"
+             data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
+             data-price="<?= htmlspecialchars($precio) ?>"
+             data-category="<?= strtolower(trim($prod['categoria'])) ?>"
+             data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
+
+      <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
+           alt="<?= htmlspecialchars($prod['nombre']) ?>" 
+           class="w-full h-40 object-cover rounded product-image">
+
+      <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
+      <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
+      <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
+
+      <!-- Siempre mostrar selects, aunque tenga una sola opción -->
+      <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+        <?php foreach ($sizes as $size): ?>
+          <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+        <?php endforeach; ?>
+      </select>
+
+      <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
+        <?php foreach ($colors as $color): ?>
+          <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+        <?php endforeach; ?>
+      </select>
+
+      <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
+    </article>
+  <?php endforeach; ?>
+</div>
+
+
+<!-- CARRITO LATERAL -->
+<aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-bold">Orden</h2>
+    <div class="flex gap-2">
+      <button id="discount-btn" class="bg-yellow-300 p-2 text-white rounded-full hover:bg-yellow-400">%</button>
+      <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">🗑</button>
+    </div>
+  </div>
+
+  <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
+
+  <form id="checkout-form" method="POST" action="procesar_venta.php" class="mt-4">
+    <input type="hidden" name="cart_data" id="cart-data">
+    <div class="border-t pt-4 mt-4">
+      <div class="flex justify-between text-sm">
+        <span>Subtotal:</span><span id="subtotal">$0.00</span>
+      </div>
+      <div class="flex justify-between text-sm text-red-500">
+        <span>Descuento:</span><span id="discount">$0.00</span>
+      </div>
+      <div class="flex justify-between font-bold text-lg mt-2">
+        <span>Total:</span><span id="total">$0.00</span>
+      </div>
+      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">Realizar Pago</button>
+      <button type="submit" id="submit-checkout" class="hidden"></button>
+    </div>
+  </form>
+</aside>
+<script>
+// --- Actualizar colores según talla seleccionada ---
+document.addEventListener('DOMContentLoaded', () => {
+  const productos = document.querySelectorAll('.producto');
+
+  productos.forEach(prod => {
+    const sizeSelect = prod.querySelector('.variant-size');
+    const colorSelect = prod.querySelector('.variant-color');
+    const variants = JSON.parse(prod.dataset.variants || '[]');
+
+    // Si no hay variantes, no hacemos nada
+    if (!variants.length) return;
+
+    // Guardamos todos los colores posibles por talla
+    const colorMap = {};
+    variants.forEach(v => {
+      if (!colorMap[v.size]) colorMap[v.size] = [];
+      if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
+    });
+
+    // Evento: al cambiar la talla
+    sizeSelect.addEventListener('change', () => {
+      const selectedSize = sizeSelect.value;
+      const validColors = colorMap[selectedSize] || [];
+
+      // Limpiar y actualizar el select de colores
+      colorSelect.innerHTML = '';
+      validColors.forEach(color => {
+        const opt = document.createElement('option');
+        opt.value = color;
+        opt.textContent = color;
+        colorSelect.appendChild(opt);
+      });
+
+      // Si no hay colores para esa talla, usar el color actual por defecto
+      if (validColors.length === 0) {
+        const defaultColor = prod.dataset.colorDefault || 'Sin color';
+        const opt = document.createElement('option');
+        opt.value = defaultColor;
+        opt.textContent = defaultColor;
+        colorSelect.appendChild(opt);
+      }
+    });
+  });
+});
+</script>
+
+
+<script src="../src/scripts/cart.js"></script>
+</body>
+</html>

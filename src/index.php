@@ -10,6 +10,7 @@ if (!isset($_SESSION['usuario_id'])) {
 // Detectar qué vista quiere cargar el usuario (?view=ventas, ?view=caja, etc.)
 $view = $_GET['view'] ?? 'nueva_venta'; // por defecto carga "caja"
 
+
 // Definir rutas válidas
 $views = [
     'nueva_venta' => __DIR__ . "/pages/nueva_venta.php",
