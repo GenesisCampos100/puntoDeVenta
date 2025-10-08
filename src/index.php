@@ -12,7 +12,7 @@ $view = $_GET['view'] ?? 'nueva_venta'; // por defecto carga "caja"
 
 // Definir rutas válidas
 $views = [
-    'nueva venta' => __DIR__ . "/pages/nueva_venta.php",
+    'nueva_venta' => __DIR__ . "/pages/nueva_venta.php",
     'caja' => __DIR__ . "/pages/caja_contenido.php",
     'ventas' => __DIR__ . "/pages/ventas_contenido.php",
     'clientes' => __DIR__ . "/pages/clientes_contenido.php",
@@ -21,7 +21,14 @@ $views = [
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
+<<<<<<< HEAD
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
+=======
+
+    // 🎯 AÑADE ESTAS LÍNEAS 🎯
+    'editar_producto' => __DIR__ . "/pages/editar_producto.php", // La vista que falta
+    'editar_variante' => __DIR__ . "/pages/editar_variante.php", // Necesaria para el botón de variantes
+>>>>>>> origin/Genesis
 ];   
 
 // Si la vista no existe, mostrar error 404
