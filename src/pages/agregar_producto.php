@@ -291,6 +291,7 @@ addBtn.addEventListener('click', () => {
   actualizarBloqueoCampos();
 });
 
+
 // 💵 Cálculo automático de margen y ganancia
 function actualizarMargenGanancia() {
   const costo = parseFloat(document.getElementById('costo').value) || 0;

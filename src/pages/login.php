@@ -265,7 +265,7 @@ body > section {
 }
 
 .fondo_login {
-  background-image: url("../../src/img/Fondo_Login.jpg");
+  background-image: url("../../public/img/Fondo_Login.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
@@ -438,7 +438,7 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
 
             <div class="formulario "> <!--Inicio formulario-->
                 <div class="login-logo">
-                    <img src="/../../public/img/logo2.png">
+                    <img src="../../public/img/logo2.png">
                 </div>
                 <H1 class="login-titulo">Tu punto de venta favorito</H1>
 

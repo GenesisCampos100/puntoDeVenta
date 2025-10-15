@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 
 // Si no hay login, mándalo al login
@@ -10,9 +11,10 @@ if (!isset($_SESSION['usuario_id'])) {
 // Detectar qué vista quiere cargar el usuario (?view=ventas, ?view=caja, etc.)
 $view = $_GET['view'] ?? 'nueva_venta'; // por defecto carga "caja"
 
+
 // Definir rutas válidas
 $views = [
-    'nueva venta' => __DIR__ . "/pages/nueva_venta.php",
+    'nueva_venta' => __DIR__ . "/pages/nueva_venta.php",
     'caja' => __DIR__ . "/pages/caja_contenido.php",
     'ventas' => __DIR__ . "/pages/ventas_contenido.php",
     'clientes' => __DIR__ . "/pages/clientes_contenido.php",
@@ -24,6 +26,10 @@ $views = [
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
     'eliminar_empleado' => __DIR__ . "/pages/eliminar_empleado.php",
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
+
+    // 🎯 AÑADE ESTAS LÍNEAS 🎯
+    'editar_producto' => __DIR__ . "/pages/editar_producto.php", // La vista que falta
+    'editar_variante' => __DIR__ . "/pages/editar_variante.php", // Necesaria para el botón de variantes
 ];   
 
 // Si la vista no existe, mostrar error 404

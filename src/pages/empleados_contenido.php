@@ -98,6 +98,7 @@
             width: 100%;
             box-sizing: border-box;
             font-size: 15px;
+            
         }
 
         /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
