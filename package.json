@@ -1,6 +1,26 @@
 {
-  "dependencies": {
-    "@tailwindcss/cli": "^4.1.13",
-    "tailwindcss": "^4.1.13"
+  "name": "punto-de-venta-prisma",
+  "version": "1.0.0",
+  "description": "Aprendiendo SASS y NPM",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "sass": "sass --watch src/scss:build/css",
+    "dev": "gulp"
+  },
+  "keywords": [
+    "SASS",
+    "NPM",
+    "Gulp"
+  ],
+  "author": "Zinedine Hiram Miranda Campos",
+  "license": "ISC",
+  "devDependencies": {
+    "glob": "^11.0.3",
+    "gulp": "^5.0.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-sass": "^6.0.1",
+    "sass": "^1.90.0",
+    "sharp": "^0.34.3"
   }
 }
