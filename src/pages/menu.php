@@ -136,7 +136,7 @@ if (!isset($permisos[$rol])) {
     <div style="display:flex; justify-content:center; gap:15px; margin-top:10px;">
       <button id="btnConfirmarLogout" 
               style="background:#e63946; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:500;">
-        Sí, cerrar sesión
+        Sí
       </button>
       <button id="btnCancelarLogout" 
               style="background:#475569; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:500;">
