@@ -38,12 +38,7 @@ function toggleSidebar() {
 
 menuBtn.addEventListener('click', toggleSidebar);
 sidebarMenuBtn.addEventListener('click', toggleSidebar);
-
-<<<<<<< Updated upstream
 // Resaltar opción activa según URL 
-=======
-/* Resaltar opción activa según URL 
->>>>>>> Stashed changes
 const currentPath = window.location.pathname.split('/').pop();
 
 document.querySelectorAll('#sidebar a').forEach(link => {
@@ -55,13 +50,8 @@ document.querySelectorAll('#sidebar a').forEach(link => {
     link.classList.remove('bg-red-500', 'text-white');
   }
 });
-<<<<<<< Updated upstream
 
-
-=======
-*/
->>>>>>> Stashed changes
-    // Manejo de submenús
+// Manejo de submenús
 document.querySelectorAll('.submenu-toggle').forEach(button => {
   button.addEventListener('click', () => {
     const submenu = button.nextElementSibling;
@@ -69,8 +59,4 @@ document.querySelectorAll('.submenu-toggle').forEach(button => {
     const arrow = button.querySelector('svg:last-child');
     arrow.classList.toggle('rotate-180');
   });
-<<<<<<< Updated upstream
 });
-=======
-});
->>>>>>> Stashed changes
