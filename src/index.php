@@ -26,10 +26,6 @@ $views = [
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
     'eliminar_empleado' => __DIR__ . "/pages/eliminar_empleado.php",
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
-
-    // 🎯 AÑADE ESTAS LÍNEAS 🎯
-    'editar_producto' => __DIR__ . "/pages/editar_producto.php", // La vista que falta
-    'editar_variante' => __DIR__ . "/pages/editar_variante.php", // Necesaria para el botón de variantes
 ];   
 
 // Si la vista no existe, mostrar error 404
