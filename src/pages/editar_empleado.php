@@ -43,7 +43,7 @@
             $stmt->execute([$nombre, $correo, $telefono, $direccion, $estatus, $rol_id, $id]);
         } else {
             // Si se escribió una nueva, se vuelve a cifrar
-            $hashed = md5($password);
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("UPDATE usuarios 
                                 SET nombre_completo=?, correo=?, telefono=?, direccion=?, estatus=?, rol_id=?, password=? 
                                 WHERE id=?");
