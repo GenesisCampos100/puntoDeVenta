@@ -281,7 +281,7 @@
             async function fetchNext(idRol) {
                 if (!idRol) return;
                 try {
-                    const resp = await fetch('../scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
+                    const resp = await fetch('scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
                     if (!resp.ok) throw new Error('Error en la petición');
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;

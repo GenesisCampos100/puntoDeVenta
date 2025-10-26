@@ -1,22 +1,22 @@
 <?php
-
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: pages/login.php");
+    header("Location: login.php");
     exit;
 }
 
+// Incluir permisos
 require_once __DIR__ . "/../config/permisos.php";
 
-$rol = $_SESSION['rol'] ?? null;
+$rol = $_SESSION['rol'];
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: pages/login.php");
+    header("Location: login.php");
     exit;
 }
-
 ?>
+
 <!-- Script para recordar el estado del menú -->
 <script>
   (function() {
@@ -77,33 +77,6 @@ if (!isset($permisos[$rol])) {
     <?php endif; ?>
   </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  <!-- Separador y bloque usuario centrado/fijado -->
-  <div class="w-full mb-4">
-    <hr class="border-t border-gray-700 mb-2 mx-4">
-    <div class="flex items-center bg-blue-900 rounded-xl p-3 mx-4 gap-3 shadow-lg">
-  <img src="../public/img/1.png" alt="Foto usuario" class="w-12 h-12 rounded-full object-cover border-2 border-white mt-2">
-      <div class="flex flex-col justify-center">
-        <span class="text-lg font-semibold text-yellow-100 leading-tight"><?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?></span>
-        <span class="text-sm text-blue-100"><?= htmlspecialchars($_SESSION['rol'] ?? '') ?></span>
-      </div>
-=======
-<!-- Bloque de usuario -->
-<div class="w-full mt-auto mb-4 px-4 flex justify-center">
-  <div class="flex items-center gap-3 shadow-lg px-4 py-2"
-       style="background-color:#0A2342; border-radius:50px;">
-    <img src="../public/img/1.png" alt="Foto usuario"
-         style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px ;">
-    <div class="flex flex-col leading-tight">
-      <span style="color:#32CD32; font-weight:600; font-size:14px;">
-        <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? '') ?>
-      </span>
-      <span style="color:#cbd5e1; font-size:12px;">
-        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
-      </span>
->>>>>>> origin/Genesis
-=======
 
   <!-- Bloque de usuario -->
   <div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
@@ -169,7 +142,6 @@ if (!isset($permisos[$rol])) {
               style="background:#475569; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:500;">
         Cancelar
       </button>
->>>>>>> origin/Genesis
     </div>
   </div>
 </div>
@@ -184,16 +156,6 @@ window.addEventListener("load", () => {
 
   if (!userBlock || !logoutMenu || !modal) return;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Mario
-=======
-
->>>>>>> origin/Genesis
-=======
   // Mostrar/ocultar menú
   userBlock.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -246,4 +208,3 @@ window.addEventListener("load", () => {
   });
 });
 </script>
->>>>>>> origin/Genesis
