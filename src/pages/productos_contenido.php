@@ -18,7 +18,6 @@ $sql = "SELECT
             p.marca,
             c.nombre AS categoria,
             p.cantidad,
-            p.color,
             p.cantidad_min,
             p.costo,
             p.precio_unitario,
@@ -91,13 +90,12 @@ foreach ($variantesRaw as $v) {
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Productos</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-
 <style>
 /* --- ESTILOS BASE Y GENERALES --- */
 body {
@@ -564,10 +562,7 @@ tbody tr:last-child {
     justify-content: flex-end; 
     gap: 12px; 
 }
-
-/* Estilo base para botones y enlaces */
-.modal-actions button,
-.modal-actions a {
+.modal-actions button { 
     padding: 12px 22px; 
     border: none; 
     border-radius: 8px; 
@@ -575,11 +570,7 @@ tbody tr:last-child {
     cursor: pointer; 
     transition: background-color 0.2s; 
     font-size: 15px; 
-    text-decoration: none; /* quita subrayado del enlace */
-    display: inline-block; /* para que respete el padding */
 }
-
-/* Botón Eliminar */
 .modal-actions .btn-eliminar { 
     background: #e1e1e1; 
     color: #333; 
@@ -596,17 +587,15 @@ tbody tr:last-child {
 .modal-actions .btn-editar:hover { 
     background: #55751C; /* Tono más oscuro al pasar el cursor */
 }
-
 </style>
 </head>
 <body>
 
+<h2>PRODUCTOS</h2>
+
 <div class="toolbar">
     <form method="GET" id="toolbar-form" action="index.php"> 
         
-        
-
-
         <input type="hidden" name="view" value="productos"> 
 
         <div class="search-container">
@@ -677,16 +666,15 @@ tbody tr:last-child {
                         <div class="producto-info">
                             <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto">
                             <div><strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong></div>
-                             <div><small class="producto-color"><?= htmlspecialchars($producto['color']) ?></small></div>
                         </div>
                     </td>
                     <td><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
                     <td><?= htmlspecialchars($producto['categoria']) ?></td>
                     <td class="precio">$<?= number_format($producto['precio_unitario'], 2) ?></td>
                     <td>
-                       <?php if ($producto['tiene_variante'] > 0): ?>
+                        <?php if ($producto['tiene_variante'] > 0): ?>
                             <button class="btn-toggle-variantes" id="btn-toggle-<?= $producto['id_producto'] ?>" 
-                                onclick="toggleVariantes(<?= $producto['id_producto'] ?>)">+</button>
+                                onclick='toggleVariantes(<?= $producto['id_producto'] ?>)'>+</button>
                         <?php else: ?>
                             <button class="btn-toggle-variantes" onclick='openCustomModal(<?= json_encode($producto) ?>, "producto")'>+</button>
                         <?php endif; ?>
@@ -784,42 +772,20 @@ tbody tr:last-child {
             </div>
         </div>
         
-       <div class="modal-actions">
-    <button 
-  id="modal-btn-eliminar" 
-  class="btn-eliminar" 
-  data-id="<?= $producto['id_producto'] ?>" 
-  data-type="producto" 
-  onclick="confirmarEliminar(this)">
-  🗑️ Eliminar
-</button>
-     <a id="modal-btn-editar" class="btn-editar">✏️ Editar</a> 
-</div>
+        <div class="modal-actions">
+             <button class="btn-eliminar">🗑️ Eliminar</button>
+             <button class="btn-editar">✏️ Editar</button>
+        </div>
         
     </div>
 </div>
 
-<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
-      <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Confirmar eliminación</h3>
-        <p class="text-gray-600 mb-6" id="confirmMessage"></p>
-        <div class="flex justify-center gap-4">
-          <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-gray-300 text-gray-700 hover:bg-gray-400 transition">Cancelar</button>
-          <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Eliminar</button>
-        </div>
-      </div>
-    </div>
-
-
 <script>
-
-
 /**
  * Alterna la visibilidad del select nativo y posiciona la lista desplegable (Filtro/Ordenar).
  * @param {Event} event - El evento click.
  * @param {string} selectId - El ID del select a mostrar/ocultar.
  */
-
 function toggleSelect(event, selectId) {
     event.stopPropagation();
     const select = document.getElementById(selectId);
@@ -843,29 +809,20 @@ function toggleSelect(event, selectId) {
         select.style.left = '0';
         select.style.display = 'block';
 
-       // Listener para cerrar al hacer clic fuera, sin interferir con otros botones
-    const closeSelect = (e) => {
-    const clickedInsideSelect = select.contains(e.target);
-    const clickedButton = e.target === button;
-    const clickedToggle = e.target.closest('[id^="btn-toggle-"]'); // evita conflicto con botones de variantes
-
-    if (!clickedInsideSelect && !clickedButton && !clickedToggle) {
-        select.classList.remove('select-visible');
-        select.style.display = 'none';
-        document.removeEventListener('click', closeSelect);
-    }
-};
-
-setTimeout(() => document.addEventListener('click', closeSelect), 50);
-
+        // Listener para cerrar al hacer clic fuera
+        document.addEventListener('click', function closeSelect(e) {
+            if (!select.contains(e.target) && e.target !== button) {
+                select.classList.remove('select-visible');
+                select.style.display = 'none';
+                document.removeEventListener('click', closeSelect);
+            }
+        });
     }
 }
 
 
 /**
- * Muestra el modal de detalle del producto o variante y prepara los botones de acción.
- * @param {Object} data - Los datos del producto o variante.
- * @param {string} type - 'producto' o 'variante'.
+ * Muestra el modal de detalle del producto o variante.
  */
 function openCustomModal(data, type) {
     const isVariant = type === 'variante';
@@ -880,7 +837,6 @@ function openCustomModal(data, type) {
 
     // 2. Imagen
     const imageKey = isVariant ? 'imagen' : 'producto_imagen';
-    // Nota: Se mantiene la lógica de ruta de imagen (ajusta si es necesario)
     document.getElementById('modal-img').src = data[imageKey] ? "uploads/" + data[imageKey] : "../uploads/sin-imagen.png";
 
     // 3. Detalles numéricos
@@ -893,73 +849,10 @@ function openCustomModal(data, type) {
     document.getElementById('modal-costo').textContent = costo;
     document.getElementById('modal-stock').textContent = stock;
     document.getElementById('modal-stock-min').textContent = stockMin; 
-    
-    // ===========================================
-    // 4. LÓGICA CLAVE DE BOTONES ELIMINAR/EDITAR
-    // ===========================================
-    const btnEliminar = document.getElementById('modal-btn-eliminar');
-    const btnEditar = document.getElementById('modal-btn-editar');
-    let id;
-    
-    if (isVariant) {
-        id = data.id; 
-        // Si es variante, DEBE apuntar al script que edita variantes
-        btnEditar.href = `index.php?view=editar_variante&id=${id}&prod_id=${data.id_producto}`;
-    } else {
-        id = data.id_producto; 
-        // Si es producto principal, DEBE apuntar a editar_producto.php
-        btnEditar.href = `index.php?view=editar_producto&id=${id}`; 
-    } 
-    // Configuración del botón ELIMINAR (los atributos se usan en confirmarEliminar)
-    btnEliminar.setAttribute('data-id', id);
-    btnEliminar.setAttribute('data-type', type);
 
-
-    // 5. Mostrar modal
+    // 4. Mostrar modal
     document.getElementById('modal').style.display = 'flex';
 }
-
-/**
- * Función que maneja la confirmación y la redirección de eliminación.
- * @param {HTMLElement} element - El botón 'Eliminar' que contiene los data-atributos.
- */
-let deleteId = null;
-let deleteType = null;
-
-function confirmarEliminar(element) {
-  // Obtener ID y tipo
-  deleteId = element.getAttribute('data-id');
-  deleteType = element.getAttribute('data-type');
-
-  if (!deleteId || !deleteType) {
-    console.error("Falta el ID o el tipo de producto/variante.");
-    return;
-  }
-
-  const nombre = (deleteType === 'variante') ? 'esta variante' : 'este producto';
-  
-  // Mostrar el modal de confirmación, asegurando la visibilidad
-  const confirmModal = document.getElementById("confirmModal");
-  confirmModal.classList.remove("hidden");
-  confirmModal.style.display = 'flex'; // 👈 AGREGAR ESTO PARA FORZAR LA VISIBILIDAD
-  
-  document.getElementById("confirmMessage").textContent =
-    `¿Estás seguro de que quieres eliminar?. Esta acción no se puede deshacer.`;
-}
-
-// Botones del modal de confirmación
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  const confirmModal = document.getElementById("confirmModal");
-  confirmModal.classList.add("hidden");
-  confirmModal.style.display = 'none'; // 👈 AGREGAR ESTO PARA ASEGURAR QUE SE OCULTE
-});
-
-document.getElementById("confirmBtn").addEventListener("click", () => {
-  if (deleteId && deleteType) {
-    // Redirección con los parámetros correctos
-    window.location.href = `pages/productos_eliminar.php?type=${deleteType}&id=${deleteId}`;
-  }
-});
 
 
 /**
@@ -990,10 +883,7 @@ function toggleVariantes(productId) {
 function cerrarModal() {
     document.getElementById('modal').style.display = 'none';
 }
-
-
 </script>
-
 
 </body>
 </html>

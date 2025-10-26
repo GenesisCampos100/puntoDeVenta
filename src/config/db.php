@@ -1,7 +1,7 @@
 <?php
 // Configuración de la conexión a la base de datos
-$host = "localhost";   
-$dbname = "bdpuntodeventa"; 
+$host = "localhost";
+$dbname = "bdpuntodeventa";
 $username = "root";   
 $password = "";       
 

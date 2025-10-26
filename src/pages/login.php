@@ -440,7 +440,16 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
                 <div class="login-logo">
                     <img src="../../public/img/logo2.png">
                 </div>
+
                 <H1 class="login-titulo">Tu punto de venta favorito</H1>
+                <?php if (!empty($_SESSION['error'])): ?>
+    <div class="alert alert-danger" 
+         style="text-align:center; background:#f8d7da; color:#842029; padding:10px; border-radius:8px; margin:10px 0;">
+        <?= htmlspecialchars($_SESSION['error']); ?>
+    </div>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
 
                 <form id="loginFormulario" action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
@@ -503,8 +512,6 @@ padding: 1rem 3rem; /*Padding es el espacio dentro del boton*/
 
         </section> <!--Fin de login-->
 
-        <script src="/src/js/mostrar_contra.js"> </script>
-        <script src="/src/js/alertas_login.js"></script>
     </main>
 
     <script>

@@ -106,7 +106,10 @@
             width: 100%;
             box-sizing: border-box;
             font-size: 15px;
+<<<<<<< HEAD
+=======
             
+>>>>>>> origin/Genesis
         }
 
         /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
