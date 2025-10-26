@@ -1,26 +1,94 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
 
+    // Calcular un id_empleado por defecto (para evitar variable indefinida al cargar el formulario)
+    $id_empleado = '';
+    try {
+        $default_rol = 0; // mismo valor por defecto que usamos al crear
+        switch ($default_rol) {
+            case 1: $prefijo = 'A'; break; // Admin
+            case 2: $prefijo = 'G'; break; // Gerente
+            case 3: $prefijo = 'C'; break; // Cajero
+            default: $prefijo = 'X'; break;
+        }
+
+        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['prefijo' => $prefijo . '%']);
+        $ultimo = $stmt->fetchColumn();
+        $numero = $ultimo ? ((int)substr($ultimo, 1)) + 1 : 1;
+        $id_empleado = $prefijo . str_pad($numero, 4, '0', STR_PAD_LEFT);
+    } catch (Exception $e) {
+        // Si falla, dejamos $id_empleado vacío y el formulario seguirá funcionando
+        $id_empleado = '';
+    }
 
     $estatus = 1;
     if($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
-            $nombre_completo = $_POST['nombre_completo'];
-            $correo = $_POST['correo'];
-            $password = md5($_POST['password']); // Encriptar la contraseña
-            $telefono = $_POST['telefono'];
-            $direccion = $_POST['direccion'];
-            $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
-            $rol_id = $_POST['rol_id'];
+            //Validar datos del empleado
+            $id_empleado = filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING);
 
-            if ($nombre_completo === '') {
-            throw new Exception("El nombre del producto es obligatorio.");
+            $nombre = filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING);
+            $apellido_paterno = filter_input(INPUT_POST, 'apellido_p', FILTER_SANITIZE_STRING);
+            $apellido_materno = filter_input(INPUT_POST, 'apellido_m', FILTER_SANITIZE_STRING);
+
+            $telefono = filter_input(INPUT_POST, 'telefono', FILTER_SANITIZE_STRING);
+
+            $calle = filter_input(INPUT_POST, 'calle', FILTER_SANITIZE_STRING);
+            $num_ext = filter_input(INPUT_POST, 'num_ext', FILTER_SANITIZE_STRING);
+            $num_int = filter_input(INPUT_POST, 'num_int', FILTER_SANITIZE_STRING);
+            $colonia = filter_input(INPUT_POST, 'colonia', FILTER_SANITIZE_STRING);
+            $cp = filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_STRING);
+            $estado = filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING);
+
+            $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
+
+            $id_rol = filter_input(INPUT_POST, 'id_rol', FILTER_SANITIZE_NUMBER_INT);
+
+            // Validar correo
+            $correo = filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL);
+            if (!$correo) {
+                die("Correo inválido.");
             }
 
-            $stmt = $pdo->prepare("INSERT INTO usuarios(id, nombre_completo, telefono, direccion, correo, password, estatus, fecha, rol_id) 
-            VALUES (NULL, ?, ?, ?, ?, ?, ?, NOW(), ?)");
+            // Validar y cifrar nuestra contraseña
+            $contraseña = trim($_POST['contra']);
+            $hash = password_hash($contraseña, PASSWORD_DEFAULT);
+
+            // Consulta para insertar el empleado
+            $sql = "INSERT INTO empleados 
+                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, id_rol, fecha)
+                VALUES
+                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, :id_rol, NOW())";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                'id_empleado' => $id_empleado,
+                'nombre' => $nombre,
+                'apellido_paterno' => $apellido_paterno,
+                'apellido_materno' => $apellido_materno,
+                'celular' => $telefono,
+                'calle' => $calle,
+                'num_ext' => $num_ext,
+                'num_int' => $num_int,
+                'colonia' => $colonia,
+                'cp' => $cp,
+                'estado' => $estado,
+                'estatus' => $estatus,
+                'id_rol' => $id_rol
+            ]);
+
+            // Consulta para insertar el usuario asociado al empleado
+            $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
+                VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
+            $stmt_2 = $pdo->prepare($sql_2);
+            $stmt_2->execute([
+                'id_usuario' => NULL,
+                'correo' => $correo,
+                'contrasena' => $hash,
+                'id_empleado' => $id_empleado
+            ]);
             
-            $stmt->execute([$nombre_completo, $telefono, $direccion, $correo, $password, $estatus, $rol_id]);
             header("Location: index.php?view=empleados");
             exit;
         } catch (Exception $e) {
@@ -102,37 +170,75 @@
 </head>
 <body>
     <h2>Registro de Empleados</h2>
-    <div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 40px 38px 32px 38px; border-radius: 18px; box-shadow: 0 2px 16px rgba(0,0,0,0.10); position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-            <span style="font-size:22px; font-weight:700; color:#b3c428; font-family:'Poppins',sans-serif;">Datos Básicos</span>
-            <span style="font-size:28px; color:#b3c428; cursor:pointer; font-weight:700; line-height:1;" onclick="window.history.back()">&#10005;</span>
+    <div>
+        <div>
+            <span >Datos Básicos</span>
+            <span onclick="window.history.back()">&#10005;</span>
         </div>
+        
         <form method="POST" enctype="multipart/form-data">
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label style="font-size:14px; font-weight:500; color:#374151;">Nombre:</label>
-                <input type="text" name="nombre_completo" maxlength="50" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-
-                <label style="font-size:14px; font-weight:500; color:#374151;">E-mail:</label>
-                <input type="email" name="correo" maxlength="100" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Contraseña:</label>
-                        <input type="password" name="password" maxlength="255" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+            <div>
+                <div>
+                    <div>
+                        <label>Apellido Paterno: </label>
+                        <input type="text" name="apellido_p" maxlength="50" required>
                     </div>
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Teléfono:</label>
-                        <input type="text" name="telefono" maxlength="20" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+                    <div>
+                        <label>Apellido Materno: </label>
+                        <input type="text" name="apellido_m" maxlength="50" required>
+                    </div>
+                </div>
+                
+                <label>Nombre(s): </label>
+                <input type="text" name="nombres" maxlength = "50" required>
+
+                <label>Correo: </label>
+                <input type="email" name="correo" maxlength="100" required>
+
+                <div>
+                    <div>
+                        <label>Contraseña: </label>
+                        <input type="password" name="contra" maxlength="255" required>
+                    </div>
+                    <div>
+                        <label>Teléfono: </label>
+                        <input type="text" name="telefono" maxlength="20" required>
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Dirección:</label>
-                        <input type="text" name="direccion" maxlength="100" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+                <div>
+                    <div>
+                        <label>Calle: </label>
+                        <input type="text" name="calle" maxlength="100" required>
                     </div>
-                    <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Estatus:</label>
+                    <div>
+                        <label>No. Ext: </label>
+                        <input type="text" name="num_ext" maxlength="10" required>
+                    </div>
+                    <div>
+                        <label>No. Int: </label>
+                        <input type="text" name="num_int" maxlength="10">
+                    </div>
+                </div>
+
+                <div>
+                    <div>
+                        <label>Colonia: </label>
+                        <input type="text" name="colonia" maxlength="100" required>
+                    </div>
+                    <div>
+                        <label>Código Postal: </label>
+                        <input type="text" name="cp" maxlength="10" required>
+                    </div>
+                </div>
+
+                <div>
+                    <div>
+                        <label>Estado: </label>
+                        <input type="text" name="estado" maxlength="100" required>
+                    </div>
+                    <div>
+                        <label>Estatus:</label>
                         <label class="switch">
                             <input type="hidden" name="estatus" value="0">
                             <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
@@ -141,23 +247,56 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <label style="font-size:14px; font-weight:500; color:#374151;">Puesto:</label><br>
-                    <select name="rol_id" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-                        <option value="">Selecciona un rol</option>
-                        <option value="1">Admin</option>
-                        <option value="2">Gerente</option>
-                        <option value="3">Cajero</option>
-                        <!-- Agrega más opciones según los roles disponibles -->
-                    </select>
+                <div>
+                    <div>
+                        <label>Puesto:</label>
+                        <select id="id_rol" name="id_rol" required>
+                            <option value="">Selecciona el puesto</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Gerente</option>
+                            <option value="3">Cajero</option>
+                            <!-- Agrega más opciones según los roles disponibles -->
+                        </select>
+                    </div>
+                    <div>
+                        <label>Numero de empleado: </label>
+                        <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" readonly>
+                    </div>
+                    
                 </div>
                 
             </div>
-            <div style="display:flex; justify-content:center; gap:18px; margin-top:28px;">
-                <button type="submit" style="background:#f43f5e; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Guardar</button>
-                <button type="button" onclick="window.history.back()" style="background:#b3c428; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Cancelar</button>
+            <div>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="window.history.back()">Cancelar</button>
             </div>
         </form>
     </div>
+    <script>
+        // Cuando cambie el select de rol, pedir el siguiente id_empleado
+        document.addEventListener('DOMContentLoaded', function () {
+            const rolSelect = document.getElementById('id_rol');
+            const numInput = document.getElementById('num_empleado');
+
+            async function fetchNext(idRol) {
+                if (!idRol) return;
+                try {
+                    const resp = await fetch('../scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
+                    if (!resp.ok) throw new Error('Error en la petición');
+                    const data = await resp.json();
+                    if (data && data.next) numInput.value = data.next;
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            rolSelect.addEventListener('change', function () {
+                fetchNext(this.value);
+            });
+
+            // Si hay un valor seleccionado al cargar, pedir el siguiente
+            if (rolSelect.value) fetchNext(rolSelect.value);
+        });
+    </script>
 </body>
 </html>
