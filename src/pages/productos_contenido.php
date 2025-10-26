@@ -18,7 +18,6 @@ $sql = "SELECT
             p.marca,
             c.nombre AS categoria,
             p.cantidad,
-            p.color,
             p.cantidad_min,
             p.costo,
             p.precio_unitario,
@@ -91,169 +90,636 @@ foreach ($variantesRaw as $v) {
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Productos</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-blue': '#1e40af', // Ejemplo de color principal
-                        'stock-low': '#ef4444', // Rojo
-                        'stock-ok': '#10b981', // Verde
-                        'stock-min': '#f59e0b', // Amarillo/Naranja
-                    },
-                    boxShadow: {
-                        'custom-light': '0 4px 12px rgba(0, 0, 0, 0.08)',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        /* Clases auxiliares para el Select Dropdown y Modales que requieren un comportamiento específico */
-        .select-visible { display: block !important; }
-        .modal { display: none; } /* Tailwind flex se aplica en JS para mostrar */
-        .stock.verde { color: var(--tw-colors-stock-ok); font-weight: 600; }
-        .stock.rojo { color: var(--tw-colors-stock-low); font-weight: 600; }
-        .stock.amarillo { color: var(--tw-colors-stock-min); font-weight: 600; }
-    </style>
+<style>
+/* --- ESTILOS BASE Y GENERALES --- */
+body {
+    background: #f9fafb; 
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif; 
+    color: #374151; 
+}
 
+/* --- TÍTULO PRINCIPAL DE LA VISTA --- */
+h2 {
+    text-align: center;
+    color: #f43f5e; 
+    margin: 40px auto 25px; 
+    font-weight: 700; 
+    font-size: 28px; 
+    letter-spacing: 1.5px; 
+    text-transform: uppercase;
+}
+
+/* --- BARRA DE HERRAMIENTAS (TOOLBAR) --- */
+.toolbar {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    margin: 20px auto 30px;
+    width: 90%;
+    max-width: 1000px; 
+    gap: 10px; 
+}
+
+.toolbar form {
+    display: flex;
+    flex-grow: 1;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-container {
+    flex-grow: 1; 
+    max-width: 500px; 
+    position: relative;
+}
+
+.search-container input[type="text"] {
+    padding: 10px 15px 10px 40px; 
+    border: 1px solid #ddd;
+    border-radius: 8px; 
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+/* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
+.search-container .search-icon { 
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af; 
+    cursor: pointer; /* HACEMOS EL ÍCONO CLICKABLE */
+    font-size: 18px;
+    z-index: 10;
+}
+
+.search-container .clear-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Botones de acción (Filtrar/Ordenar) */
+.toolbar .btn-accion {
+    background: white; 
+    color: #374151; 
+    padding: 10px 18px;
+    border: 1px solid #d1d5db; 
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background-color 0.2s;
+}
+
+.toolbar .btn-accion:hover {
+    background-color: #f3f4f6;
+}
+
+/* Botón "Agregar producto" */
+.btn-agregar {
+    background: #f43f5e; 
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.btn-agregar:hover {
+    background-color: #e11d48;
+}
+
+/* Ocultar/Mostrar los selects nativos */
+.toolbar form select {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    z-index: 50;
+    margin-top: 5px; 
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    min-width: 180px;
+}
+.toolbar form button[type="submit"] {
+    display: none;
+}
+.select-visible {
+    display: block !important;
+}
+
+/* --- CONTENEDOR DE PRODUCTOS (LA TABLA) --- */
+.productos-container {
+    width: 90%; 
+    max-width: 1000px; 
+    margin: 0 auto 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    overflow: hidden;
+    border: 1px solid #e5e7eb; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+
+/* Cabecera de la tabla */
+thead { 
+    background: #2f455c; 
+    color: white; 
+}
+thead th {
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px; 
+}
+
+th, td { 
+    padding: 16px; 
+    text-align: left; 
+    border-bottom: none; 
+}
+
+tr {
+    border-bottom: 1px solid #eee;
+}
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Línea de separación púrpura */
+.separator-row td {
+    border-top: 2px solid #a78bfa; 
+    padding: 0; 
+    height: 2px;
+    background: white; 
+}
+.separator-row:hover {
+    background: white;
+}
+
+/* Contenido de la celda de producto */
+.producto-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.producto-info img {
+    width: 50px; 
+    height: 75px; 
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f1f1f1;
+    border: 1px solid #eee;
+}
+
+/* Etiqueta de Stock */
+.stock { 
+    padding: 4px 12px; 
+    border-radius: 4px; 
+    color: white; 
+    font-size: 13px; 
+    font-weight: 600; 
+    text-align: center;
+    display: inline-block;
+    /* Color por defecto (Bajo Stock / Cero) */
+    background-color: #f43f5e; 
+} 
+.stock.verde { /* Verde (Olive) para stock normal */
+    background-color: #b6c649; 
+}
+
+/* Botón 'Más'/'Menos' (Color rosa) */
+.btn-toggle-variantes {
+    background: #f43f5e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+    width: 30px; 
+    text-align: center;
+}
+.btn-toggle-variantes:hover {
+    background: #e11d48;
+}
+
+.precio { 
+    color: #374151; 
+    font-weight: bold; 
+    font-size: 16px; 
+}
+
+/* --- ESTILOS DE VARIANTE (TABLA ANIDADA) --- */
+.fila-variantes td {
+    padding: 0;
+    background: #fcfcfc;
+    border-bottom: 1px solid #eee;
+}
+.tabla-variantes {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+.tabla-variantes thead {
+    background: #f3f4f6; 
+    color: #374151;
+    border-bottom: 1px solid #ddd;
+}
+.tabla-variantes th {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.tabla-variantes td {
+    padding: 10px 16px; 
+    font-size: 14px;
+}
+.tabla-variantes tr {
+    border-bottom: 1px dashed #eee;
+}
+.tabla-variantes tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Ajuste de columnas para la tabla anidada */
+.tabla-variantes .col-vacio { width: 4.5%;} 
+.tabla-variantes .col-producto-info { width: 45%; }
+.tabla-variantes .col-stock { width: 15%; }
+.tabla-variantes .col-precio { width: 15%; }
+.tabla-variantes .col-acciones { width: 5%; }
+
+
+/* --- ESTILOS DEL MODAL (DETALLE DEL PRODUCTO - RESTAURADO) --- */
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: none; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    width: 650px; 
+    max-width: 90%;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: aparecer 0.3s ease;
+}
+
+@keyframes aparecer { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-content .cerrar {
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    border: none; 
+    background: none; 
+    font-size: 28px; 
+    color: #9ca3af; 
+    cursor: pointer;
+    padding: 5px 10px; 
+    border-radius: 8px; 
+    line-height: 1;
+    transition: background-color 0.2s, color 0.2s; 
+}
+.modal-content .cerrar:hover {
+    background-color: #ef4444; 
+    color: white; 
+}
+
+
+/* --- SECCIÓN PRINCIPAL: IMAGEN Y DATOS BÁSICOS --- */
+.modal-top-section {
+    display: flex;
+    gap: 25px; 
+    align-items: flex-start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee; /* Línea de separación */
+}
+
+.modal-image-container { 
+    flex-shrink: 0; 
+    width: 180px; 
+    height: 220px; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    overflow: hidden; 
+    padding: 5px; 
+    background: #f9f9f9; 
+}
+.modal-image-container img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+
+.modal-info {
+    flex-grow: 1;
+}
+
+.modal-title { 
+    color: #1f2937; 
+    font-size: 26px; 
+    font-weight: 700; 
+    margin: 0 0 5px 0; 
+}
+.modal-subtitle { 
+    font-size: 15px; 
+    color: #f43f5e; 
+    margin-bottom: 5px;
+}
+.modal-cod-barras { 
+    font-size: 14px; 
+    color: #9ca3af; 
+    margin-bottom: 15px; 
+}
+
+/* Contenedor principal de PRECIO */
+.modal-main-price {
+    background: #fef2f2; 
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 15px 20px;
+}
+
+.modal-main-price .label { 
+    font-size: 16px; 
+    color: #9ca3af; 
+    margin-bottom: 0; 
+    display: block;
+}
+
+.modal-main-price .value { 
+    font-size: 32px; 
+    font-weight: 700; 
+    color: #f43f5e; 
+    line-height: 1.2;
+}
+.modal-main-price small { 
+    font-size: 13px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 5px;
+}
+
+/* --- SECCIÓN INFERIOR: COSTO Y EXISTENCIAS (TARJETAS ORIGINALES) --- */
+.modal-bottom-section {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.modal-detail-box {
+    flex-basis: 50%; /* Dos columnas iguales */
+    padding: 15px 20px; /* Relleno para las tarjetas */
+    border-radius: 8px;
+    border: 1px solid #e5e7eb; /* Borde suave */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra ligera */
+}
+
+/* Estilos específicos para el box de Costo */
+.modal-detail-box.costo {
+    background: #f9fafb; /* Fondo ligeramente más oscuro */
+}
+
+.modal-detail-box .label { 
+    font-size: 14px; 
+    color: #9ca3af; 
+    margin-bottom: 0; 
+    display: block;
+}
+
+.modal-detail-box .value { 
+    font-size: 20px; 
+    font-weight: 700; 
+    color: #1f2937; 
+    line-height: 1.2;
+}
+
+.modal-detail-box small { 
+    font-size: 12px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Estilos para el box de Existencias */
+.modal-detail-box.stock { 
+    background: #E6F4EA; /* Fondo verde olivo muy suave */
+    border-color: #A3D9B0; /* Borde un poco más oscuro */
+}
+.modal-detail-box.stock .value { 
+    color: #2E8B57; /* Verde olivo oscuro para el valor */
+}
+.modal-detail-box.stock small { 
+    color: #6B8E23; /* Verde olivo para el texto pequeño */
+}
+
+
+/* Modal Actions (Botones Eliminar/Editar) */
+.modal-actions { 
+    margin-top: 30px; 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 12px; 
+}
+.modal-actions button { 
+    padding: 12px 22px; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: background-color 0.2s; 
+    font-size: 15px; 
+}
+.modal-actions .btn-eliminar { 
+    background: #e1e1e1; 
+    color: #333; 
+}
+.modal-actions .btn-eliminar:hover { 
+    background: #ccc; 
+}
+
+/* Botón Editar con color verde olivo */
+.modal-actions .btn-editar { 
+    background: #6B8E23; /* Verde olivo */
+    color: white; 
+}
+.modal-actions .btn-editar:hover { 
+    background: #55751C; /* Tono más oscuro al pasar el cursor */
+}
+</style>
 </head>
-<body class="bg-gray-50 font-sans p-6">
+<body>
 
-<div class="toolbar flex flex-wrap items-center justify-between p-4 bg-white rounded-xl shadow-custom-light mb-6">
-    <form method="GET" id="toolbar-form" action="index.php" class="flex flex-wrap items-center gap-3">
+<h2>PRODUCTOS</h2>
+
+<div class="toolbar">
+    <form method="GET" id="toolbar-form" action="index.php"> 
         
         <input type="hidden" name="view" value="productos"> 
 
-        <div class="search-container flex items-center border border-gray-300 rounded-lg bg-gray-50 px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 transition duration-150">
-            <span class="search-icon text-gray-500 cursor-pointer text-lg" onclick="document.getElementById('toolbar-form').submit()">🔍</span> 
+        <div class="search-container">
+            <span class="search-icon" onclick="document.getElementById('toolbar-form').submit()">🔍</span> 
             <input type="text" id="busqueda-input" name="busqueda" placeholder="Buscar producto..." 
-                    class="bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 px-2 flex-grow min-w-[150px]"
-                    value="<?= htmlspecialchars($busqueda) ?>" 
-                    onkeydown="if(event.key === 'Enter') document.getElementById('toolbar-form').submit();">
-            <span class="clear-icon text-gray-500 hover:text-gray-700 cursor-pointer" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();">✖</span>
+                   value="<?= htmlspecialchars($busqueda) ?>" 
+                   onkeydown="if(event.key === 'Enter') document.getElementById('toolbar-form').submit();">
+            <span class="clear-icon" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();">✖</span>
         </div>
 
-        <div class="relative">
-            <button type="button" class="btn-accion flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition" onclick="toggleSelect(event, 'categoria-select')">
+        <div style="position:relative;">
+            <button type="button" class="btn-accion" onclick="toggleSelect(event, 'categoria-select')">
                 <span class="icon">⚙</span> Filtrar
             </button>
-            <select name="categoria" id="categoria-select" class="absolute hidden mt-1 w-full min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-lg z-20" onchange="document.getElementById('toolbar-form').submit()">
+            <select name="categoria" id="categoria-select" onchange="document.getElementById('toolbar-form').submit()">
                 <option value="">-- Todas las categorías --</option>
                 <?php foreach ($categorias as $cat): ?>
-                    <option value="<?= $cat['id_categoria'] ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?> class="p-2 hover:bg-gray-100">
+                    <option value="<?= $cat['id_categoria'] ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($cat['nombre']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         
-        <div class="relative">
-            <button type="button" class="btn-accion flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition" onclick="toggleSelect(event, 'orden-select')">
+        <div style="position:relative;">
+            <button type="button" class="btn-accion" onclick="toggleSelect(event, 'orden-select')">
                 <span class="icon">⇅</span> Ordenar
             </button>
-            <select name="orden" id="orden-select" class="absolute hidden mt-1 w-full min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-lg z-20" onchange="document.getElementById('toolbar-form').submit()">
-                <option value="p.nombre ASC"  <?= $orden=="p.nombre ASC" ? "selected" : "" ?> class="p-2 hover:bg-gray-100">Nombre (A-Z)</option>
-                <option value="p.nombre DESC" <?= $orden=="p.nombre DESC" ? "selected" : "" ?> class="p-2 hover:bg-gray-100">Nombre (Z-A)</option>
-                <option value="p.precio_unitario ASC"   <?= $orden=="p.precio_unitario ASC" ? "selected" : "" ?> class="p-2 hover:bg-gray-100">Precio ↑</option>
-                <option value="p.precio_unitario DESC"  <?= $orden=="p.precio_unitario DESC" ? "selected" : "" ?> class="p-2 hover:bg-gray-100">Precio ↓</option>
+            <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()">
+                <option value="p.nombre ASC"  <?= $orden=="p.nombre ASC" ? "selected" : "" ?>>Nombre (A-Z)</option>
+                <option value="p.nombre DESC" <?= $orden=="p.nombre DESC" ? "selected" : "" ?>>Nombre (Z-A)</option>
+                <option value="p.precio_unitario ASC"   <?= $orden=="p.precio_unitario ASC" ? "selected" : "" ?>>Precio ↑</option>
+                <option value="p.precio_unitario DESC"  <?= $orden=="p.precio_unitario DESC" ? "selected" : "" ?>>Precio ↓</option>
             </select>
         </div>
     </form>
     
-    <a href="index.php?view=agregar_producto" class="btn-agregar flex items-center gap-2 px-4 py-2 bg-primary-blue text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-150 mt-2 md:mt-0">
+    <a href="index.php?view=agregar_producto" class="btn-agregar">
         <span class="icon">➕</span> Agregar producto
     </a>
 </div>
 
-<div class="productos-container bg-white p-6 rounded-xl shadow-custom-light overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+<div class="productos-container">
+    <table>
+        <thead>
             <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[4.5%]"></th> 
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[45%]">Producto</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Stock</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Categoría</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Precio</th>
-                <th scope="col" class="px-6 py-3 w-[5%]"></th> 
+                <th style="width: 4.5%;"></th> 
+                <th style="width: 45%;">Producto</th>
+                <th style="width: 15%;">Stock</th>
+                <th style="width: 15%;">Categoría</th>
+                <th style="width: 15%;">Precio</th>
+                <th style="width: 5%;"></th> 
             </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody>
             <?php if (!empty($productos)): ?>
                 <?php $isFirstRow = true; ?>
                 <?php foreach ($productos as $producto): 
                     $cantidad = (int)$producto['cantidad'];
-                    // Asignación de clases de stock (usando las configuradas en tailwind.config)
+                    // Lógica de color de Stock: Verde si > 0 y > min, Rojo si <= min o 0.
                     $es_bajo_stock = $cantidad <= $producto['cantidad_min'];
-                    $stockClass = ($cantidad > 0 && !$es_bajo_stock) ? 'verde' : 'rojo';
+                    $stockClass = ($cantidad > 0 && !$es_bajo_stock) ? 'verde' : '';
                     $imagen = !empty($producto['producto_imagen']) ? "uploads/{$producto['producto_imagen']}" : "../uploads/sin-imagen.png";
                 ?>
-                <tr class="product-row hover:bg-gray-50 transition duration-150" id="product-row-<?= $producto['id_producto'] ?>">
-                    <td class="px-6 py-4 whitespace-nowrap"><input type="checkbox" class="form-checkbox h-4 w-4 text-primary-blue border-gray-300 rounded"></td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="producto-info flex items-center space-x-4">
-                            <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto" class="w-10 h-14 object-cover rounded-md shadow-sm">
-                            <div>
-                                <strong class="text-sm font-medium text-gray-900"><?= htmlspecialchars($producto['producto_nombre']) ?></strong>
-                                <div><small class="producto-color text-xs text-gray-500"><?= htmlspecialchars($producto['color']) ?></small></div>
-                            </div>
+                <tr class="product-row" id="product-row-<?= $producto['id_producto'] ?>">
+                    <td><input type="checkbox"></td>
+                    <td>
+                        <div class="producto-info">
+                            <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto">
+                            <div><strong><?= htmlspecialchars($producto['producto_nombre']) ?></strong></div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($producto['categoria']) ?></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 precio">$<?= number_format((float)$producto['precio_unitario'], 2) ?></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td><span class="stock <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
+                    <td><?= htmlspecialchars($producto['categoria']) ?></td>
+                    <td class="precio">$<?= number_format($producto['precio_unitario'], 2) ?></td>
+                    <td>
                         <?php if ($producto['tiene_variante'] > 0): ?>
-                            <button class="btn-toggle-variantes text-blue-600 hover:text-blue-800 focus:outline-none" id="btn-toggle-<?= $producto['id_producto'] ?>" 
+                            <button class="btn-toggle-variantes" id="btn-toggle-<?= $producto['id_producto'] ?>" 
                                 onclick='toggleVariantes(<?= $producto['id_producto'] ?>)'>+</button>
                         <?php else: ?>
-                            <button class="btn-toggle-variantes text-blue-600 hover:text-blue-800 focus:outline-none" onclick='openCustomModal(<?= json_encode($producto) ?>, "producto")'>+</button>
+                            <button class="btn-toggle-variantes" onclick='openCustomModal(<?= json_encode($producto) ?>, "producto")'>+</button>
                         <?php endif; ?>
                     </td>
                 </tr>
 
+                <?php if ($isFirstRow): ?>
+                    <tr class="separator-row"><td colspan="6"></td></tr>
+                    <?php $isFirstRow = false; ?>
+                <?php endif; ?>
+
                 <?php if ($producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']])): ?>
-                <tr class="fila-variantes bg-gray-100" style="display:none;" id="variantes-<?= $producto['id_producto'] ?>">
-                    <td colspan="6" class="p-0">
-                        <table class="tabla-variantes w-full">
+                <tr class="fila-variantes" style="display:none;" id="variantes-<?= $producto['id_producto'] ?>">
+                    <td colspan="6">
+                        <table class="tabla-variantes">
                             <thead>
-                                <tr class="border-b border-gray-200 text-xs text-gray-500 uppercase">
-                                    <th class="col-vacio w-[4.5%]"></th>
-                                    <th class="col-producto-info px-6 py-2 text-left w-[45%]">Talla/Color</th>
-                                    <th class="col-stock px-6 py-2 text-left w-[15%]">Stock</th>
-                                    <th class="col-precio px-6 py-2 text-left w-[15%]">Precio</th>
-                                    <th class="col-acciones px-6 py-2 w-[5%]"></th>
+                                <tr>
+                                    <th class="col-vacio"></th>
+                                    <th class="col-producto-info">Talla/Color</th>
+                                    <th class="col-stock">Stock</th>
+                                    <th class="col-precio">Precio</th>
+                                    <th class="col-acciones"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200">
+                            <tbody>
                                 <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var): 
                                     $var['categoria'] = $producto['categoria'];
                                     $cantidad_var = (int)$var['cantidad'];
                                     $es_bajo_stock_var = $cantidad_var <= $var['cantidad_min'];
-                                    $stockClass_var = ($cantidad_var > 0 && !$es_bajo_stock_var) ? 'verde' : 'rojo';
+                                    $stockClass_var = ($cantidad_var > 0 && !$es_bajo_stock_var) ? 'verde' : '';
                                 ?>
-                                <tr class="hover:bg-gray-200 transition duration-100">
+                                <tr>
                                     <td class="col-vacio"></td>
-                                    <td class="col-producto-info px-6 py-3 whitespace-nowrap">
-                                        <div class="producto-info flex items-center space-x-4">
-                                            <img src="<?= !empty($var['imagen']) ? 'uploads/'.$var['imagen'] : '../uploads/sin-imagen.png' ?>" class="w-10 h-14 object-cover rounded-md shadow-sm">
+                                    <td class="col-producto-info">
+                                        <div class="producto-info" style="gap: 10px;">
+                                            <img src="<?= !empty($var['imagen']) ? 'uploads/'.$var['imagen'] : '../uploads/sin-imagen.png' ?>" style="width: 40px; height: 55px;">
                                             <div>
-                                                <strong class="text-sm font-medium text-gray-800">Talla: <?= htmlspecialchars($var['talla'] ?: '—') ?></strong><br>
-                                                <small class="text-xs text-gray-500">Color: <?= htmlspecialchars($var['color'] ?: '—') ?></small>
+                                                <strong>Talla: <?= htmlspecialchars($var['talla'] ?: '—') ?></strong><br>
+                                                <small>Color: <?= htmlspecialchars($var['color'] ?: '—') ?></small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="col-stock px-6 py-3 whitespace-nowrap text-sm"><span class="stock <?= $stockClass_var ?>"><?= (int)$var['cantidad'] ?></span></td>
-                                    <td class="col-precio px-6 py-3 whitespace-nowrap text-sm font-medium">$<?= number_format((float)$var['precio_unitario'], 2) ?></td>
-                                    <td class="col-acciones px-6 py-3 whitespace-nowrap text-right">
-                                        <button class="btn-toggle-variantes text-blue-600 hover:text-blue-800 focus:outline-none" onclick='openCustomModal(<?= json_encode($var) ?>, "variante")'>+</button>
-                                    </td>
+                                    <td class="col-stock"><span class="stock <?= $stockClass_var ?>"><?= (int)$var['cantidad'] ?></span></td>
+                                    <td class="col-precio" class="precio">$<?= number_format($var['precio_unitario'], 2) ?></td>
+                                    <td class="col-acciones"><button class="btn-toggle-variantes" onclick='openCustomModal(<?= json_encode($var) ?>, "variante")'>+</button></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -264,84 +730,68 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
                 <?php endforeach; ?>
             <?php else: ?>
-                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay productos registrados.</td></tr>
+                <tr><td colspan="6" style="text-align:center;">No hay productos registrados.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
 </div>
 
-<div id="modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9998]">
-    <div class="modal-content bg-white p-6 rounded-xl shadow-2xl w-full max-w-xl mx-4 relative transform transition-all">
-        <button class="cerrar absolute top-3 right-3 text-gray-500 hover:text-gray-900 text-2xl font-semibold" onclick="cerrarModal()">✖</button> 
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <button class="cerrar" onclick="cerrarModal()">✖</button> 
         
-        <div class="modal-top-section flex gap-6 border-b pb-4 mb-4">
-            <div class="modal-image-container flex-shrink-0">
-                <img id="modal-img" src="" alt="Producto" class="w-32 h-44 object-cover rounded-lg shadow-md">
+        <div class="modal-top-section">
+            <div class="modal-image-container">
+                <img id="modal-img" src="" alt="Producto">
             </div>
 
-            <div class="modal-info flex-grow">
-                <h3 id="modal-nombre" class="text-2xl font-bold text-gray-900 mb-1"></h3>
-                <div class="modal-subtitle text-sm text-gray-500 mb-2">Categoría: <span id="modal-categoria" class="font-medium text-gray-700"></span></div>
-                <div class="modal-cod-barras text-xs text-gray-400 mb-4">Código de barras: <span id="modal-codigo"></span></div>
+            <div class="modal-info">
+                <h3 class="modal-title" id="modal-nombre"></h3>
+                <div class="modal-subtitle">Categoría <span id="modal-categoria"></span></div>
+                <div class="modal-cod-barras">Código de barras: <span id="modal-codigo"></span></div>
                 
-                <div class="modal-main-price p-3 border border-blue-200 bg-blue-50 rounded-lg">
-                    <span class="label text-sm font-medium text-blue-700 block">Precio de Venta</span>
-                    <span class="value text-3xl font-extrabold text-blue-800">$<span id="modal-precio"></span></span>
-                    <small class="text-xs text-gray-500 block">IVA %16 incluido</small>
+                <div class="modal-main-price">
+                    <span class="label">Precio de Venta</span>
+                    <span class="value">$<span id="modal-precio"></span></span>
+                    <small>IVA %16 incluido</small>
                 </div>
             </div>
         </div>
         
-        <div class="modal-bottom-section flex justify-between gap-4 mb-6">
-             <div class="modal-detail-box costo p-4 border border-gray-200 rounded-lg flex-1">
-                <span class="label text-sm font-medium text-gray-600 block">Costo unitario</span>
-                <span class="value text-xl font-semibold text-gray-900">$<span id="modal-costo"></span></span>
-                <small class="text-xs text-gray-500 block">Precio sin margen</small>
+        <div class="modal-bottom-section">
+             <div class="modal-detail-box costo">
+                <span class="label">Costo unitario</span>
+                <span class="value">$<span id="modal-costo"></span></span>
+                <small>Precio sin margen</small>
             </div>
             
-            <div class="modal-detail-box stock p-4 border border-gray-200 rounded-lg flex-1">
-                <span class="label text-sm font-medium text-gray-600 block">Existencias</span>
-                <span class="value text-xl font-semibold text-gray-900"><span id="modal-stock"></span> unidades</span>
-                <small class="text-xs text-gray-500 block">Mínimo de stock: <span id="modal-stock-min"></span></small>
+            <div class="modal-detail-box stock">
+                <span class="label">Existencias</span>
+                <span class="value"><span id="modal-stock"></span> unidades</span>
+                <small>Mínimo de stock: <span id="modal-stock-min"></span></small>
             </div>
         </div>
         
-        <div class="modal-actions flex justify-end gap-3">
-            <button 
-                id="modal-btn-eliminar" 
-                class="btn-eliminar flex items-center gap-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition" 
-                data-id="" 
-                data-type="" 
-                onclick="confirmarEliminar(this)">
-                🗑️ Eliminar
-            </button>
-            <a id="modal-btn-editar" class="btn-editar flex items-center gap-1 px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition">✏️ Editar</a> 
+        <div class="modal-actions">
+             <button class="btn-eliminar">🗑️ Eliminar</button>
+             <button class="btn-editar">✏️ Editar</button>
         </div>
+        
     </div>
 </div>
 
-<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]" style="display: none;">
-      <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full">
-        <h3 class="text-xl font-bold mb-4 text-gray-800">Confirmar eliminación</h3>
-        <p class="text-gray-600 mb-6" id="confirmMessage"></p>
-        <div class="flex justify-center gap-4">
-          <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-gray-300 text-gray-700 hover:bg-gray-400 transition font-medium">Cancelar</button>
-          <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-medium">Eliminar</button>
-        </div>
-      </div>
-    </div>
-
 <script>
 /**
- * Alterna la visibilidad de los selects de Filtro/Ordenar.
+ * Alterna la visibilidad del select nativo y posiciona la lista desplegable (Filtro/Ordenar).
  * @param {Event} event - El evento click.
- * @param {string} selectId - El ID del select.
+ * @param {string} selectId - El ID del select a mostrar/ocultar.
  */
 function toggleSelect(event, selectId) {
     event.stopPropagation();
     const select = document.getElementById(selectId);
     const button = event.currentTarget;
     
+    // Ocultar todos los demás selects
     document.querySelectorAll('.toolbar form select').forEach(s => {
         if (s.id !== selectId) {
             s.classList.remove('select-visible');
@@ -349,53 +799,47 @@ function toggleSelect(event, selectId) {
         }
     });
 
-    const isVisible = select.classList.contains('select-visible');
-    
-    if (isVisible) {
+    // Toggle del select actual
+    if (select.classList.contains('select-visible')) {
         select.classList.remove('select-visible');
         select.style.display = 'none';
     } else {
         select.classList.add('select-visible');
-        // Posicionamiento relativo al botón
         select.style.top = `${button.offsetHeight + 5}px`;
         select.style.left = '0';
         select.style.display = 'block';
 
-       // Listener para cerrar al hacer clic fuera
-        const closeSelect = (e) => {
-            const clickedInsideSelect = select.contains(e.target);
-            const clickedButton = e.target === button || button.contains(e.target);
-
-            if (!clickedInsideSelect && !clickedButton) {
+        // Listener para cerrar al hacer clic fuera
+        document.addEventListener('click', function closeSelect(e) {
+            if (!select.contains(e.target) && e.target !== button) {
                 select.classList.remove('select-visible');
                 select.style.display = 'none';
                 document.removeEventListener('click', closeSelect);
             }
-        };
-
-        setTimeout(() => document.addEventListener('click', closeSelect), 50);
+        });
     }
 }
 
 
 /**
  * Muestra el modal de detalle del producto o variante.
- * @param {Object} data - Los datos del producto o variante.
- * @param {string} type - 'producto' o 'variante'.
  */
 function openCustomModal(data, type) {
     const isVariant = type === 'variante';
     
+    // 1. Título y subtítulos
     document.getElementById('modal-nombre').textContent = isVariant 
         ? `Variante ${data.talla || '—'} (${data.color || '—'})` 
         : data.producto_nombre || 'Sin nombre';
         
     document.getElementById('modal-categoria').textContent = data.categoria || 'Sin categoría';
-    document.getElementById('modal-codigo').textContent = isVariant ? data.cod_barras : data.producto_cod_barras || 'N/A';
+    document.getElementById('modal-codigo').textContent = data.cod_barras || data.producto_cod_barras || 'N/A';
 
+    // 2. Imagen
     const imageKey = isVariant ? 'imagen' : 'producto_imagen';
     document.getElementById('modal-img').src = data[imageKey] ? "uploads/" + data[imageKey] : "../uploads/sin-imagen.png";
 
+    // 3. Detalles numéricos
     const precio = (typeof data.precio_unitario !== 'undefined' && data.precio_unitario !== null) ? parseFloat(data.precio_unitario).toFixed(2) : '—';
     const costo = (typeof data.costo !== 'undefined' && data.costo !== null) ? parseFloat(data.costo).toFixed(2) : '—';
     const stock = (typeof data.cantidad !== 'undefined') ? data.cantidad : '—';
@@ -405,65 +849,10 @@ function openCustomModal(data, type) {
     document.getElementById('modal-costo').textContent = costo;
     document.getElementById('modal-stock').textContent = stock;
     document.getElementById('modal-stock-min').textContent = stockMin; 
-    
-    const btnEliminar = document.getElementById('modal-btn-eliminar');
-    const btnEditar = document.getElementById('modal-btn-editar');
-    let id;
-    
-    if (isVariant) {
-        id = data.id; 
-        btnEditar.href = `index.php?view=editar_variante&id=${id}&prod_id=${data.id_producto}`;
-    } else {
-        id = data.id_producto; 
-        btnEditar.href = `index.php?view=editar_producto&id=${id}`; 
-    } 
-    btnEliminar.setAttribute('data-id', id);
-    btnEliminar.setAttribute('data-type', type);
 
+    // 4. Mostrar modal
     document.getElementById('modal').style.display = 'flex';
 }
-
-function cerrarModal() {
-    document.getElementById('modal').style.display = 'none';
-}
-
-
-let deleteId = null;
-let deleteType = null;
-
-function confirmarEliminar(element) {
-    deleteId = element.getAttribute('data-id');
-    deleteType = element.getAttribute('data-type');
-
-    if (!deleteId || !deleteType) {
-        console.error("Falta el ID o el tipo de producto/variante.");
-        return;
-    }
-
-    const nombre = (deleteType === 'variante') ? 'esta variante' : 'este producto';
-    
-    const confirmModal = document.getElementById("confirmModal");
-    confirmModal.classList.remove("hidden");
-    confirmModal.style.display = 'flex'; 
-    
-    document.getElementById("confirmMessage").textContent =
-      `¿Estás seguro de que quieres eliminar ${nombre}? Esta acción no se puede deshacer.`;
-
-    // Cierra el modal de detalles antes de abrir el de confirmación
-    cerrarModal(); 
-}
-
-document.getElementById("cancelBtn").addEventListener("click", () => {
-    const confirmModal = document.getElementById("confirmModal");
-    confirmModal.classList.add("hidden");
-    confirmModal.style.display = 'none'; 
-});
-
-document.getElementById("confirmBtn").addEventListener("click", () => {
-    if (deleteId && deleteType) {
-        window.location.href = `pages/productos_eliminar.php?type=${deleteType}&id=${deleteId}`;
-    }
-});
 
 
 /**
@@ -482,14 +871,19 @@ function toggleVariantes(productId) {
     const isHidden = filaVar.style.display === 'none' || filaVar.style.display === '';
     filaVar.style.display = isHidden ? 'table-row' : 'none';
     
+    // Cambia el signo de + a - (y viceversa)
     btnToggle.textContent = isHidden ? '−' : '+'; 
 
     if (isHidden) {
         filaVar.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }
+
+
+function cerrarModal() {
+    document.getElementById('modal').style.display = 'none';
+}
 </script>
 
-
 </body>
-</html> 
+</html>

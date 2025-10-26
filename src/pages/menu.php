@@ -1,22 +1,22 @@
 <?php
+
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    header("Location: pages/login.php");
     exit;
 }
 
-// Incluir permisos
 require_once __DIR__ . "/../config/permisos.php";
 
-$rol = $_SESSION['rol'];
+$rol = $_SESSION['rol'] ?? null;
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: login.php");
+    header("Location: pages/login.php");
     exit;
 }
-?>
 
+?>
 <!-- Script para recordar el estado del menú -->
 <script>
   (function() {

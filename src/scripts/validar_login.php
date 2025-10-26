@@ -1,5 +1,7 @@
 <?php
+
 session_start();
+
 include(__DIR__ . '/../config/db.php'); // conexión PDO
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -7,22 +9,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Buscar usuario
-    $stmt = $pdo->prepare("SELECT u.id, u.nombre_completo, u.password, r.nombre as rol 
-                           FROM usuarios u
-                           INNER JOIN roles r ON u.rol_id = r.id
-                           WHERE u.nombre_completo = :usuario OR u.correo = :usuario");
-    $stmt->execute(['usuario' => $usuario]);
-    $user = $stmt->fetch();
+    $stmt = $pdo->prepare("SELECT 
+                u.id_usuario AS id,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
+                u.contrasena AS password,
+                u.correo AS correo,
+                r.nombre_rol AS rol
+            FROM usuarios u
+            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+            INNER JOIN roles r ON e.id_rol = r.id_rol
+            WHERE u.correo = :usuario
+        ");
+        $stmt->execute(['usuario' => $usuario]);
+        $user = $stmt->fetch();
 
-    if ($user && md5($password) === $user['password']) {
-    // Guardar sesión
-    $_SESSION['usuario_id'] = $user['id'];
-    $_SESSION['rol'] = $user['rol'];
-    $_SESSION['nombre_completo'] = $user['nombre_completo'];
-    
-        // ✅ Ahora redirige al index con la vista de caja
+        if (password_verify($password, $user['password'])) {
+        $_SESSION['usuario_id'] = $user['id'];
+        $_SESSION['rol'] = $user['rol'];
+        $_SESSION['nombre_completo'] = $user['nombre_completo'];
+        $_SESSION['correo'] = $user['correo'];
+            
         header("Location: ../index.php?view=nueva_venta");
         exit;
+
+
+
     } else {
         // En caso de error, volver al login con mensaje
         $_SESSION['error'] = "Usuario o contraseña incorrectos";
@@ -30,3 +41,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 }
+
