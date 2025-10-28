@@ -5,13 +5,52 @@
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+/* Sidebar compacto (solo íconos) */
+.sidebar-cerrado {
+  width: 80px !important;
+  transition: width 0.3s ease;
+}
 
+.sidebar-cerrado ul li a {
+  justify-content: center;
+  padding: 1rem;
+}
+
+.sidebar-cerrado svg {
+  margin: 0 auto;
+}
+
+/* Usuario reducido a círculo */
+.user-mini {
+  justify-content: center !important;
+  width: 60px !important;
+  height: 60px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background-color: #0A2342 !important;
+}
+
+.user-mini img {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50%;
+}
+
+.user-mini div {
+  display: none;
+}
+
+/* Transiciones suaves */
+#sidebar,
+#userBlock {
+  transition: all 0.3s ease;
+}
 
 
 /* Ajuste de contenido principal */
 .main-content {
-    margin-left: 240px;
+    justify-content: center;
     padding: 30px;
-    background-color: #f3f4f6; /* gris muy claro */
+    background-color: #0b51dd; /* gris muy claro */
     min-height: 100vh;
 }
