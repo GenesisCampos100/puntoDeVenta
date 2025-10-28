@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-// 🧩 Obtener categorías
+// 🧩 Cargar categorías
 try {
     $stmt = $pdo->query("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC");
     $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -12,6 +12,7 @@ try {
 // 🧾 Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+        // 🧠 Datos base del producto
         $nombre = trim($_POST['nombre'] ?? '');
         $cod_barras = trim($_POST['cod_barras'] ?? '');
         $id_categoria = $_POST['id_categoria'] ?? null;
@@ -20,104 +21,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cantidad = (int)($_POST['cantidad'] ?? 0);
         $cantidad_min = (int)($_POST['cantidad_min'] ?? 0);
         $costo = (float)($_POST['costo'] ?? 0);
-        $tipo_costo = $_POST['tipo_costo'] ?? 'bruto';
         $precio_unitario = (float)($_POST['precio_unitario'] ?? 0);
-        $color_base = trim($_POST['color_base'] ?? '');
         $variantes = $_POST['variantes'] ?? [];
 
-        if ($nombre === '') {
-            throw new Exception("El nombre del producto es obligatorio.");
+        // 🧩 Validaciones básicas
+        if ($nombre === '') throw new Exception("El nombre del producto es obligatorio.");
+        if ($id_categoria === '' || $id_categoria === null) throw new Exception("Debe seleccionar una categoría.");
+        if ($costo <= 0) throw new Exception("El costo debe ser mayor que 0.");
+        if ($precio_unitario <= 0) throw new Exception("El precio unitario debe ser mayor que 0.");
+        if ($cantidad < 0) throw new Exception("La cantidad no puede ser negativa.");
+        if ($cantidad_min < 0) throw new Exception("La cantidad mínima no puede ser negativa.");
+
+        // 🚫 Verificar código de barras duplicado
+        if ($cod_barras !== '') {
+            $check = $pdo->prepare("SELECT cod_barras FROM productos WHERE cod_barras = ?");
+            $check->execute([$cod_barras]);
+            if ($check->fetch()) throw new Exception("Ya existe un producto con ese código de barras.");
         }
 
         // 🖼️ Imagen principal
         $imagen = null;
         if (!empty($_FILES['imagen']['name'])) {
-            $carpetaUploads = __DIR__ . "/../uploads/";
-            if (!is_dir($carpetaUploads)) mkdir($carpetaUploads, 0777, true);
-            $nombreArchivo = uniqid("img_") . "_" . basename($_FILES['imagen']['name']);
-            $rutaDestino = $carpetaUploads . $nombreArchivo;
-            if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino)) {
-                throw new Exception("Error al mover la imagen principal. Verifica permisos.");
+            $ext = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                throw new Exception("Formato de imagen no válido (solo JPG, PNG o WEBP).");
+            }
+
+            $carpeta = __DIR__ . "/../uploads/";
+            if (!is_dir($carpeta)) mkdir($carpeta, 0777, true);
+            $nombreArchivo = uniqid("prod_") . "." . $ext;
+            $ruta = $carpeta . $nombreArchivo;
+            if (!move_uploaded_file($_FILES['imagen']['tmp_name'], $ruta)) {
+                throw new Exception("Error al guardar la imagen.");
             }
             $imagen = $nombreArchivo;
         }
 
         // 💾 Insertar producto base
         $stmt = $pdo->prepare("INSERT INTO productos 
-            (nombre, cod_barras, id_categoria, marca, descripcion, talla, color, imagen, cantidad, cantidad_min, costo, tipo_costo, precio_unitario) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (cod_barras, nom_producto, descripcion, marca, imagen, talla, cantidad, cantidad_min, costo, precio, id_categoria)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        // Si no hay variantes → Unitalla y color libre
-        $talla_base = empty($variantes) ? "Unitalla" : null;
+        // Si no hay variantes, se guarda como "Unitalla" por defecto
+        $talla_base = empty($variantes) ? 'Unitalla' : null;
+
         $stmt->execute([
-            $nombre,
             $cod_barras ?: null,
-            $id_categoria,
-            $marca,
+            $nombre,
             $descripcion,
-            $talla_base,
-            $color_base ?: null,
+            $marca,
             $imagen,
+            $talla_base,
             $cantidad,
             $cantidad_min,
             $costo,
-            $tipo_costo,
-            $precio_unitario
+            $precio_unitario,
+            $id_categoria
         ]);
 
-        $producto_id = $pdo->lastInsertId();
-
-        // 🧩 Si hay variantes → Insertarlas
+        // 🧮 Insertar variantes (si existen)
         if (!empty($variantes)) {
-            $totalCantidad = 0;
             $stmtVar = $pdo->prepare("INSERT INTO variantes 
-          (id_producto, cod_barras, talla, color, imagen, cantidad, cantidad_min, costo, precio_unitario) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                (cod_barras, talla, color, imagen, cantidad, cantidad_min, costo, precio, cod_barras_producto)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-      foreach ($variantes as $index => $v) {
-          $codVar = trim($v['cod_barras'] ?? '');
-          if ($codVar === '') {
-              $codVar = "VAR-" . $producto_id . "-" . ($index + 1);
-          }
+            foreach ($variantes as $i => $v) {
+                $codVar = trim($v['cod_barras'] ?? '') ?: "VAR-" . uniqid();
+                $talla = trim($v['talla'] ?? '');
+                $color = trim($v['color'] ?? '');
+                $cantidadVar = (int)($v['cantidad'] ?? 0);
+                $cantidadMinVar = (int)($v['cantidad_min'] ?? 0);
+                $costoVar = (float)($v['costo'] ?? 0);
+                $precioVar = (float)($v['precio_unitario'] ?? 0);
 
-          // 📸 Imagen individual de variante
-          $imgVar = null;
-          if (!empty($_FILES['variantes']['name'][$index]['imagen'])) {
-              $carpetaUploads = __DIR__ . "/../uploads/";
-              if (!is_dir($carpetaUploads)) mkdir($carpetaUploads, 0777, true);
-              $nombreArchivo = uniqid("var_") . "_" . basename($_FILES['variantes']['name'][$index]['imagen']);
-              $rutaDestino = $carpetaUploads . $nombreArchivo;
-              $tmp = $_FILES['variantes']['tmp_name'][$index]['imagen'];
-              if (is_uploaded_file($tmp) && move_uploaded_file($tmp, $rutaDestino)) {
-                  $imgVar = $nombreArchivo;
-              }
-          }
+                // Imagen de variante
+                $imgVar = null;
+                if (!empty($_FILES['variantes']['name'][$i]['imagen'])) {
+                    $extVar = strtolower(pathinfo($_FILES['variantes']['name'][$i]['imagen'], PATHINFO_EXTENSION));
+                    if (in_array($extVar, ['jpg', 'jpeg', 'png', 'webp'])) {
+                        $nombreArchivo = uniqid("var_") . "." . $extVar;
+                        $rutaVar = $carpeta . $nombreArchivo;
+                        $tmp = $_FILES['variantes']['tmp_name'][$i]['imagen'];
+                        if (is_uploaded_file($tmp) && move_uploaded_file($tmp, $rutaVar)) {
+                            $imgVar = $nombreArchivo;
+                        }
+                    }
+                }
 
-          $cantidadVar = (int)($v['cantidad'] ?? 0);
-          $totalCantidad += $cantidadVar;
-
-          $stmtVar->execute([
-              $producto_id,
-              $codVar,
-              $v['talla'] ?? '',
-              $v['color'] ?? '',
-              $imgVar,
-              $cantidadVar,
-              (int)($v['cantidad_min'] ?? 0),
-              (float)($v['costo'] ?? 0),
-              (float)($v['precio_unitario'] ?? 0)
-          ]);
-      }
-
-
-            // 🧮 Actualizar cantidad global en productos
-            $pdo->prepare("UPDATE productos SET cantidad = ? WHERE id = ?")
-                ->execute([$totalCantidad, $producto_id]);
+                $stmtVar->execute([
+                    $codVar,
+                    $talla ?: null,
+                    $color ?: null,
+                    $imgVar,
+                    $cantidadVar,
+                    $cantidadMinVar,
+                    $costoVar,
+                    $precioVar,
+                    $cod_barras
+                ]);
+            }
+        } else {
+            // Si no hay variantes, crear una por defecto
+            $stmtDef = $pdo->prepare("INSERT INTO variantes 
+                (cod_barras, talla, color, cantidad, cantidad_min, costo, precio, cod_barras_producto)
+                VALUES (?, 'Unitalla', NULL, ?, ?, ?, ?, ?)");
+            $stmtDef->execute([
+                $cod_barras ?: "AUTO-" . uniqid(),
+                $cantidad,
+                $cantidad_min,
+                $costo,
+                $precio_unitario,
+                $cod_barras
+            ]);
         }
 
         echo "<script>alert('✅ Producto agregado correctamente'); window.location='index.php?view=productos';</script>";
         exit;
-
     } catch (Exception $e) {
         echo "<script>alert('❌ Error: " . addslashes($e->getMessage()) . "');</script>";
     }
@@ -129,39 +148,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h2>Agregar nuevo producto</h2>
 
   <form method="post" enctype="multipart/form-data">
+
     <section>
-      <h3>🧾 Datos generales</h3>
+      <h3>Datos generales</h3>
       <div class="grid">
         <div>
-          <label>Nombre</label>
+          <label>Nombre *</label>
           <input type="text" name="nombre" required>
         </div>
         <div>
-          <label>Código de barras (opcional)</label>
-          <input type="text" name="cod_barras">
+          <label>Código de barras *</label>
+          <input type="text" name="cod_barras" required>
         </div>
         <div>
           <label>Imagen principal</label>
-          <input type="file" name="imagen" accept="image/*">
+          <input type="file" name="imagen" accept="image/png, image/jpeg, image/webp">
         </div>
       </div>
     </section>
 
     <section>
-      <h3>🧩 Variantes</h3>
-      <p class="info">Si el producto tiene variantes (talla, color, etc.), agrégalas aquí.</p>
-      <div id="variantes-container" class="variantes"></div>
-      <button type="button" id="add-variant" class="btn-secundario">+ Agregar variante</button>
-      <div id="msg-variantes" class="msg-variantes hidden">
-        ⚠️ Este producto tiene variantes. Los campos globales de inventario, costo y precio aún se usarán para el producto base.
-      </div>
-    </section>
-
-    <section>
-      <h3>⚙️ Datos adicionales</h3>
+      <h3>Datos adicionales</h3>
       <div class="grid">
         <div>
-          <label>Categoría</label>
+          <label>Categoría *</label>
           <select name="id_categoria" required>
             <option value="">Seleccione</option>
             <?php foreach ($categorias as $cat): ?>
@@ -177,62 +187,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label>Descripción</label>
           <textarea name="descripcion" rows="3"></textarea>
         </div>
-        <div class="full">
-          <label>Color base (si no hay variantes)</label>
-          <input type="text" name="color_base" placeholder="Ejemplo: Blanco">
-        </div>
       </div>
     </section>
 
     <section>
-      <h3>📦 Inventario</h3>
+      <h3>Inventario y precios</h3>
       <div class="grid">
         <div>
-          <label>Cantidad</label>
-          <input type="number" name="cantidad" min="0" value="0">
+          <label>Cantidad *</label>
+          <input type="number" name="cantidad" min="0" value="0" required>
         </div>
         <div>
-          <label>Cantidad mínima</label>
-          <input type="number" name="cantidad_min" min="0" value="0">
+          <label>Cantidad mínima *</label>
+          <input type="number" name="cantidad_min" min="0" value="0" required>
+        </div>
+        <div>
+          <label>Costo *</label>
+          <input type="number" name="costo" step="0.01" min="0.01" required>
+        </div>
+        <div>
+          <label>Precio unitario *</label>
+          <input type="number" name="precio_unitario" step="0.01" min="0.01" required>
         </div>
       </div>
     </section>
 
     <section>
-  <h3>💰 Costo</h3>
-  <div class="grid">
-    <div>
-      <label>Costo</label>
-      <input type="number" name="costo" id="costo" step="0.01" value="0">
-    </div>
-    <div>
-      <label>Tipo de costo</label>
-      <select name="tipo_costo" id="tipo_costo">
-        <option value="bruto">Bruto</option>
-        <option value="neto">Neto</option>
-      </select>
-    </div>
-  </div>
-</section>
-
-<section>
-  <h3>💵 Precio de venta</h3>
-  <div class="grid">
-    <div>
-      <label>Precio unitario</label>
-      <input type="number" name="precio_unitario" id="precio_unitario" step="0.01" value="0">
-    </div>
-    <div>
-      <label>Margen (%)</label>
-      <input type="text" id="margen" readonly>
-    </div>
-    <div>
-      <label>Ganancia ($)</label>
-      <input type="text" id="ganancia" readonly>
-    </div>
-  </div>
-</section>
-
+      <h3>Variantes (opcional)</h3>
+      <p>Agregue colores o tallas específicas solo si aplica.</p>
+      <div id="variantes-container"></div>
+      <button type="button" id="add-variant" class="btn-secundario">+ Agregar variante</button>
+    </section>
 
     <div class="botones">
       <button type="submit" class="btn-principal">💾 Guardar</button>
@@ -240,6 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </form>
 </div>
+
 
 <script>
 let idx = 0;
@@ -340,11 +326,11 @@ body {
   box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
-h2 {
+h1 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 80px;
   color: var(--texto);
-  font-weight: 600;
+  font-weight: 800;
 }
 
 section {
