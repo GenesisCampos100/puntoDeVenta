@@ -3,38 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< Updated upstream
-  <title>Punto de Venta</title>
-  <link href="../src/styles/output.css" rel="stylesheet">
-</head>
-<body class="bg-white">
-=======
   <title>Menú Lateral</title>
   <link href="../src/styles/output.css" rel="stylesheet">
 </head>
 <body class="bg-white">
 
   <!-- Header -->
->>>>>>> Stashed changes
   <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow">
     <!-- Botón hamburguesa -->
     <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
     <!-- Logo -->
-<<<<<<< Updated upstream
-    <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
-=======
     <img src="img/logo.jpeg" alt="logo" class="h-12">
->>>>>>> Stashed changes
     <!-- Barra de búsqueda -->
     <div class="flex items-center bg-gray-100 rounded-full overflow-hidden ml-4 w-180">
       <input type="text" placeholder="Buscar..." class="w-full px-4 py-2 text-black focus:outline-none">
     </div>
     <!-- Botón filtro -->
-<<<<<<< Updated upstream
-    <button class="ml-2 bg-botonVerde hover:bg-botonVerde-hover text-white px-6 py-2 rounded-full">
-=======
     <button class="ml-2 bg-botonVerde hover:bg-botonVerde-hover text-black px-6 py-2 rounded-full">
->>>>>>> Stashed changes
       Filtros
     </button>
   </header>
@@ -42,11 +27,7 @@
   <!-- Sidebar (menú izquierdo) -->
   <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white -translate-x-64 transition-transform duration-300 z-50">
     <div class="flex items-center justify-center p-4 border-b border-gray-700">
-<<<<<<< Updated upstream
-    <img src="img/logo-menu.png" alt="Logo" class="h-12">
-=======
     <img src="img/logo2.png" alt="Logo" class="h-12">
->>>>>>> Stashed changes
   </div>
     <div class="flex justify-end p-4">
       <button id="close-btn" class="text-2xl">&times;</button>
@@ -54,11 +35,7 @@
     <!-- Botón Nueva Compra -->
   <div class="p-4">
     <a href="../src/pages/nuevaCompra.html" 
-<<<<<<< Updated upstream
-       class="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-400 text-white font-semibold py-2 px-4 rounded-full">
-=======
        class="flex items-center justify-center gap-2 bg-red-500 hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded-full">
->>>>>>> Stashed changes
       <span class="text-xl">+</span> Nueva Compra
     </a>
   </div>
@@ -102,17 +79,6 @@
         </a>
       </li>
 
-<<<<<<< Updated upstream
-      <li>
-        <a href="../src/pages/facturas.html" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-          </svg>
-          Facturas
-        </a>
-      </li>
-=======
->>>>>>> Stashed changes
 
       <li>
         <a href="../src/pages/reportes.html" class="flex items-center gap-2 hover:bg-red-500 p-2 rounded">
@@ -127,11 +93,7 @@
       <li>
         <details>
           <summary class="flex items-center gap-2 hover:bg-red-500 p-2 rounded cursor-pointer">
-<<<<<<< Updated upstream
-            <!-- Icono -->
-=======
             <!-- Icono original -->
->>>>>>> Stashed changes
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
             </svg>
@@ -158,250 +120,6 @@
       </li>
     </ul>
   </nav>
-<<<<<<< Updated upstream
-<!-- Contenido principal -->
-  <main id="content" class="pt-20 pl-0 pr-80 transition-all duration-300">
-    <section id="productos" class="p-6">
-      <!-- Botones de categorías -->
-      <div class="flex flex-wrap justify-left gap-4 mb-8">
-        <button data-category="all" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Todos</button>
-        <button data-category="camisa" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Camisa</button>
-        <button data-category="pantalon" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Pantalón</button>
-        <button data-category="playera" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Playera</button>
-        <button data-category="shorts" class="category-btn px-6 py-2 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition">Shorts</button>
-      </div>
-
-    <!-- Contenedor con grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
-      
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="camisa">
-        <img src="img/producto1-camisaH.png" alt="producto1" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 1</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 1</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="pantalon">
-        <img src="img/producto2-pantalonH.jpg" alt="producto2" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 2</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 2</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="playera">
-        <img src="img/producto3-playeraH.webp" alt="producto3" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 3</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 3</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="shorts">
-        <img src="img/producto4-shortH.jpg" alt="producto4" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 4</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 4</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="camisa">
-        <img src="img/producto5-camisaH.jpg" alt="producto5" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 5</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 5</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="pantalon">
-        <img src="img/producto6-pantalonH.jpg" alt="producto6" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 6</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 6</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="playera">
-        <img src="img/producto7-playeraH.jpg" alt="producto5" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 7</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 7</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60" data-category="shorts">
-        <img src="img/producto8-shortH.jpg" alt="producto6" class="w-full h-40 object-cover rounded">
-        <h3 class="mt-2 font-semibold">Producto 8</h3>
-        <p class="text-gray-500 text-sm">Descripción del producto 8</p>
-        <p class="text-lg font-bold mt-2">$100.00</p>
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">
-          Add to cart
-        </button>
-      </article>
-
-    </div>
-  </section>
-</main>
-
-<!-- Carrito lateral fijo -->
-<aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
-  <!-- Encabezado -->
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-lg font-bold">Orden</h2>
-    <div class="flex gap-2">
-      <!-- Botón de descuento global -->
-      <button id="discount-btn" class="bg-yellow-300 p-2 text-white rounded-full hover:bg-yellow-400">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-        </svg>
-      </button>
-
-      <!-- Botón para vaciar carrito -->
-      <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd"
-            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h12a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM5 6a1 1 0 011-1h8a1 1 0 011 1v10a2 2 0 01-2 2H7a2 2 0 01-2-2V6z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- Lista de productos -->
-  <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
-
-  <!-- Resumen de compra -->
-  <div class="border-t pt-4 mt-4">
-    <div class="flex justify-between text-sm">
-      <span>Subtotal:</span>
-      <span id="subtotal">$0.00</span>
-    </div>
-    <div class="flex justify-between text-sm text-red-500">
-      <span>Descuento:</span>
-      <span id="discount">-$0.00</span>
-    </div>
-    <div class="flex justify-between font-bold text-lg mt-2">
-      <span>Total:</span>
-      <span id="total">$0.00</span>
-    </div>
-    <button class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-      Realizar Pago
-    </button>
-  </div>
-</aside>
-
-<!-- MODAL DE DESCUENTO GLOBAL -->
-<div id="discount-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
-  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-700">Aplicar Descuento</h3>
-      <button id="close-discount" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-    </div>
-
-    <!-- tabs -->
-    <div class="flex border rounded-lg overflow-hidden mb-4 text-sm">
-      <button id="tab-amount" class="flex-1 py-2 text-center bg-lime-500 text-white font-medium">Cantidad ($)</button>
-      <button id="tab-percent" class="flex-1 py-2 text-center bg-gray-100 ">Porcentaje (%)</button>
-    </div>
-
-    <!-- Input -->
-    <div class="mb-4">
-      <label for="discount-input" class="block text-xs text-gray-500 mb-1">Cantidad del descuento:</label>
-      <div class="flex items-center border rounded-lg overflow-hidden">
-        <span id="input-prefix" class="px-2 text-gray-600">$</span>
-        <input id="discount-input" type="number" placeholder="0" class="flex-1 p-2 outline-none" />
-      </div>
-    </div>
-
-    <!-- Vista previa -->
-    <div class="text-sm mb-4">
-      <p class="text-gray-500 line-through" id="before-total">$0.00</p>
-      <p class="font-semibold text-green-600" id="after-total">$0.00</p>
-    </div>
-
-    <!-- Botones -->
-    <div class="flex justify-end gap-2">
-      <button id="apply-discount" class="bg-lime-500 text-white px-4 py-2 rounded-lg hover:bg-lime-600 text-sm">
-        Aplicar
-      </button>
-      <button id="cancel-discount" class="px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-600 text-sm">
-        Cancelar
-      </button>
-    </div>
-  </div>
-</div>
-
-<!--  MODAL DE DESCUENTO POR PRODUCTO -->
-<div id="product-discount-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
-  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-700">Descuento al Producto</h3>
-      <button id="close-product-discount" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-    </div>
-
-    <!-- Informacion del producto -->
-    <div id="product-info" class="flex items-center gap-3 border rounded-lg p-3 mb-4 bg-gray-50">
-      <!-- Aquí se pone dinámicamente la info del producto -->
-    </div>
-
-    <!-- los tabs -->
-    <div class="flex border rounded-lg overflow-hidden mb-4 text-sm">
-      <button id="product-tab-amount" class="flex-1 py-2 text-center bg-lime-500 text-white font-medium">Cantidad ($)</button>
-      <button id="product-tab-percent" class="flex-1 py-2 text-center bg-gray-100 ">Porcentaje (%)</button>
-    </div>
-
-    <!-- input cantidad del descuento -->
-    <div class="mb-4">
-      <label for="product-discount-input" class="block text-xs text-gray-500 mb-1">Cantidad del descuento:</label>
-      <div class="flex items-center border rounded-lg overflow-hidden">
-        <span id="product-input-prefix" class="px-2 text-gray-600">$</span>
-        <input id="product-discount-input" type="number" placeholder="0" class="flex-1 p-2 outline-none" />
-      </div>
-    </div>
-
-    <!-- vista previa -->
-    <div class="text-sm mb-4">
-      <p class="text-gray-500 line-through" id="product-before-total">$0.00</p>
-      <p class="font-semibold text-green-600" id="product-after-total">$0.00</p>
-    </div>
-
-    <!-- botones -->
-    <div class="flex justify-end gap-2">
-      <button id="apply-product-discount" class="bg-lime-500 text-white px-4 py-2 rounded-lg hover:bg-lime-600 text-sm">
-        Aplicar
-      </button>
-      <button id="cancel-product-discount" class="px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-600 text-sm">
-        Cancelar
-      </button>
-      </div>
-    </div>
-  </div>
-
-  <footer class="text-red-500 text-center py-4"></footer>
-
-  <script type="module" src="../src/index.js"></script>
-  
-=======
 
 
 
@@ -409,7 +127,6 @@
 
   
 <script type="module" src="/src/index.js" ></script>
->>>>>>> Stashed changes
 </body>
 </html>
 

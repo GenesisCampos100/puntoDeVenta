@@ -6,7 +6,7 @@
   <title>Punto de Venta</title>
 
   <!-- Tu CSS personalizado -->
-  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="styles/output.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 </head>

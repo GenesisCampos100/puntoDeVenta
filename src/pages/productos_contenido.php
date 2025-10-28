@@ -686,7 +686,7 @@ tbody tr:last-child {
                     <td>
                        <?php if ($producto['tiene_variante'] > 0): ?>
                             <button class="btn-toggle-variantes" id="btn-toggle-<?= $producto['id_producto'] ?>" 
-                                onclick='toggleVariantes(<?= $producto['id_producto'] ?>)'>+</button>
+                                onclick="toggleVariantes(<?= $producto['id_producto'] ?>)">+</button>
                         <?php else: ?>
                             <button class="btn-toggle-variantes" onclick='openCustomModal(<?= json_encode($producto) ?>, "producto")'>+</button>
                         <?php endif; ?>

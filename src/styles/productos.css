@@ -1,0 +1,498 @@
+/* --- ESTILOS BASE Y GENERALES --- */
+body {
+   font-family: 'Poppins', sans-serif;
+    background-color: #f3f4f6;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+/* --- TÍTULO PRINCIPAL DE LA VISTA --- */
+h2 {
+    text-align: center;
+    color: #f43f5e; 
+    margin: 40px auto 25px; 
+    font-weight: 700; 
+    font-size: 28px; 
+    letter-spacing: 1.5px; 
+    text-transform: uppercase;
+}
+
+/* --- BARRA DE HERRAMIENTAS (TOOLBAR) --- */
+.toolbar {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    margin: 20px auto 30px;
+    width: 90%;
+    max-width: 1000px; 
+    gap: 10px; 
+}
+
+.toolbar form {
+    display: flex;
+    flex-grow: 1;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-container {
+    flex-grow: 1; 
+    max-width: 500px; 
+    position: relative;
+}
+
+.search-container input[type="text"] {
+    padding: 10px 15px 10px 40px; 
+    border: 1px solid #ddd;
+    border-radius: 8px; 
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+/* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
+.search-container .search-icon { 
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af; 
+    cursor: pointer; /* HACEMOS EL ÍCONO CLICKABLE */
+    font-size: 18px;
+    z-index: 10;
+}
+
+.search-container .clear-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Botones de acción (Filtrar/Ordenar) */
+.toolbar .btn-accion {
+    background: white; 
+    color: #374151; 
+    padding: 10px 18px;
+    border: 1px solid #d1d5db; 
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background-color 0.2s;
+}
+
+.toolbar .btn-accion:hover {
+    background-color: #f3f4f6;
+}
+
+/* Botón "Agregar producto" */
+.btn-agregar {
+    background: #f43f5e; 
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.btn-agregar:hover {
+    background-color: #e11d48;
+}
+
+/* Ocultar/Mostrar los selects nativos */
+.toolbar form select {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    z-index: 50;
+    margin-top: 5px; 
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    min-width: 180px;
+}
+.toolbar form button[type="submit"] {
+    display: none;
+}
+.select-visible {
+    display: block !important;
+}
+
+/* --- CONTENEDOR DE PRODUCTOS (LA TABLA) --- */
+.productos-container {
+    width: 90%; 
+    max-width: 1000px; 
+    margin: 0 auto 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    overflow: hidden;
+    border: 1px solid #e5e7eb; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+
+/* Cabecera de la tabla */
+thead { 
+    background: #2f455c; 
+    color: white; 
+}
+thead th {
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px; 
+}
+
+th, td { 
+    padding: 16px; 
+    text-align: left; 
+    border-bottom: none; 
+}
+
+tr {
+    border-bottom: 1px solid #eee;
+}
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Línea de separación púrpura */
+.separator-row td {
+    border-top: 2px solid #a78bfa; 
+    padding: 0; 
+    height: 2px;
+    background: white; 
+}
+.separator-row:hover {
+    background: white;
+}
+
+/* Contenido de la celda de producto */
+.producto-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.producto-info img {
+    width: 50px; 
+    height: 75px; 
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f1f1f1;
+    border: 1px solid #eee;
+}
+
+/* Etiqueta de Stock */
+.stock { 
+    padding: 4px 12px; 
+    border-radius: 4px; 
+    color: white; 
+    font-size: 13px; 
+    font-weight: 600; 
+    text-align: center;
+    display: inline-block;
+    /* Color por defecto (Bajo Stock / Cero) */
+    background-color: #f43f5e; 
+} 
+.stock.verde { /* Verde (Olive) para stock normal */
+    background-color: #b6c649; 
+}
+
+/* Botón 'Más'/'Menos' (Color rosa) */
+.btn-toggle-variantes {
+    background: #f43f5e;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1;
+    width: 30px; 
+    text-align: center;
+}
+.btn-toggle-variantes:hover {
+    background: #e11d48;
+}
+
+.precio { 
+    color: #374151; 
+    font-weight: bold; 
+    font-size: 16px; 
+}
+
+/* --- ESTILOS DE VARIANTE (TABLA ANIDADA) --- */
+.fila-variantes td {
+    padding: 0;
+    background: #fcfcfc;
+    border-bottom: 1px solid #eee;
+}
+.tabla-variantes {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+.tabla-variantes thead {
+    background: #f3f4f6; 
+    color: #374151;
+    border-bottom: 1px solid #ddd;
+}
+.tabla-variantes th {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.tabla-variantes td {
+    padding: 10px 16px; 
+    font-size: 14px;
+}
+.tabla-variantes tr {
+    border-bottom: 1px dashed #eee;
+}
+.tabla-variantes tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Ajuste de columnas para la tabla anidada */
+.tabla-variantes .col-vacio { width: 4.5%;} 
+.tabla-variantes .col-producto-info { width: 45%; }
+.tabla-variantes .col-stock { width: 15%; }
+.tabla-variantes .col-precio { width: 15%; }
+.tabla-variantes .col-acciones { width: 5%; }
+
+
+/* --- ESTILOS DEL MODAL (DETALLE DEL PRODUCTO - RESTAURADO) --- */
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: none; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    width: 650px; 
+    max-width: 90%;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: aparecer 0.3s ease;
+}
+
+@keyframes aparecer { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-content .cerrar {
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    border: none; 
+    background: none; 
+    font-size: 28px; 
+    color: #9ca3af; 
+    cursor: pointer;
+    padding: 5px 10px; 
+    border-radius: 8px; 
+    line-height: 1;
+    transition: background-color 0.2s, color 0.2s; 
+}
+.modal-content .cerrar:hover {
+    background-color: #ef4444; 
+    color: white; 
+}
+
+
+/* --- SECCIÓN PRINCIPAL: IMAGEN Y DATOS BÁSICOS --- */
+.modal-top-section {
+    display: flex;
+    gap: 25px; 
+    align-items: flex-start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee; /* Línea de separación */
+}
+
+.modal-image-container { 
+    flex-shrink: 0; 
+    width: 180px; 
+    height: 220px; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    overflow: hidden; 
+    padding: 5px; 
+    background: #f9f9f9; 
+}
+.modal-image-container img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+}
+
+.modal-info {
+    flex-grow: 1;
+}
+
+.modal-title { 
+    color: #1f2937; 
+    font-size: 26px; 
+    font-weight: 700; 
+    margin: 0 0 5px 0; 
+}
+.modal-subtitle { 
+    font-size: 15px; 
+    color: #f43f5e; 
+    margin-bottom: 5px;
+}
+.modal-cod-barras { 
+    font-size: 14px; 
+    color: #9ca3af; 
+    margin-bottom: 15px; 
+}
+
+/* Contenedor principal de PRECIO */
+.modal-main-price {
+    background: #fef2f2; 
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 15px 20px;
+}
+
+.modal-main-price .label { 
+    font-size: 16px; 
+    color: #9ca3af; 
+    margin-bottom: 0; 
+    display: block;
+}
+
+.modal-main-price .value { 
+    font-size: 32px; 
+    font-weight: 700; 
+    color: #f43f5e; 
+    line-height: 1.2;
+}
+.modal-main-price small { 
+    font-size: 13px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 5px;
+}
+
+/* --- SECCIÓN INFERIOR: COSTO Y EXISTENCIAS (TARJETAS ORIGINALES) --- */
+.modal-bottom-section {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.modal-detail-box {
+    flex-basis: 50%; /* Dos columnas iguales */
+    padding: 15px 20px; /* Relleno para las tarjetas */
+    border-radius: 8px;
+    border: 1px solid #e5e7eb; /* Borde suave */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra ligera */
+}
+
+/* Estilos específicos para el box de Costo */
+.modal-detail-box.costo {
+    background: #f9fafb; /* Fondo ligeramente más oscuro */
+}
+
+.modal-detail-box .label { 
+    font-size: 14px; 
+    color: #9ca3af; 
+    margin-bottom: 0; 
+    display: block;
+}
+
+.modal-detail-box .value { 
+    font-size: 20px; 
+    font-weight: 700; 
+    color: #1f2937; 
+    line-height: 1.2;
+}
+
+.modal-detail-box small { 
+    font-size: 12px;
+    color: #9ca3af;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Estilos para el box de Existencias */
+.modal-detail-box.stock { 
+    background: #E6F4EA; /* Fondo verde olivo muy suave */
+    border-color: #A3D9B0; /* Borde un poco más oscuro */
+}
+.modal-detail-box.stock .value { 
+    color: #2E8B57; /* Verde olivo oscuro para el valor */
+}
+.modal-detail-box.stock small { 
+    color: #6B8E23; /* Verde olivo para el texto pequeño */
+}
+
+
+/* Modal Actions (Botones Eliminar/Editar) */
+.modal-actions { 
+    margin-top: 30px; 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 12px; 
+}
+
+/* Estilo base para botones y enlaces */
+.modal-actions button,
+.modal-actions a {
+    padding: 12px 22px; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: background-color 0.2s; 
+    font-size: 15px; 
+    text-decoration: none; /* quita subrayado del enlace */
+    display: inline-block; /* para que respete el padding */
+}
+
+/* Botón Eliminar */
+.modal-actions .btn-eliminar { 
+    background: #e1e1e1; 
+    color: #333; 
+}
+.modal-actions .btn-eliminar:hover { 
+    background: #ccc; 
+}
+
+/* Botón Editar con color verde olivo */
+.modal-actions .btn-editar { 
+    background: #6B8E23; /* Verde olivo */
+    color: white; 
+}
+.modal-actions .btn-editar:hover { 
+    background: #55751C; /* Tono más oscuro al pasar el cursor */
+}
+/* --- FIN DE LOS ESTILOS --- */
