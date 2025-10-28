@@ -1,63 +1,79 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-// Traer productos y variantes
+// ✅ Traer productos con sus variantes (según la nueva BD)
 $sql = "SELECT 
-            p.id AS id_producto,
             p.cod_barras AS producto_cod_barras,
-            p.nombre AS producto_nombre,
+            p.nom_producto AS producto_nombre,
+            p.descripcion,
             p.imagen AS producto_imagen,
             p.talla AS producto_talla,
             p.color AS producto_color,
-            p.precio_unitario AS producto_precio,
+            p.precio AS producto_precio,
+            p.costo AS producto_costo,
+            p.cantidad AS producto_cantidad,
+            p.cantidad_min AS producto_cantidad_min,
             c.nombre AS categoria,
-            v.id AS id_variante,
+            v.id_variante AS id_variante,
             v.cod_barras AS variante_cod_barras,
             v.talla AS variante_talla,
             v.color AS variante_color,
             v.imagen AS variante_imagen,
-            v.precio_unitario AS variante_precio
+            v.precio AS variante_precio,
+            v.costo AS variante_costo,
+            v.cantidad AS variante_cantidad,
+            v.cantidad_min AS variante_cantidad_min
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-        LEFT JOIN variantes v ON v.id_producto = p.id
-        ORDER BY p.nombre ASC";
+        LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
+        ORDER BY p.nom_producto ASC";
 
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Agrupar productos con sus variantes
+// ✅ Agrupar productos con sus variantes
 $productos = [];
 foreach ($rows as $row) {
-    $id = $row['id_producto'];
-    if (!isset($productos[$id])) {
-        $productos[$id] = [
-            'id' => $id,
-            'codigo' => $row['producto_cod_barras'],
+    $codigo = $row['producto_cod_barras'];
+    
+    // Si el producto no existe aún en el arreglo, se agrega
+    if (!isset($productos[$codigo])) {
+        $productos[$codigo] = [
+            'codigo' => $codigo,
             'nombre' => $row['producto_nombre'],
+            'descripcion' => $row['descripcion'],
             'imagen' => $row['producto_imagen'],
             'precio' => $row['producto_precio'] ?: 0,
-            'categoria' => $row['categoria'],
+            'costo' => $row['producto_costo'] ?: 0,
+            'cantidad' => $row['producto_cantidad'] ?: 0,
+            'cantidad_min' => $row['producto_cantidad_min'] ?: 0,
+            'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
-            'size_default' => $row['producto_talla'] ?: 'Única',
+            'talla_default' => $row['producto_talla'] ?: 'Única',
             'color_default' => $row['producto_color'] ?: 'Sin color',
         ];
     }
 
-    if ($row['variante_talla'] || $row['variante_color']) {
-        $productos[$id]['variantes'][] = [
-            'size' => $row['variante_talla'] ?: $productos[$id]['size_default'],
-            'color' => $row['variante_color'] ?: $productos[$id]['color_default'],
-            'price' => $row['variante_precio'] ?: $productos[$id]['precio'],
-            'image' => $row['variante_imagen'] ?: $productos[$id]['imagen'],
-            'code' => $row['variante_cod_barras'] ?: $productos[$id]['codigo'],
+    // Si tiene variantes, las agregamos al producto
+    if ($row['id_variante'] !== null) {
+        $productos[$codigo]['variantes'][] = [
+            'id' => $row['id_variante'],
+            'talla' => $row['variante_talla'] ?: $productos[$codigo]['talla_default'],
+            'color' => $row['variante_color'] ?: $productos[$codigo]['color_default'],
+            'precio' => $row['variante_precio'] ?: $productos[$codigo]['precio'],
+            'costo' => $row['variante_costo'] ?: $productos[$codigo]['costo'],
+            'cantidad' => $row['variante_cantidad'] ?: 0,
+            'cantidad_min' => $row['variante_cantidad_min'] ?: 0,
+            'imagen' => $row['variante_imagen'] ?: $productos[$codigo]['imagen'],
+            'cod_barras' => $row['variante_cod_barras'],
         ];
     }
 }
 
-// Traer categorías
+// ✅ Traer categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
-// Función para normalizar nombres de categoría
+// ✅ Función para normalizar nombres de categoría
 function normalizeCategory($name) {
     return strtolower(trim(preg_replace('/\s+/', '', $name)));
 }
