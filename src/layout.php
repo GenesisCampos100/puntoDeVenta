@@ -67,9 +67,21 @@
           <img src="../public/img/tema.png" alt="Tema" style="width:16px; height:16px;">
           Tema
         </span>
-        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
+        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:7px 12px;">
           <option value="claro">Claro</option>
           <option value="oscuro">Oscuro</option>
+        </select>
+      </div>
+
+      <!-- IDIOMA -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <img src="../public/img/idiomaIcon.png" alt="Tema" style="width:16px; height:16px;">
+          Idioma
+        </span>
+        <select id="idimaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
+          <option value="claro">Español</option>
+          <option value="oscuro">Inglés</option>
         </select>
       </div>
 
