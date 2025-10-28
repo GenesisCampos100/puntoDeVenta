@@ -59,20 +59,31 @@ if (!isset($permisos[$rol])) {
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-      <ul class="mt-4 space-y-2 pl-4">
-        <?php foreach ($permisos[$rol] as $modulo): ?>
-          <?php $modulo_url = str_replace(' ', '_', $modulo); ?>
-          <li>
-            <a href="index.php?view=<?= $modulo_url ?>" 
-               class="flex items-center gap-3 hover:bg-red-500 p-4 rounded-full transition-colors">
-              <?= $iconos[$modulo] ?? '' ?>
-              <span><?= ucfirst($modulo) ?></span>
-            </a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php endif; ?>
-  </div> <div class="w-full mt-auto px-4 pb-6 flex justify-center">
+  <ul class="mt-4 space-y-2 pl-4">
+    <?php 
+      // Detectar la vista actual
+      $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
+    ?>
+
+    <?php foreach ($permisos[$rol] as $modulo): ?>
+      <?php 
+        $modulo_url = str_replace(' ', '_', $modulo); 
+        // Comprobar si esta vista es la actual
+        $activo = ($vista_actual === $modulo_url) ? 'bg-red-600 text-white' : 'hover:bg-red-500';
+      ?>
+      <li>
+        <a href="index.php?view=<?= $modulo_url ?>" 
+           class="flex items-center gap-3 p-4 rounded-md transition-colors <?= $activo ?>">
+          <?= $iconos[$modulo] ?? '' ?>
+          <span><?= ucfirst($modulo) ?></span>
+        </a>
+      </li>
+    <?php endforeach; ?>
+  </ul>
+<?php endif; ?>
+
+
+  <div class="w-full mt-auto px-4 pb-6 flex justify-center">
     <div id="userBlock"
          class="flex items-center gap-3 w-full max-w-[220px] bg-[#0A2342] px-4 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-[1.02] cursor-pointer transition-all duration-200 select-none">
       

@@ -46,10 +46,10 @@
       <img src="../public/img/1.png" alt="Usuario" 
            style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #0A2342;">
       <label for="fotoPerfil" 
-             style="position:absolute; bottom:0; right:0; background:#FFF8DC; 
+             style="position:absolute; bottom:0; right:0; background:#FFFFFF; 
                     border-radius:50%; width:28px; height:28px; display:flex; 
                     align-items:center; justify-content:center; cursor:pointer;">
-        📷
+        <img src="../public/img/cambioUsuario.png" alt="">
       </label>
       <input type="file" id="fotoPerfil" accept="image/*" style="display:none;">
     </div>
@@ -68,9 +68,21 @@
           <img src="../public/img/tema.png" alt="Tema" style="width:16px; height:16px;">
           Tema
         </span>
-        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
+        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:7px 12px;">
           <option value="claro">Claro</option>
           <option value="oscuro">Oscuro</option>
+        </select>
+      </div>
+
+      <!-- IDIOMA -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <img src="../public/img/idiomaIcon.png" alt="Tema" style="width:16px; height:16px;">
+          Idioma
+        </span>
+        <select id="idimaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
+          <option value="claro">Español</option>
+          <option value="oscuro">Inglés</option>
         </select>
       </div>
 
