@@ -59,47 +59,38 @@ if (!isset($permisos[$rol])) {
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-  <ul class="mt-4 space-y-2 pl-4">
-    <?php 
-      // Detectar la vista actual
-      $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
-    ?>
-
-    <?php foreach ($permisos[$rol] as $modulo): ?>
-      <?php 
-        $modulo_url = str_replace(' ', '_', $modulo); 
-        // Comprobar si esta vista es la actual
-        $activo = ($vista_actual === $modulo_url) ? 'bg-red-600 text-white' : 'hover:bg-red-500';
-      ?>
-      <li>
-        <a href="index.php?view=<?= $modulo_url ?>" 
-           class="flex items-center gap-3 p-4 rounded-md transition-colors <?= $activo ?>">
-          <?= $iconos[$modulo] ?? '' ?>
-          <span><?= ucfirst($modulo) ?></span>
-        </a>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-<?php endif; ?>
-
-
-  <!-- Bloque de usuario -->
-  <div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
-    <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
-         style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
+      <ul class="mt-4 space-y-2 pl-4">
+        <?php foreach ($permisos[$rol] as $modulo): ?>
+          <?php $modulo_url = str_replace(' ', '_', $modulo); ?>
+          <li>
+            <a href="index.php?view=<?= $modulo_url ?>" 
+               class="flex items-center gap-3 hover:bg-red-500 p-4 rounded-full transition-colors">
+              <?= $iconos[$modulo] ?? '' ?>
+              <span><?= ucfirst($modulo) ?></span>
+            </a>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </div> <div class="w-full mt-auto px-4 pb-6 flex justify-center">
+    <div id="userBlock"
+         class="flex items-center gap-3 w-full max-w-[220px] bg-[#0A2342] px-4 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-[1.02] cursor-pointer transition-all duration-200 select-none">
+      
       <img src="../public/img/1.png" alt="Foto usuario"
-           style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-      <div class="flex flex-col leading-tight">
-        <span style="color:#32CD32; font-weight:600; font-size:14px;">
+           class="w-10 h-10 rounded-full object-cover border-2 border-[#32CD32]/70">
+
+      <div class="flex flex-col justify-center leading-tight">
+        <span class="text-[#32CD32] font-semibold text-sm truncate">
           <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
         </span>
-        <span style="color:#cbd5e1; font-size:12px;">
+        <span class="text-slate-300 text-xs tracking-wide">
           <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
         </span>
       </div>
     </div>
   </div>
 </nav>
+
 </header>
 
 
