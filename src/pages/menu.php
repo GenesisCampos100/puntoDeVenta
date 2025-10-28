@@ -1,15 +1,20 @@
 <?php
-
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: pages/login.php");
+    header("Location: /login.php");
     exit;
 }
 
+// Incluir permisos
 require_once __DIR__ . "/../config/permisos.php";
 
-$rol = $_SESSION['rol'] ?? null;
+$rol = $_SESSION['rol'];
 
+// Seguridad extra: si el rol no tiene permisos, redirigir
+if (!isset($permisos[$rol])) {
+    header("Location: login.php");
+    exit;
+}
 ?>
 
 <!-- Script para recordar el estado del menú -->
@@ -25,23 +30,20 @@ $rol = $_SESSION['rol'] ?? null;
 </script>
 
 <!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-16">
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
-  <img src="../public/img/logo.jpeg" alt="logo" class="h-12">
-</header>
+  <img src="../public/img/logo.jpeg" alt="logo" class="h-12 ml-6">
 
-<!-- Sidebar -->
+
+  <!-- Sidebar -->
 <nav id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white 
-            -translate-x-64 transition-transform duration-300 z-50 flex flex-col justify-between">
-
+     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
   <div>
     <!-- Logo y botón -->
-    <div class="flex items-center justify-center p-4 border-b border-gray-700">
+    <div class="flex items-center justify-center p-4 border-b border-white">
       <button id="sidebar-menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
       <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
     </div>
-
     <?php
     // Íconos SVG según módulo
     $iconos = [
@@ -57,145 +59,92 @@ $rol = $_SESSION['rol'] ?? null;
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-      <ul class="mt-4 space-y-2 pl-4">
-        <?php foreach ($permisos[$rol] as $modulo): ?>
-          <?php $modulo_url = str_replace(' ', '_', $modulo); ?>
-          <li>
-            <a href="index.php?view=<?= $modulo_url ?>" 
-               class="flex items-center gap-3 hover:bg-red-500 p-4 rounded-full transition-colors">
-              <?= $iconos[$modulo] ?? '' ?>
-              <span><?= ucfirst($modulo) ?></span>
-            </a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php endif; ?>
-  </div>
+  <ul class="mt-4 space-y-2 pl-4">
+    <?php 
+      // Detectar la vista actual
+      $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
+    ?>
 
-  <!-- Separador y bloque usuario centrado/fijado -->
-  <div class="w-full mb-4">
-    <hr class="border-t border-gray-700 mb-2 mx-4">
-    <div class="flex items-center bg-blue-900 rounded-xl p-3 mx-4 gap-3 shadow-lg">
-  <img src="../public/img/1.png" alt="Foto usuario" class="w-12 h-12 rounded-full object-cover border-2 border-white mt-2">
-      <div class="flex flex-col justify-center">
-        <span class="text-lg font-semibold text-yellow-100 leading-tight"><?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?></span>
-        <span class="text-sm text-blue-100"><?= htmlspecialchars($_SESSION['rol'] ?? '') ?></span>
+    <?php foreach ($permisos[$rol] as $modulo): ?>
+      <?php 
+        $modulo_url = str_replace(' ', '_', $modulo); 
+        // Comprobar si esta vista es la actual
+        $activo = ($vista_actual === $modulo_url) ? 'bg-red-600 text-white' : 'hover:bg-red-500';
+      ?>
+      <li>
+        <a href="index.php?view=<?= $modulo_url ?>" 
+           class="flex items-center gap-3 p-4 rounded-md transition-colors <?= $activo ?>">
+          <?= $iconos[$modulo] ?? '' ?>
+          <span><?= ucfirst($modulo) ?></span>
+        </a>
+      </li>
+    <?php endforeach; ?>
+  </ul>
+<?php endif; ?>
+
+
+  <!-- Bloque de usuario -->
+  <div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
+    <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
+         style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
+      <img src="../public/img/1.png" alt="Foto usuario"
+           style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+      <div class="flex flex-col leading-tight">
+        <span style="color:#32CD32; font-weight:600; font-size:14px;">
+          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+        </span>
+        <span style="color:#cbd5e1; font-size:12px;">
+          <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
+        </span>
       </div>
-
-
-  
-    
-   <!-- Menú flotante -->
-<div id="logoutMenu"
-     style="
-        display:none;
-        position:absolute;
-        top:-50px;
-        background:#e63946; /* 🔴 fondo rojo */
-        color:white; /* ⚪ texto blanco */
-        border-radius:12px;
-        box-shadow:0 2px 10px rgba(0,0,0,0.3);
-        padding:10px 20px;
-        cursor:pointer;
-        font-size:14px;
-        z-index:9999;
-        opacity:0;
-        transform:translateY(10px);
-        transition:opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
-     ">
-  Cerrar sesión
-</div>
-
-<style>
-  /* Efecto hover: un rojo más oscuro */
-  #logoutMenu:hover {
-    background-color: #b91c1c; /* tono rojo más fuerte */
-    transform: scale(1.05);
-  }
-</style>
-
-  </div>
-</nav>
-
-<!-- 🔒 Modal de confirmación personalizado -->
-<div id="confirmLogout" 
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
-  <div style="background:#0A2342; padding:25px 30px; border-radius:16px; text-align:center; width:90%; max-width:350px; color:white; box-shadow:0 5px 20px rgba(0,0,0,0.3);">
-    <h3 style="font-size:18px; font-weight:600; margin-bottom:15px;">¿Seguro que deseas cerrar sesión?</h3>
-    <div style="display:flex; justify-content:center; gap:15px; margin-top:10px;">
-      <button id="btnConfirmarLogout" 
-              style="background:#e63946; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:500;">
-        Sí, cerrar sesión
-      </button>
-      <button id="btnCancelarLogout" 
-              style="background:#475569; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:500;">
-        Cancelar
-      </button>
->>>>>>> origin/Genesis
     </div>
   </div>
-</div>
+</nav>
+</header>
 
-<script>
-window.addEventListener("load", () => {
-  const userBlock = document.getElementById("userBlock");
-  const logoutMenu = document.getElementById("logoutMenu");
-  const modal = document.getElementById("confirmLogout");
-  const btnConfirmar = document.getElementById("btnConfirmarLogout");
-  const btnCancelar = document.getElementById("btnCancelarLogout");
 
-  if (!userBlock || !logoutMenu || !modal) return;
 
-  // Mostrar/ocultar menú
-  userBlock.addEventListener("click", (e) => {
-    e.stopPropagation();
 
-    if (logoutMenu.style.display === "none" || logoutMenu.style.display === "") {
-      logoutMenu.style.display = "block";
-      requestAnimationFrame(() => {
-        logoutMenu.style.opacity = "1";
-        logoutMenu.style.transform = "translateY(0)";
-      });
-    } else {
-      logoutMenu.style.opacity = "0";
-      logoutMenu.style.transform = "translateY(10px)";
-      setTimeout(() => (logoutMenu.style.display = "none"), 200);
-    }
-  });
+<style>
+  /* Sidebar compacto (solo íconos) */
+.sidebar-cerrado {
+  width: 80px !important;
+  transition: width 0.3s ease;
+}
 
-  // Cerrar menú si clic fuera
-  document.addEventListener("click", (e) => {
-    if (!userBlock.contains(e.target) && logoutMenu.style.display === "block") {
-      logoutMenu.style.opacity = "0";
-      logoutMenu.style.transform = "translateY(10px)";
-      setTimeout(() => (logoutMenu.style.display = "none"), 200);
-    }
-  });
+.sidebar-cerrado ul li a {
+  justify-content: center;
+  padding: 1rem;
+}
 
-  // Mostrar modal al hacer clic en "Cerrar sesión"
-  logoutMenu.addEventListener("click", () => {
-    modal.style.display = "flex";
-    logoutMenu.style.opacity = "0";
-    logoutMenu.style.transform = "translateY(10px)";
-    setTimeout(() => (logoutMenu.style.display = "none"), 200);
-  });
+.sidebar-cerrado svg {
+  margin: 0 auto;
+}
 
-  // Confirmar cierre
-  btnConfirmar.addEventListener("click", () => {
-    window.location.href = "../src/pages/login.php"; 
-  });
+/* Usuario reducido a círculo */
+.user-mini {
+  justify-content: center !important;
+  width: 60px !important;
+  height: 60px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background-color: #0A2342 !important;
+}
 
-  // Cancelar cierre
-  btnCancelar.addEventListener("click", () => {
-    modal.style.display = "none";
-  });
+.user-mini img {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50%;
+}
 
-  // Cerrar modal al hacer clic fuera del cuadro
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.style.display = "none";
-    }
-  });
-});
-</script>
+.user-mini div {
+  display: none;
+}
+
+/* Transiciones suaves */
+#sidebar,
+#userBlock {
+  transition: all 0.3s ease;
+}
+
+</style>
