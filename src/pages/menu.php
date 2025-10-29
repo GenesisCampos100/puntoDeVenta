@@ -17,17 +17,6 @@ if (!isset($permisos[$rol])) {
 }
 ?>
 
-<!-- Script para recordar el estado del menú -->
-<script>
-  (function() {
-    const menuState = localStorage.getItem('menu');
-    if (menuState === 'open') {
-      document.documentElement.classList.add('menu-open');
-    } else {
-      document.documentElement.classList.add('menu-closed');
-    }
-  })();
-</script>
 
 <!-- Header -->
 <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
@@ -58,7 +47,7 @@ if (!isset($permisos[$rol])) {
     ];
     ?>
 
-    <?php if (!empty($permisos[$rol])): ?>
+ <?php if (!empty($permisos[$rol])): ?>
   <ul class="mt-4 space-y-2 pl-4">
     <?php 
       // Detectar la vista actual
@@ -82,12 +71,13 @@ if (!isset($permisos[$rol])) {
   </ul>
 <?php endif; ?>
 
-
+  </div>
+  
   <div class="w-full mt-auto px-4 pb-6 flex justify-center">
     <div id="userBlock"
          class="flex items-center gap-3 w-full max-w-[220px] bg-[#0A2342] px-4 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-[1.02] cursor-pointer transition-all duration-200 select-none">
       
-      <img src="../public/img/1.png" alt="Foto usuario"
+      <img src="/public/img/1.png" alt="Foto usuario"
            class="w-10 h-10 rounded-full object-cover border-2 border-[#32CD32]/70">
 
       <div class="flex flex-col justify-center leading-tight">
@@ -104,7 +94,17 @@ if (!isset($permisos[$rol])) {
 
 </header>
 
-
+<!-- Script para recordar el estado del menú -->
+<script>
+  (function() {
+    const menuState = localStorage.getItem('menu');
+    if (menuState === 'open') {
+      document.documentElement.classList.add('menu-open');
+    } else {
+      document.documentElement.classList.add('menu-closed');
+    }
+  })();
+</script>
 
 
 <style>

@@ -1,19 +1,4 @@
-
-/*const menuBtn = document.getElementById('menu-btn');
-    const closeBtn = document.getElementById('close-btn');
-    const sidebar = document.getElementById('sidebar');
-
-    menuBtn.addEventListener('click', () => {
-      sidebar.classList.remove('w-0');
-      sidebar.classList.add('w-64'); // abrir
-    });
-
-    closeBtn.addEventListener('click', () => {
-      sidebar.classList.remove('w-64');
-      sidebar.classList.add('w-0'); // cerrar
-    });*/
-
-    // lógica para abrir/cerrar el menú desplazando el contenido
+ // lógica para abrir/cerrar el menú desplazando el contenido
 // Referencias
 const menuBtn = document.getElementById('menu-btn');
 const sidebarMenuBtn = document.getElementById('sidebar-menu-btn');
