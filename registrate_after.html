@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles/login.css">
+    <link rel="stylesheet" href="../styles/alerts.css">
+</head>
+
+<body class="fondo_login">
+
+    <main class="contenedor">
+
+        <section class="contenedor-login"> <!--Inicio de login-->
+
+            <div class="registrate">
+
+            </div>
+
+            <div class="registrate"> <!--Inicio formulario-->
+                <div class="login-logo">
+                    <img src="../imagenesDev/logo2.png" alt="logo">
+                </div>
+                <h1>Tu punto de venta favorito</h1>
+
+                                    <div class="alert alert-error">Token inválido. Por favor recarga la página e intenta de nuevo.</div>
+                
+                                    <div class="alert alert-success">Registro completado. Revisa tu correo para verificar tu cuenta.</div>
+                
+                <form action="../scripts/register.php" method="post">
+                    <input type="hidden" name="csrf_token" value="c30f824fe3803a37782f4b7cba8df5998abca42eb96dd41ca3433414f174d4a1">
+
+                    <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
+
+                        <div class="campo">
+                            <label for="nombre">Nombre(s):</label>
+                            <input type="text" id="nombre" name="nombre" required placeholder="Ej. Juan Carlos">
+                        </div>
+
+                        <div class="campo">
+                            <label for="apellido">Apellido(s):</label>
+                            <input type="text" id="apellido" name="apellido" required placeholder="Ej. Pérez Hernández">
+                        </div>
+
+                        <div class="campo">
+                            <label for="email">Ingrese su correo:</label>
+                            <input type="email" id="email" name="email" required placeholder="correo@ejemplo.com">
+                        </div>
+
+                        <div class="campo">
+                            <label for="password">Ingrese su contraseña:</label>
+                            <input type="password" id="password" name="password" required placeholder="">
+                        </div>
+
+                        <div class="campo">
+                            <label for="password2">Confirme su contraseña:</label>
+                            <input type="password" id="password2" name="password2" required placeholder="">
+                        </div>
+
+                        <button class="boton" type="submit">Registrate</button>
+
+                    </div> <!--Fin contenedor de campos-->
+                </form>
+
+                <div class="login-navegacion_registrate"> <!--Inicio de navegación-->
+                    <p>¿Tienes cuenta? <a href="/src/pages/login.php">Inicia sesión</a></p>
+
+                    <a href="#">Inicio</a>
+                </div> <!--Final de navegación-->
+
+            </div> <!--Fin formulario-->
+
+        </section> <!--Fin de login-->
+
+        <script src="../scripts/alertaslogin_y_mostrarcontra.js"> </script>
+
+    </main>
+
+</body>
+
+</html>

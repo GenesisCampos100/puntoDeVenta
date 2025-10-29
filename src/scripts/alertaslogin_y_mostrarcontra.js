@@ -1,68 +1,85 @@
-//! MOSTRAR CONTRASEÑA
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Selecciona TODOS los botones de toggle (todos los elementos con esa clase)
-    const toggleButtons = document.querySelectorAll('.js-password-toggle');
-
-    // 2. Itera sobre cada botón encontrado para asignarle el evento click
-    toggleButtons.forEach(toggleButton => {
-        
-        // En cada botón, encontramos su contenedor padre (.campo)
-        const campoDiv = toggleButton.closest('.campo');
-        
-        // Dentro de ese contenedor, buscamos el input
-        // Usamos querySelector('input') porque sabemos que solo hay un input dentro de cada .campo
-        const passwordInput = campoDiv.querySelector('input[type="password"], input[type="text"]');
-
-        if (passwordInput) {
-            toggleButton.addEventListener('click', () => {
-                
-                // A. Alternar el tipo de input del campo actual
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-
-                // B. Alternar la clase 'show-password' en el div.campo del campo actual
-                campoDiv.classList.toggle('show-password');
-            });
-        }
-    });
-});
-
-//! ALERTAS LOGIN
-document.addEventListener('DOMContentLoaded', () => {
-    // Seleccionar el formulario completo por su nuevo ID
+// ALERTAS LOGIN (AJAX)
+(function setupAjaxLogin() {
     const form = document.getElementById('loginFormulario');
+    if (!form) { console.log('[login.js] form #loginFormulario not found'); return; }
+    console.log('[login.js] form found, attaching submit handler');
 
-    if (form) {
-        // Escuchar el evento de envío (submit) del formulario
-        form.addEventListener('submit', function(event) {
-            
-            let camposVacios = false;
-            
-            // Seleccionar todos los campos que tienen el atributo 'required' dentro del formulario
-            const requiredInputs = form.querySelectorAll('[required]');
+    form.addEventListener('submit', async (e) => {
+        console.log('[login.js] submit intercepted');
+        e.preventDefault();
 
-            // Iterar sobre los campos requeridos
-            requiredInputs.forEach(input => {
-                // Si el valor del campo, sin espacios iniciales/finales, está vacío
-                if (input.value.trim() === '') {
-                    camposVacios = true; 
-                    // Enfocar en el primer campo vacío encontrado (opcional, pero útil)
-                    input.focus(); 
-                    return; // Salir del bucle una vez que se encuentra el primer error
-                }
+        const formData = new FormData(form);
+        // Señalamos al servidor que esta petición viene vía AJAX (fallback adicional)
+        formData.append('ajax', '1');
+
+        try {
+            console.log('[login.js] sending fetch to', form.action);
+            const res = await fetch(form.action, {
+                method: form.method || 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
             });
 
-            // Si se encontró algún campo vacío
-            if (camposVacios) {
-                // Detener el envío del formulario
-                event.preventDefault(); 
-                
-                // Mostrar la alerta al usuario
-                alert('¡Faltan datos! Por favor, complete todos los campos obligatorios para iniciar sesión.');
-            } else {
-                // Si no hay campos vacíos, el formulario se envía al servidor
-                console.log('Formulario válido. Iniciando sesión...');
+            console.log('[login.js] fetch response status', res.status);
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                console.error('[login.js] failed to parse JSON', jsonErr);
+            }
+
+            console.log('[login.js] response JSON', data);
+
+                if (data && data.success) {
+                    // En lugar de redirigir directamente, muestra el modal
+                    showSuccessModal(data.redirect);
+                } else {
+                    const msg = data && data.message ? data.message : 'Error al iniciar sesión, contraseña o correo incorrectos';
+                    showErrorModal(msg);
+                }
+            } catch (err) {
+                console.error('[login.js] fetch error', err);
+                showErrorModal('Error de red. Intenta de nuevo.');
             }
         });
+    })();
+
+    function showErrorModal(message) {
+        const modal = document.getElementById('errorModal');
+        const messageElement = document.getElementById('errorMessage');
+        const closeButton = document.getElementById('closeErrorModal');
+
+        if (!modal || !messageElement || !closeButton) return;
+
+        messageElement.textContent = message;
+        modal.classList.add('visible');
+
+        closeButton.onclick = () => modal.classList.remove('visible');
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('visible');
+            }
+        };
     }
-});
+
+    function showSuccessModal(redirectUrl) {
+        const modal = document.getElementById('successModal');
+        if (!modal) return;
+
+        modal.classList.add('visible');
+
+        // Esperar 2 segundos y luego redirigir
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, 2000);
+    }
+// Ejecutar la inicialización inmediatamente si el DOM ya está listo, o esperar al evento
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLoginScripts);
+} else {
+    initLoginScripts();
+}

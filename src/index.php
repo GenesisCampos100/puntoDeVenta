@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+// Evitar caching de páginas protegidas para que el botón atrás requiera re-login
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
 // Si no hay login, mándalo al login
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: pages/login.php");

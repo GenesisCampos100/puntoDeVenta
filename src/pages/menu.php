@@ -1,9 +1,14 @@
 <?php
 
+// Evitar cache del menú/páginas incluidas para obligar re-login al retroceder
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php"); // mismo nivel que este archivo
+  header("Location: pages/login.php"); // mismo nivel que este archivo
     exit;
 }
 
@@ -14,7 +19,7 @@ $rol = $_SESSION['rol'];
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: login.php"); // igual, mismo nivel
+  header("Location: pages/login.php"); // igual, mismo nivel
     exit;
 }
 ?>
