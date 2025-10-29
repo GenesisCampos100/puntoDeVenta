@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "punto-de-venta",
+=======
+  "name": "punto-de-venta-prisma",
+>>>>>>> 4403c3ff9f6db26d53cb044793eade0e9eb2eb45
   "version": "1.0.0",
   "description": "Aprendiendo SASS y NPM",
   "type": "module",
@@ -13,7 +17,11 @@
     "NPM",
     "Gulp"
   ],
+<<<<<<< HEAD
   "author": "Equipo 3 PI",
+=======
+  "author": "Zinedine Hiram Miranda Campos",
+>>>>>>> 4403c3ff9f6db26d53cb044793eade0e9eb2eb45
   "license": "ISC",
   "devDependencies": {
     "glob": "^11.0.3",
