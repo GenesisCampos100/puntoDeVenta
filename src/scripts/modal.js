@@ -60,3 +60,37 @@
     }
   });
 })();
+
+// ======================
+// MODAL DE PAGO
+// ======================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const payBtn = document.getElementById("pay-btn");
+  const modal = document.getElementById("payment-modal");
+  const cancelBtn = document.getElementById("cancel-payment");
+  const cartInput = document.getElementById("cart-data-input");
+
+  if (!payBtn || !modal) return; // seguridad
+
+  // Abrir modal
+  payBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+
+    // Guardar carrito actual en el input oculto
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    cartInput.value = JSON.stringify(cart);
+  });
+
+  // Cerrar modal
+  cancelBtn.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  // Cerrar modal con clic fuera del contenido
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+});

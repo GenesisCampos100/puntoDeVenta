@@ -160,7 +160,7 @@ function normalizeCategory($name) {
 
   <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
 
-  <form id="checkout-form" method="POST" action="procesar_venta.php" class="mt-4">
+  <form id="checkout-form" method="POST" action="../index/procesar_venta.php" class="mt-4">
     <input type="hidden" name="cart_data" id="cart-data">
     <div class="border-t pt-4 mt-4">
       <div class="flex justify-between text-sm">
@@ -172,10 +172,12 @@ function normalizeCategory($name) {
       <div class="flex justify-between font-bold text-lg mt-2">
         <span>Total:</span><span id="total">$0.00</span>
       </div>
-      <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-        Realizar Pago
-      </button>
-      <button type="submit" id="submit-checkout" class="hidden"></button>
+     <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
+      Realizar Pago
+    </button>
+
+    <!-- Botón oculto para enviar el formulario -->
+    <button type="submit" id="submit-checkout" class="hidden"></button>
     </div>
   </form>
 </aside>
@@ -221,6 +223,50 @@ function normalizeCategory($name) {
 </div>
 
 
+<!-- ========================= -->
+<!-- MODAL: Selección de pago -->
+<!-- ========================= -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
+    
+    <form id="payment-form" method="POST" action="procesar_venta.php">
+      <input type="hidden" name="cart_data" id="cart-data-input">
+      
+      <div class="space-y-3 mb-6">
+        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
+          <span>Efectivo 💵</span>
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+document.getElementById("pay-btn").addEventListener("click", () => {
+  const cart = localStorage.getItem("cart");
+  if (!cart || JSON.parse(cart).length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+
+  // Asignamos el carrito al campo oculto
+  document.getElementById("cart-data").value = cart;
+
+  // Enviamos el formulario
+  document.getElementById("submit-checkout").click();
+
+  // Limpia carrito al finalizar (opcional)
+  // localStorage.removeItem("cart");
+});
+</script>
 
 
 
