@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Buscar usuario en la tabla real: usuarios (id_usuario, correo, contrasena)
     $stmt = $pdo->prepare(
-        "SELECT u.id_usuario, u.correo, u.contrasena, e.id_rol, r.nombre_rol as rol
+        "SELECT u.id_usuario, u.correo, u.contrasena, u.id_empleado, e.id_rol, r.nombre_rol as rol
          FROM usuarios u
          LEFT JOIN empleados e ON u.id_empleado = e.id_empleado
          LEFT JOIN roles r ON e.id_rol = r.id_rol
@@ -22,6 +22,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // (no debug write)
 
     if ($user && !empty($user['contrasena']) && password_verify($password, $user['contrasena'])) {
+        
+        // --- NUEVA VALIDACIÓN: Solo permitir acceso a empleados ---
+        if (empty($user['id_empleado'])) {
+            $error_message = 'Acceso denegado. Solo para empleados.';
+            if (!empty($_POST['ajax'])) {
+                header('Content-Type: application/json');
+                http_response_code(403); // Forbidden
+                echo json_encode(['success' => false, 'message' => $error_message]);
+                exit;
+            }
+            $_SESSION['error'] = $error_message;
+            header("Location: ../pages/login.php");
+            exit;
+        }
+
         // Guardar sesión
         $_SESSION['usuario_id'] = $user['id_usuario'];
         $_SESSION['rol'] = isset($user['rol']) ? $user['rol'] : null;

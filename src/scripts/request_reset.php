@@ -64,21 +64,16 @@ $stmt = $pdo->prepare('SELECT u.id_usuario, u.correo, u.id_empleado, CONCAT(e.no
 $stmt->execute(['email' => $email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user) {
-    // No revelar si el correo existe por seguridad
-    $_SESSION['info'] = 'Si existe una cuenta asociada, recibirás un email con instrucciones.';
-    header('Location: ../pages/login.php');
+// Si no se encuentra el usuario O si el usuario NO es un empleado, salir silenciosamente.
+if (!$user || empty($user['id_empleado'])) {
+    // Por seguridad, no revelar si el correo existe o si el usuario es un empleado.
+    // Se muestra un mensaje genérico para que un atacante no pueda enumerar cuentas de empleados.
+    $_SESSION['info'] = 'Si una cuenta de empleado está asociada a este correo, se enviarán instrucciones para restablecer la contraseña.';
+    header('Location: ../pages/recuperar_contrasena.html');
     exit;
 }
 
-// Si el usuario está vinculado a un empleado, no permitir recuperación por este flujo
-if (!empty($user['id_empleado'])) {
-    // No revelar detalles: indicar mensaje genérico y salir
-    error_log('Password reset requested for empleado-linked account: ' . $user['correo']);
-    $_SESSION['info'] = 'Si existe una cuenta asociada, recibirás un email con instrucciones.';
-    header('Location: ../pages/login.php');
-    exit;
-}
+// A partir de aquí, el código solo se ejecuta para empleados.
 
 // Generar token (enviamos token claro por email, guardamos hash en DB)
 $token = bin2hex(random_bytes(32));

@@ -15,7 +15,6 @@ session_start();
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../styles/login.css">
-    <link rel="stylesheet" href="../styles/modal.css">
 
 </head>
 
@@ -49,19 +48,11 @@ session_start();
 
             <div class="formulario "> <!--Inicio formulario-->
                 <div class="login-logo">
-<<<<<<< HEAD
                     <img src="../imagenesDev/logo2.png">
                 </div>
                 <H1 class="login-titulo">Tu punto de venta favorito</H1>
 
                     <form id="loginFormulario" action="../scripts/validar_login.php" method="post">
-=======
-                    <img src="../../public/img/logo2.png">
-                </div>
-                <H1 class="login-titulo">Tu punto de venta favorito</H1>
-
-                <form id="loginFormulario" action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
->>>>>>> 4403c3ff9f6db26d53cb044793eade0e9eb2eb45
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
@@ -108,7 +99,6 @@ session_start();
                         </div>
 
                         <button class="boton" type="submit">Entrar</button>
-<<<<<<< HEAD
 
                     </div> <!--Fin contenedor de campos-->
                 </form>
@@ -116,9 +106,6 @@ session_start();
                 <div class="login-navegacion"> <!--Inicio de navegación-->
                 <a href="recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
 
-                <p>¿No tienes cuenta? <a href="registrate.php">Registrate</a></p>
-
-                <a href="#">Inicio</a>
                 </div> <!--Final de navegación-->
 
             </div> <!--Fin formulario-->
@@ -128,24 +115,6 @@ session_start();
                 <script src="../scripts/alertaslogin_y_mostrarcontra.js"> </script>
                 <script src="../scripts/show_password.js"></script>
 
-=======
-
-                    </div> <!--Fin contenedor de campos-->
-                </form>
-
-                <div class="login-navegacion"> <!--Inicio de navegación-->
-                    <a href="/src/pages/recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
-
-                    
-                </div> <!--Final de navegación-->
-
-            </div> <!--Fin formulario-->
-
-        </section> <!--Fin de login-->
-
-        <script src="/src/js/mostrar_contra.js"> </script>
-        <script src="/src/js/alertas_login.js"></script>
->>>>>>> 4403c3ff9f6db26d53cb044793eade0e9eb2eb45
     </main>
 
     <!-- Modal de Éxito -->
