@@ -1,31 +1,38 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
 
-    // Calcular un id_empleado por defecto (para evitar variable indefinida al cargar el formulario)
+    // Calcular un id_empleado por defecto
     $id_empleado = '';
-    try {
-        $default_rol = 0; // mismo valor por defecto que usamos al crear
-        switch ($default_rol) {
-            case 1: $prefijo = 'A'; break; // Admin
-            case 2: $prefijo = 'G'; break; // Gerente
-            case 3: $prefijo = 'C'; break; // Cajero
-            default: $prefijo = 'X'; break;
-        }
 
-        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['prefijo' => $prefijo . '%']);
-        $ultimo = $stmt->fetchColumn();
-        $numero = $ultimo ? ((int)substr($ultimo, 1)) + 1 : 1;
-        $id_empleado = $prefijo . str_pad($numero, 4, '0', STR_PAD_LEFT);
-    } catch (Exception $e) {
-        // Si falla, dejamos $id_empleado vacío y el formulario seguirá funcionando
-        $id_empleado = '';
-    }
+    $stmt = $pdo->query("SELECT * FROM roles");
+    $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $estatus = 1;
     if($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
+            /* --- Validación de campos obligatorios --- */
+            $campos_obligatorios = [
+                'num_empleado' => 'Número de empleado',
+                'nombres' => 'Nombre(s)',
+                'apellido_p' => 'Apellido Paterno',
+                'apellido_m' => 'Apellido Materno',
+                'telefono' => 'Teléfono',
+                'calle' => 'Calle',
+                'num_ext' => 'Número Exterior',
+                'colonia' => 'Colonia',
+                'estado' => 'Estado',
+                'id_rol' => 'Puesto',
+                'correo' => 'Correo',
+                'contra' => 'Contraseña'
+            ];
+
+            foreach ($campos_obligatorios as $campo => $etiqueta) {
+                if (empty($_POST[$campo])) {
+                    die("Todos los campos obligatorios deben estar llenos. Falta: $etiqueta.");
+                }
+            }
+
+
             //Validar datos del empleado
             $id_empleado = filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING);
 
@@ -58,9 +65,9 @@
 
             // Consulta para insertar el empleado
             $sql = "INSERT INTO empleados 
-                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, id_rol, fecha)
+                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
                 VALUES
-                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, :id_rol, NOW())";
+                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 'id_empleado' => $id_empleado,
@@ -103,6 +110,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Empleados</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* --- ESTILOS BASE Y GENERALES --- */
         body {
@@ -114,7 +122,7 @@
         }
 
         /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
-        h2 {
+        /*h2 {
             text-align: center;
             color: #f43f5e; 
             margin: 40px auto 25px; 
@@ -122,7 +130,7 @@
             font-size: 28px; 
             letter-spacing: 1.5px; 
             text-transform: uppercase;
-        }
+        }*/
 
         .switch {
             position: relative;
@@ -169,10 +177,13 @@
     </style>
 </head>
 <body>
-    <h2>Registro de Empleados</h2>
+    <div class = "">
+        <h2 class = "">Registro de Empleados</h2>
+    </div>
+    
     <div>
         <div>
-            <span >Datos Básicos</span>
+            <span>Datos Básicos</span>
             <span onclick="window.history.back()">&#10005;</span>
         </div>
         
@@ -228,7 +239,7 @@
                     </div>
                     <div>
                         <label>Código Postal: </label>
-                        <input type="text" name="cp" maxlength="10" required>
+                        <input type="text" name="cp" maxlength="10">
                     </div>
                 </div>
 
@@ -249,20 +260,20 @@
 
                 <div>
                     <div>
-                        <label>Puesto:</label>
+                        <label>Puesto:</label><br>
                         <select id="id_rol" name="id_rol" required>
-                            <option value="">Selecciona el puesto</option>
-                            <option value="1">Admin</option>
-                            <option value="2">Gerente</option>
-                            <option value="3">Cajero</option>
-                            <!-- Agrega más opciones según los roles disponibles -->
+                            <option value="">Seleccionar el puesto</option>
+                            <?php foreach ($roles as $rol): ?>
+                                <option value="<?= $rol['id_rol'] ?>">
+                                    <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
                         <label>Numero de empleado: </label>
                         <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" readonly>
                     </div>
-                    
                 </div>
                 
             </div>
@@ -278,6 +289,8 @@
             const rolSelect = document.getElementById('id_rol');
             const numInput = document.getElementById('num_empleado');
 
+            if (!rolSelect || !numInput) return;
+
             async function fetchNext(idRol) {
                 if (!idRol) return;
                 try {
@@ -286,11 +299,12 @@
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;
                 } catch (e) {
-                    console.error(e);
+                    console.error("Error al obtener el siguiente número de empleado: ", e);
                 }
             }
 
             rolSelect.addEventListener('change', function () {
+                numInput.value = '';
                 fetchNext(this.value);
             });
 

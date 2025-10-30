@@ -19,14 +19,23 @@
     }
 
     try {
-        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1";
+        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY CAST(SUBSTRING(id_empleado,2) AS UNSIGNED) ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['prefijo' => $prefijo . '%']);
-        $ultimo = $stmt->fetchColumn();
+        $todos = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        $numero = $ultimo ? ((int)substr($ultimo, 1)) + 1 : 1;
+        // Crear un array con los números usados
+        $usados = array_map(function($id) {
+            return (int)substr($id, 1); // quitar prefijo y convertir a entero
+        }, $todos);
+
+        // Buscar el primer número disponible
+        $numero = 1;
+        while (in_array($numero, $usados)) {
+            $numero++;
+        }
+
         $next = $prefijo . str_pad($numero, 4, '0', STR_PAD_LEFT);
-
         echo json_encode(['next' => $next]);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);

@@ -1,7 +1,6 @@
 <?php 
     require_once __DIR__ . '/../config/db.php';
 
-
     $busqueda = $_GET['busqueda'] ?? '';
     $puesto = $_GET['puesto'] ?? '';
     $orden = $_GET['orden'] ?? 'e.nombre ASC';
@@ -106,10 +105,6 @@
             width: 100%;
             box-sizing: border-box;
             font-size: 15px;
-<<<<<<< HEAD
-=======
-            
->>>>>>> origin/Genesis
         }
 
         /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
