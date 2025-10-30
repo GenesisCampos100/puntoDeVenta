@@ -15,6 +15,8 @@ if (!isset($permisos[$rol])) {
     header("Location: login.php");
     exit;
 }
+// Foto del usuario
+$fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 ?>
 
 <!-- Script para recordar el estado del menú -->
@@ -83,22 +85,23 @@ if (!isset($permisos[$rol])) {
 <?php endif; ?>
 
 
-  <!-- Bloque de usuario -->
-  <div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
-    <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
-         style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
-      <img src="../public/img/1.png" alt="Foto usuario"
-           style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-      <div class="flex flex-col leading-tight">
-        <span style="color:#32CD32; font-weight:600; font-size:14px;">
-          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
-        </span>
-        <span style="color:#cbd5e1; font-size:12px;">
-          <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
-        </span>
-      </div>
+  <!-- Bloque de usuario --> 
+<div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
+  <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
+       style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
+    <img id="sidebarFoto" src="<?= htmlspecialchars($fotoUsuario) ?>" alt="Foto usuario"
+         style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+    <div class="flex flex-col leading-tight">
+      <span style="color:#32CD32; font-weight:600; font-size:14px;">
+        <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+      </span>
+      <span style="color:#cbd5e1; font-size:12px;">
+        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
+      </span>
     </div>
   </div>
+</div>
+
 </nav>
 </header>
 
