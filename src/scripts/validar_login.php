@@ -18,24 +18,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             FROM usuarios u
             INNER JOIN empleados e ON u.id_empleado = e.id_empleado
             INNER JOIN roles r ON e.id_rol = r.id_rol
-            WHERE u.correo = :usuario
+            WHERE u.correo = :correo
         ");
-        $stmt->execute(['usuario' => $usuario]);
-        $user = $stmt->fetch();
+    $stmt->execute(['correo' => $usuario]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (password_verify($password, $user['password'])) {
+    if ($user && password_verify($password, $user['password'])) {
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['rol'] = $user['rol'];
         $_SESSION['nombre_completo'] = $user['nombre_completo'];
         $_SESSION['correo'] = $user['correo'];
-            
+
         header("Location: ../index.php?view=nueva_venta");
         exit;
 
 
 
     } else {
-        // En caso de error, volver al login con mensaje
         $_SESSION['error'] = "Usuario o contraseña incorrectos";
         header("Location: ../pages/login.php");
         exit;
