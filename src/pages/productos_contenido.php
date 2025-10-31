@@ -380,7 +380,6 @@ function openCustomModal(data, type) {
     btnEliminar.setAttribute('data-id', id);
     btnEliminar.setAttribute('data-type', type);
 
-    // 4. Mostrar modal
     document.getElementById('modal').style.display = 'flex';
 }
 

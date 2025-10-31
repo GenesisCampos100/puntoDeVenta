@@ -1,24 +1,31 @@
 <?php 
     require_once __DIR__ . '/../config/db.php';
 
-
     $busqueda = $_GET['busqueda'] ?? '';
     $puesto = $_GET['puesto'] ?? '';
-    $orden = $_GET['orden'] ?? 'u.nombre_completo ASC';
+    $orden = $_GET['orden'] ?? 'e.nombre ASC';
+    $allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
+    if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
     $vista_actual = $_GET['view'] ?? 'empleados_contenido';
 
     $sql = "SELECT
-                u.id AS numero,
-                u.nombre_completo AS nombre,
+                e.id_empleado AS numero,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
                 u.correo AS correo,
-                u.estatus AS estatus,
-                u.fecha AS fecha_ingreso,
-                r.nombre AS puesto
-            FROM usuarios u LEFT JOIN roles r ON u.rol_id = r.id
+                e.estatus AS estatus,
+                e.fecha AS fecha
+            FROM usuarios u 
+            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+            LEFT JOIN roles r ON e.id_rol = r.id_rol
             WHERE 1=1";
 
-    if(!empty($busqueda)) $sql .= " AND (u.nombre_completo LIKE :busqueda OR u.correo LIKE :busqueda)";
-    if(!empty($puesto)) $sql .= " AND u.rol_id = :puesto";
+    if(!empty($busqueda)) $sql .= " AND (
+                                e.id_empleado LIKE :busqueda
+                                OR e.nombre LIKE :busqueda
+                                OR e.apellido_paterno LIKE :busqueda
+                                OR e.apellido_materno LIKE :busqueda
+                                OR u.correo LIKE :busqueda)";
+    if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
 
     $sql .= " ORDER BY $orden";
 
@@ -36,8 +43,8 @@
 
     $stmt->execute($params);
     $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt = $pdo->query("SELECT id AS id_rol, nombre FROM roles");
-    $puestos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
+    $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -98,10 +105,6 @@
             width: 100%;
             box-sizing: border-box;
             font-size: 15px;
-<<<<<<< HEAD
-=======
-            
->>>>>>> origin/Genesis
         }
 
         /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
@@ -289,7 +292,7 @@
                     <option value="">-- Todos los puestos --</option>
                     <?php foreach ($puestos as $pu): ?>
                         <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($pu['nombre']) ?>
+                            <?= htmlspecialchars($pu['nombre_rol']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -300,10 +303,10 @@
                     <span class="icon">⇅</span> Ordenar
                 </button>
                 <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()">
-                    <option value="u.nombre_completo ASC" <?= ($orden == 'u.nombre_completo ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                    <option value="u.nombre_completo DESC" <?= ($orden == 'u.nombre_completo DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                    <option value="u.correo ASC" <?= ($orden == 'u.correo ASC') ? 'selected' : '' ?>>Correo A-Z</option>
-                    <option value="u.correo DESC" <?= ($orden == 'u.correo DESC') ? 'selected' : '' ?>>Correo Z-A</option>
+                    <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
+                    <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                    <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
+                    <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
                 </select>
             </div>
         </form>
@@ -318,9 +321,9 @@
             <thead>
                 <tr>
                     <th style="width: 10%;">No.</th>
-                    <th style="width: 45%">Nombre</th>
+                    <th style="width: 45%">Nombre Completo</th>
                     <th style="width: 20%">Correo</th>
-                    <th style="width: 30%">Estatus</th>
+                    <th style="width: 30%">Estado</th>
                     <th style="width: 30%">Fecha de Ingreso</th>
                     <th style="width: 10%"></th>
                 </tr>
@@ -331,12 +334,12 @@
                     <?php foreach ($empleados as $emp): ?>
                         <tr class="<?= $isFirst ? 'first-row' : '' ?>">
                             <td><?= htmlspecialchars($emp['numero']) ?></td>
-                            <td><?= htmlspecialchars($emp['nombre']) ?></td>
+                            <td><?= htmlspecialchars($emp['nombre_completo']) ?></td>
                             <td><?= htmlspecialchars($emp['correo']) ?></td>
                             <td>
                                 <span style="color: <?= $emp['estatus'] == 1 ? 'green' : 'red' ?>;"><?= $emp['estatus'] == 1 ? 'Activo' : 'Inactivo' ?></span>
                             </td>
-                            <td><?= htmlspecialchars($emp['fecha_ingreso']) ?></td>
+                            <td><?= htmlspecialchars($emp['fecha']) ?></td>
                             <td>
                                 <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
                                 <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este empleado?')">🗑︎</a>

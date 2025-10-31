@@ -1,12 +1,11 @@
 <?php
+    session_start();
 
-session_start();
+    include(__DIR__ . '/../config/db.php'); // conexión PDO
 
-include(__DIR__ . '/../config/db.php'); // conexión PDO
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $password = $_POST['password'];
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $usuario = $_POST['usuario'];
+        $password = $_POST['password'];
 
     // Buscar usuario
     $stmt = $pdo->prepare("SELECT 
@@ -31,13 +30,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         header("Location: ../index.php?view=nueva_venta");
         exit;
-
-
-
     } else {
         $_SESSION['error'] = "Usuario o contraseña incorrectos";
         header("Location: ../pages/login.php");
         exit;
     }
 }
-
