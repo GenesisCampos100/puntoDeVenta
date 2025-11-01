@@ -6,12 +6,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST['usuario'];
     $password = $_POST['password'];
 
-    // Buscar usuario
+    // Buscar usuario con su imagen
     $stmt = $pdo->prepare("SELECT 
                 u.id_usuario AS id,
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
                 u.contrasena AS password,
                 u.correo AS correo,
+                u.imagen AS imagen,  -- ✅ agregamos la columna imagen
                 r.nombre_rol AS rol
             FROM usuarios u
             INNER JOIN empleados e ON u.id_empleado = e.id_empleado
@@ -22,10 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
+        // ✅ Guardar variables de sesión
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['rol'] = $user['rol'];
         $_SESSION['nombre_completo'] = $user['nombre_completo'];
         $_SESSION['correo'] = $user['correo'];
+        $_SESSION['foto_perfil'] = $user['imagen'] ?? '../public/img/1.png'; // ✅ foto guardada o default
 
         header("Location: ../index.php?view=nueva_venta");
         exit;
