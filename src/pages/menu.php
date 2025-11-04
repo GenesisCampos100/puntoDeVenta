@@ -106,49 +106,131 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 </nav>
 </header>
 
-
-
-
 <style>
-  /* Sidebar compacto (solo íconos) */
-.sidebar-cerrado {
-  width: 80px !important;
-  transition: width 0.3s ease;
+/* ------------------------------------------------------------------- */
+/* 1. Estilos Base (Mobile First - Pantallas pequeñas < 768px) */
+/* ------------------------------------------------------------------- */
+
+/* Escondemos el menú lateral por defecto en móviles (el botón del header lo mostrará) */
+#sidebar {
+    width: 256px; /* Ancho estándar del sidebar */
+    transform: translateX(-100%); /* Ocultar el sidebar completamente fuera de la pantalla */
+    transition: transform 0.3s ease, width 0.3s ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Sombra para visibilidad */
 }
 
-.sidebar-cerrado ul li a {
-  justify-content: center;
-  padding: 1rem;
+/* El botón del header debe ser visible en móviles */
+#menu-btn {
+    display: block; 
 }
 
-.sidebar-cerrado svg {
-  margin: 0 auto;
+/* Ocultar el botón de la barra lateral en la vista móvil, ya que el header tiene el principal */
+#sidebar-menu-btn {
+    display: none;
 }
 
-/* Usuario reducido a círculo */
-.user-mini {
-  justify-content: center !important;
-  width: 60px !important;
-  height: 60px !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  background-color: #0A2342 !important;
+/* Estado 'open' del menú lateral en móviles: Lo volvemos a mostrar */
+.menu-open #sidebar {
+    transform: translateX(0);
 }
 
-.user-mini img {
-  width: 45px !important;
-  height: 45px !important;
-  border-radius: 50%;
+/* La transición del contenido principal: para que el body empuje el contenido */
+.menu-open + .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
+    padding-left: 256px;
+    transition: padding-left 0.3s ease;
 }
 
-.user-mini div {
-  display: none;
+/* Ocultar el bloque de usuario en la vista móvil del sidebar, no hay espacio. */
+#sidebar #userBlock {
+    display: none;
 }
 
-/* Transiciones suaves */
+/* El header siempre tiene el 100% de ancho */
+header {
+    width: 100%;
+}
+
+/* ------------------------------------------------------------------- */
+/* 2. Media Query (Tablets y Desktop: Pantallas >= 768px) */
+/* ------------------------------------------------------------------- */
+@media screen and (min-width: 768px) {
+    /* Mostramos el menú por defecto en pantallas grandes (Desktop-First) */
+    #sidebar {
+        transform: translateX(0); /* Siempre visible por defecto en desktop */
+        position: fixed; /* Asegura que no se mueva con el scroll */
+    }
+
+    /* Ocultamos el botón de menú del header, ya que la barra lateral está siempre visible */
+    header #menu-btn {
+        display: none;
+    }
+
+    /* Mostramos el botón de la barra lateral para permitir el estado cerrado/compacto */
+    #sidebar #sidebar-menu-btn {
+        display: block;
+    }
+
+    /* El contenido principal debe dejar espacio para el sidebar */
+    .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
+        padding-left: 256px;
+        transition: padding-left 0.3s ease;
+    }
+    
+    /* El header debe considerar el ancho del sidebar para su contenido (padding a la izquierda) */
+    header {
+        padding-left: 272px; /* 256px de sidebar + 16px de padding del header */
+    }
+
+    /* Estado de menú cerrado (Sidebar Compacto) */
+    .menu-closed #sidebar {
+        width: 80px;
+    }
+
+    .menu-closed .main-content {
+        padding-left: 80px;
+    }
+    
+    .menu-closed header {
+        padding-left: 96px; /* 80px de sidebar + 16px de padding del header */
+    }
+
+    /* Usuario vuelve a ser visible en desktop */
+    #sidebar #userBlock {
+        display: flex;
+    }
+
+    /* Tus estilos para la versión compacta (user-mini y sidebar-cerrado) se aplican ahora con la clase en <html> */
+    .menu-closed #sidebar .user-mini {
+        justify-content: center !important;
+        width: 60px !important;
+        height: 60px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        background-color: #0A2342 !important;
+    }
+    
+    .menu-closed #sidebar .user-mini div {
+        display: none;
+    }
+    
+    .menu-closed #sidebar .sidebar-cerrado ul li a {
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .menu-closed #sidebar .sidebar-cerrado svg {
+        margin: 0 auto;
+    }
+
+}
+/* ------------------------------------------------------------------- */
+/* 3. Estilos de Transición (Mantenemos los tuyos) */
+/* ------------------------------------------------------------------- */
+
 #sidebar,
-#userBlock {
+#userBlock,
+.main-content,
+header {
   transition: all 0.3s ease;
 }
-
 </style>
