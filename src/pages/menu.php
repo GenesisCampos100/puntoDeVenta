@@ -32,14 +32,14 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 </script>
 
 <!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-10 right-0 z-40 shadow h-18 ">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
   <img src="../public/img/logo.jpeg" alt="logo" class="h-12 ml-6">
 
 
   <!-- Sidebar -->
 <nav id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
+     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between mx-auto max-w-4xl">  <!-- mx-auto max-w-4xl HACE QUE EL CONTENIDO SE RECORRA A LA IZQUIERDA -->
   <div>
     <!-- Logo y botón -->
     <div class="flex items-center justify-center p-4 border-b border-white">

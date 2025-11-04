@@ -376,7 +376,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div>Talla/Color</div>
     <div>Precio</div>
 </div>
-            <div class="col-span-2 flex items-center gap-1">🏷️ Identificación (SKU/Cód.)</div>
+            <div class="col-span-2 flex items-center gap-1">Identificación (SKU/Cód.)</div>
             <div class="col-span-1 text-center">Talla</div>
             <div class="col-span-1 text-center">Color</div>
             <div class="col-span-1 text-center">Stock / Mínimo</div>
@@ -423,7 +423,7 @@ const camposBloquear = [
     document.getElementById('ganancia')
 ];
 
-// 🔒 Función para bloquear/desbloquear campos
+// Función para bloquear/desbloquear campos
 function actualizarBloqueoCampos() {
     const hayVariantes = cont.children.length > 0;
     

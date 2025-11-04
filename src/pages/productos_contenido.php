@@ -202,7 +202,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 </head>
 <body class="bg-[#2d4353] pt-5 text-[#eeeeee] lg:ml-64">
 
-<div class="bg-white p-4 rounded-xl shadow-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-center sticky top-5 z-50 mx-2 sm:mx-5 font-poppins gap-3">
+<div class="bg-white p-4 rounded-xl shadow-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-center sticky top-5 z-50 mx-2 sm:mx-5 font-poppins gap-3 mx-auto max-w-4xl">
     <form method="GET" id="toolbar-form" action="index.php" class="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-start sm:items-center w-full sm:w-auto"> 
         <input type="hidden" name="view" value="productos"> 
 
@@ -249,8 +249,8 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
     </a>
 </div>
 
-<div class="productos-container px-2 sm:px-5 mt-5">
-    <table class="w-full border-separate" style="border-spacing: 0 15px;">
+<div class="productos-container px-1 sm:px-5 mt-5 ">
+    <table class="w-full border-separate" style="border-spacing: 0 10px;">
         <thead class="hidden lg:table-header-group"> 
             <tr>
                 <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 4.5%; border-top-left-radius: 10px;"></th> 

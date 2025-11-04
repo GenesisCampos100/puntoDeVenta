@@ -79,12 +79,9 @@
   <label for="fotoPerfilInput" 
          style="position:absolute; bottom:0; right:0; background:#FFFFFF; 
                 border-radius:50%; width:28px; height:28px; display:flex; 
-                align-items:center; justify-content:center; cursor:pointer;">
+                align-items:center; justify-content:center; ">
     <img src="../public/img/cambioUsuario.png" alt="">
   </label>
-
-  <!-- Input file oculto -->
-  <input type="file" id="fotoPerfilInput" name="foto" accept="image/*" style="display:none;">
 </div>
 
     <!-- Nombre -->
@@ -175,8 +172,12 @@
       <div style="background:#f0f8ff; border-radius:20px; padding:25px;">
         <div style="background:#ffb6c1; border-radius:50%; width:120px; height:120px;
                     display:flex; justify-content:center; align-items:center; margin:0 auto 15px;">
-          <img id="previewFoto" src="../public/img/1.png"
-               style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
+        <!-- Imagen visible -->
+        <img id="mainFotoPerfil" 
+       src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? '../public/img/1.png') ?>" 
+       alt="Usuario"
+       style="width:120px; height:120px; border-radius:50%; object-fit:cover; cursor:pointer;">
+
         </div>
         <p style="font-weight:500; margin-bottom:15px;">Seleccione una foto</p>
         <!-- contenido seleccion de imagen -->
