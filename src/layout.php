@@ -22,7 +22,7 @@
 
   <main 
   id="content" 
-  class="mt-16 pt-20 pl-0 pr-80 transition-all duration-300"
+  class="mt-16 pt-20 px-8 transition-all duration-300"
 >
   <?php
     // Aquí se cargará el contenido de cada vista

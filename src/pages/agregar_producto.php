@@ -192,33 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Agregar Producto</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#f7f9ee',
-              100: '#eef3d9',
-              500: '#b4c24d',
-              600: '#9aa841'
-            },
-            darkbg: '#2d4353'
-          },
-          borderRadius: { 'xl-2': '14px' }
-        }
-      }
-    }
-  </script>
-  
+ 
 <!doctype html>
 <html lang="es">
 <head>
