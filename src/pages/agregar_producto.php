@@ -274,7 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-700">
 
-    <div class="max-w-6xl mx-auto px-4 py-12 lg:py-16">
+    <div class="max-w-6xl mx-auto px-4 py-12 lg:py-9">
         
         <div class="mb-8 flex justify-between items-center">
             <div>
