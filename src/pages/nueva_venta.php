@@ -103,18 +103,25 @@ function normalizeCategory($name) {
 
 <!-- GRID PRODUCTOS -->
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
+  <!-- GRID PRODUCTOS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
   <?php foreach($productos as $prod): ?>
     <?php 
+      // ✅ Convertir variantes a JSON para JS
       $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
-      $sizes = array_unique(array_map(fn($v)=>$v['size'],$prod['variantes']));
-      $colors = array_unique(array_map(fn($v)=>$v['color'],$prod['variantes']));
-      if(empty($sizes)) $sizes = [$prod['size_default']];
-      if(empty($colors)) $colors = [$prod['color_default']];
+
+      // ✅ Obtener tallas y colores (usando las claves correctas)
+      $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'], $prod['variantes'])));
+      $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'], $prod['variantes'])));
+
+      // ✅ Si no hay variantes, usamos los valores por defecto
+      if (empty($sizes)) $sizes = [$prod['talla_default']];
+      if (empty($colors)) $colors = [$prod['color_default']];
+
       $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
       $precio = $prod['precio'] ?: 0;
     ?>
     <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-             data-id="<?= $prod['id'] ?>"
              data-name="<?= htmlspecialchars($prod['nombre']) ?>"
              data-code="<?= htmlspecialchars($prod['codigo']) ?>"
              data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
@@ -148,6 +155,8 @@ function normalizeCategory($name) {
   <?php endforeach; ?>
 </div>
 
+</div>
+
 <!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
   <div class="flex justify-between items-center mb-4">
@@ -160,7 +169,7 @@ function normalizeCategory($name) {
 
   <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
 
-  <form id="checkout-form" method="POST" action="../index/procesar_venta.php" class="mt-4">
+  <form id="checkout-form" method="POST" action="scripts/procesar_venta.php" class="mt-4">
     <input type="hidden" name="cart_data" id="cart-data">
     <div class="border-t pt-4 mt-4">
       <div class="flex justify-between text-sm">
@@ -176,11 +185,35 @@ function normalizeCategory($name) {
       Realizar Pago
     </button>
 
-    <!-- Botón oculto para enviar el formulario -->
-    <button type="submit" id="submit-checkout" class="hidden"></button>
+    <!-- Botón oculto para enviar el formulario 
+    <button type="submit" id="submit-checkout" class="hidden"></button>-->
     </div>
   </form>
 </aside>
+
+<!-- ========================= -->
+<!-- MODAL: Selección de pago -->
+<!-- ========================= -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
+    
+    <form id="payment-form" method="POST" action="../src/scripts/procesar_venta.php">
+      <input type="hidden" name="cart_data" id="cart-data-input">
+      <div class="space-y-3 mb-6">
+        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
+          <span>Efectivo 💵</span>
+        </label>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 <!-- MODAL DESCUENTO GLOBAL -->
 <div id="discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
@@ -223,30 +256,7 @@ function normalizeCategory($name) {
 </div>
 
 
-<!-- ========================= -->
-<!-- MODAL: Selección de pago -->
-<!-- ========================= -->
-<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
-    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
-    
-    <form id="payment-form" method="POST" action="procesar_venta.php">
-      <input type="hidden" name="cart_data" id="cart-data-input">
-      
-      <div class="space-y-3 mb-6">
-        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
-          <span>Efectivo 💵</span>
-        </label>
-      </div>
 
-      <div class="flex justify-end gap-3">
-        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 
 <script>

@@ -59,38 +59,116 @@
       currentItemIndex = null;
     }
   });
-})();
 
+ // ======================
+// MODAL DE PAGO
+// ======================
 // ======================
 // MODAL DE PAGO
 // ======================
+const payBtn = document.getElementById('pay-btn');
+const paymentModal = document.getElementById('payment-modal');
+const cancelPayment = document.getElementById('cancel-payment');
+const paymentForm = document.getElementById('payment-form');
 
-document.addEventListener("DOMContentLoaded", () => {
-  const payBtn = document.getElementById("pay-btn");
-  const modal = document.getElementById("payment-modal");
-  const cancelBtn = document.getElementById("cancel-payment");
-  const cartInput = document.getElementById("cart-data-input");
+// Mostrar modal al presionar "Pagar"
+payBtn?.addEventListener('click', () => {
+  const cart = localStorage.getItem('cart');
+  
+  if (!cart) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
 
-  if (!payBtn || !modal) return; // seguridad
-
-  // Abrir modal
-  payBtn.addEventListener("click", () => {
-    modal.classList.remove("hidden");
-
-    // Guardar carrito actual en el input oculto
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    cartInput.value = JSON.stringify(cart);
-  });
-
-  // Cerrar modal
-  cancelBtn.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
-
-  // Cerrar modal con clic fuera del contenido
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.add("hidden");
+  try {
+    const parsedCart = JSON.parse(cart);
+    if (!Array.isArray(parsedCart) || parsedCart.length === 0) {
+      alert("Tu carrito está vacío.");
+      return;
     }
-  });
+
+    // Guardamos el carrito en el campo oculto del modal
+    document.getElementById('cart-data-input').value = JSON.stringify(parsedCart);
+    paymentModal.classList.remove('hidden'); // Mostrar modal
+  } catch (e) {
+    console.error("Error al procesar el carrito:", e);
+    alert("Error al leer los datos del carrito.");
+  }
 });
+
+// Cancelar pago
+cancelPayment?.addEventListener('click', () => {
+  paymentModal.classList.add('hidden');
+});
+
+// Enviar formulario (confirmar pago)
+paymentForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(paymentForm);
+
+  try {
+    const res = await fetch(paymentForm.action, { method: 'POST', body: formData });
+    const text = await res.text();
+
+    console.log("Respuesta del servidor:", text);
+
+    // Limpiar carrito y cerrar modal
+    localStorage.removeItem('cart');
+    paymentModal.classList.add('hidden');
+
+    alert("✅ Venta realizada correctamente.");
+    window.location.href = 'index.php?view=nueva_venta';
+  } catch (err) {
+    console.error("Error al procesar el pago:", err);
+    alert("❌ Hubo un error al procesar la venta.");
+  }
+});
+
+
+
+
+    // ======================
+    // MODAL DETALLE DE VENTA
+    // ======================
+    window.verDetalleVenta = function(idVenta) {
+      console.log("ID de venta recibido:", idVenta);
+        fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`)
+        .then(res => res.json())
+        .then(data => {
+            const contenedor = document.getElementById('venta-detalles');
+            contenedor.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                contenedor.innerHTML = '<p class="text-center text-gray-500">No hay detalles para esta venta.</p>';
+            } else {
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.classList.add('border-b', 'py-2');
+                    div.innerHTML = `
+                        <strong>${item.nombre}</strong><br>
+                        Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}
+                    `;
+                    contenedor.appendChild(div);
+                });
+            }
+
+            // Abrir modal
+            const modal = document.getElementById('venta-modal');
+            modal.classList.remove('hidden');
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ Error al obtener los detalles de la venta");
+        });
+    };
+
+    // Cerrar modal detalle de venta
+    const closeVentaModalBtn = document.getElementById('close-venta-modal');
+    if (closeVentaModalBtn) {
+        closeVentaModalBtn.addEventListener('click', () => {
+            const modal = document.getElementById('venta-modal');
+            modal.classList.add('hidden');
+        });
+    }
+
+})();

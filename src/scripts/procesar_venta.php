@@ -1,10 +1,11 @@
 <?php
-require_once __DIR__ . "/../config/db.php";
 session_start();
+require_once __DIR__ . "/../config/db.php";
 
 if (!isset($_POST['cart_data'])) {
     die("No se recibieron datos del carrito.");
 }
+
 
 $cart = json_decode($_POST['cart_data'], true);
 if (!$cart || count($cart) === 0) {
@@ -13,59 +14,82 @@ if (!$cart || count($cart) === 0) {
 
 $tipo_pago = $_POST['tipo_pago'] ?? 'EFECTIVO';
 $id_cliente = null;
-$id_empleado = $_SESSION['usuario_id'] ?? 'EMP-DEFAULT';
+
+// Obtener id_empleado desde sesión
+$id_usuario = $_SESSION['usuario_id'] ?? null;
+$id_empleado = null;
+
+if ($id_usuario) {
+    $stmtEmp = $pdo->prepare("SELECT id_empleado FROM usuarios WHERE id_usuario = ?");
+    $stmtEmp->execute([$id_usuario]);
+    $id_empleado = $stmtEmp->fetchColumn();
+}
 
 try {
-    $conn->beginTransaction();
+    $pdo->beginTransaction();
 
     // Calcular total
     $total = 0;
     foreach ($cart as $item) {
-        $precio = floatval($item['price'] ?? 0);
-        $cantidad = intval($item['quantity'] ?? 1);
-        $total += $precio * $cantidad;
+        $total += floatval($item['price'] ?? 0) * intval($item['quantity'] ?? 1);
     }
 
     // Insertar venta
-    $stmt = $conn->prepare("INSERT INTO ventas (fecha, tipo_pago, pago_total, id_cliente, id_empleado)
-                            VALUES (NOW(), ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO ventas (fecha, tipo_pago, pago_total, id_cliente, id_empleado) VALUES (NOW(), ?, ?, ?, ?)");
     $stmt->execute([$tipo_pago, $total, $id_cliente, $id_empleado]);
-    $id_venta = $conn->lastInsertId();
+    $id_venta = $pdo->lastInsertId();
 
-    // Insertar detalles y actualizar inventario
-    $stmt_detalle = $conn->prepare("INSERT INTO detalle_ventas 
-        (cantidad, precio_unitario, id_venta, cod_barras, id_variante)
-        VALUES (?, ?, ?, ?, ?)");
+    // Insertar detalle ventas y actualizar inventario
+    $stmt_detalle = $pdo->prepare("INSERT INTO detalle_ventas (cantidad, precio_unitario, id_venta, cod_barras, id_variante) VALUES (?, ?, ?, ?, ?)");
 
     foreach ($cart as $item) {
-        $cantidad = intval($item['quantity'] ?? 1);
-        $precio_unitario = floatval($item['price'] ?? 0);
-        $cod_barras = $item['barcode'] ?? null;
-        $id_variante = $item['variant_id'] ?? null;
+    $cantidad = intval($item['quantity'] ?? 1);
+    $precio_unitario = floatval($item['price'] ?? 0);
+    $cod_barras = $item['barcode'] ?? null;
+    $id_variante = $item['variant_id'] ?? null;
 
-        $stmt_detalle->execute([$cantidad, $precio_unitario, $id_venta, $cod_barras, $id_variante]);
+    // Insertar detalle de venta
+    $stmt_detalle->execute([$cantidad, $precio_unitario, $id_venta, $cod_barras, $id_variante]);
 
-        // 🔽 Descontar inventario
-        if ($id_variante) {
-            $stmt_update = $conn->prepare("UPDATE variantes SET cantidad = GREATEST(cantidad - ?, 0) WHERE id = ?");
-            $stmt_update->execute([$cantidad, $id_variante]);
-        } elseif ($cod_barras) {
-            $stmt_update = $conn->prepare("UPDATE productos SET cantidad = GREATEST(cantidad - ?, 0) WHERE cod_barras = ?");
-            $stmt_update->execute([$cantidad, $cod_barras]);
-        }
+    // ==============================
+    // ACTUALIZAR INVENTARIO
+    // ==============================
+    if (!empty($id_variante)) {
+        // Variante encontrada
+        $stmt_update = $pdo->prepare("
+            UPDATE variantes 
+            SET cantidad = GREATEST(cantidad - ?, 0)
+            WHERE id_variante = ?
+        ");
+        $stmt_update->execute([$cantidad, $id_variante]);
+
+    } elseif (!empty($cod_barras)) {
+        // Producto sin variante
+        $stmt_update = $pdo->prepare("
+            UPDATE productos 
+            SET cantidad = GREATEST(cantidad - ?, 0)
+            WHERE cod_barras = ?
+        ");
+        $stmt_update->execute([$cantidad, $cod_barras]);
+
+    } else {
+        // ⚠️ Caso inesperado
+        error_log("No se pudo actualizar inventario: faltan id_variante y cod_barras");
     }
+}
 
-    $conn->commit();
 
-    echo "
-    <script>
-      localStorage.removeItem('cart');
-      alert('✅ Venta registrada con éxito. Total: $" . number_format($total, 2) . "');
-      window.location.href = 'nueva_venta.php';
-    </script>";
-    
+    $pdo->commit();
+
+    echo "<script>
+    localStorage.removeItem('cart');
+    alert('✅ Venta registrada con éxito. Total: $" . number_format($total,2) . "');
+    window.location.href = '../index.php?view=ventas';
+</script>";
+
+
 } catch (Exception $e) {
-    $conn->rollBack();
+    $pdo->rollBack();
     die('Error al procesar la venta: ' . $e->getMessage());
 }
 ?>
