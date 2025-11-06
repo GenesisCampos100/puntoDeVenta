@@ -82,7 +82,7 @@ function normalizeCategory($name) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
 <title>Nueva Venta</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -256,6 +256,50 @@ function normalizeCategory($name) {
 </div>
 
 
+<!-- ========================= -->
+<!-- MODAL: Selección de pago -->
+<!-- ========================= -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
+    
+    <form id="payment-form" method="POST" action="procesar_venta.php">
+      <input type="hidden" name="cart_data" id="cart-data-input">
+      
+      <div class="space-y-3 mb-6">
+        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
+          <span>Efectivo 💵</span>
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+document.getElementById("pay-btn").addEventListener("click", () => {
+  const cart = localStorage.getItem("cart");
+  if (!cart || JSON.parse(cart).length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+
+  // Asignamos el carrito al campo oculto
+  document.getElementById("cart-data").value = cart;
+
+  // Enviamos el formulario
+  document.getElementById("submit-checkout").click();
+
+  // Limpia carrito al finalizar (opcional)
+  // localStorage.removeItem("cart");
+});
+</script>
 
 
 
