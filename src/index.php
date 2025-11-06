@@ -36,6 +36,20 @@ $contenido = array_key_exists($view, $views)
     ? $views[$view]
     : __DIR__ . "/pages/404.php";
 
+// Si es una petición AJAX (XMLHttpRequest) y viene por POST, incluir
+// directamente la vista para que los endpoints que devuelven JSON
+// no sean envueltos por el layout (evita HTML antes del JSON)
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    if (file_exists($contenido)) {
+        include $contenido;
+        exit;
+    }
+}
+
 // ✅ Incluir el layout (NO debe imprimir antes del header)
 include __DIR__ . "/layout.php";
 
