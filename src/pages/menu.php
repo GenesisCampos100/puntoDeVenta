@@ -1,7 +1,7 @@
 <?php
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: /login.php");
+    header("Location: pages/login.php");
     exit;
 }
 
@@ -12,21 +12,34 @@ $rol = $_SESSION['rol'];
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: login.php");
+    header("Location: pages/login.php");
     exit;
 }
+// Foto del usuario
+$fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 ?>
 
+<!-- Script para recordar el estado del menú -->
+<script>
+  (function() {
+    const menuState = localStorage.getItem('menu');
+    if (menuState === 'open') {
+      document.documentElement.classList.add('menu-open');
+    } else {
+      document.documentElement.classList.add('menu-closed');
+    }
+  })();
+</script>
 
 <!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-10 right-0 z-40 shadow h-18 ">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
   <img src="../public/img/logo.jpeg" alt="logo" class="h-12 ml-6">
 
 
   <!-- Sidebar -->
 <nav id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
+     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between mx-auto max-w-4xl">  <!-- mx-auto max-w-4xl HACE QUE EL CONTENIDO SE RECORRA A LA IZQUIERDA -->
   <div>
     <!-- Logo y botón -->
     <div class="flex items-center justify-center p-4 border-b border-white">
@@ -47,7 +60,7 @@ if (!isset($permisos[$rol])) {
     ];
     ?>
 
- <?php if (!empty($permisos[$rol])): ?>
+    <?php if (!empty($permisos[$rol])): ?>
   <ul class="mt-4 space-y-2 pl-4">
     <?php 
       // Detectar la vista actual
@@ -71,15 +84,13 @@ if (!isset($permisos[$rol])) {
   </ul>
 <?php endif; ?>
 
-  </div>
-  
-  <div class="w-full mt-auto px-4 pb-6 flex justify-center">
+
+  <!-- Bloque de usuario --> 
+<div class="w-full mt-auto px-4 pb-6 flex justify-center">
     <div id="userBlock"
          class="flex items-center gap-3 w-full max-w-[220px] bg-[#0A2342] px-4 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-[1.02] cursor-pointer transition-all duration-200 select-none">
-      
-      <img src="/public/img/1.png" alt="Foto usuario"
-           class="w-10 h-10 rounded-full object-cover border-2 border-[#32CD32]/70">
-
+      <img id="sidebarFoto" src="<?= htmlspecialchars($fotoUsuario) ?>" alt="Foto usuario"
+         style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
       <div class="flex flex-col justify-center leading-tight">
         <span class="text-[#32CD32] font-semibold text-sm truncate">
           <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
@@ -89,64 +100,137 @@ if (!isset($permisos[$rol])) {
         </span>
       </div>
     </div>
-  </div>
+  </div>
 </nav>
 
+</nav>
 </header>
 
-<!-- Script para recordar el estado del menú -->
-<script>
-  (function() {
-    const menuState = localStorage.getItem('menu');
-    if (menuState === 'open') {
-      document.documentElement.classList.add('menu-open');
-    } else {
-      document.documentElement.classList.add('menu-closed');
-    }
-  })();
-</script>
-
-
 <style>
-  /* Sidebar compacto (solo íconos) */
-.sidebar-cerrado {
-  width: 80px !important;
-  transition: width 0.3s ease;
+/* ------------------------------------------------------------------- */
+/* 1. Estilos Base (Mobile First - Pantallas pequeñas < 768px) */
+/* ------------------------------------------------------------------- */
+
+/* Escondemos el menú lateral por defecto en móviles (el botón del header lo mostrará) */
+#sidebar {
+    width: 256px; /* Ancho estándar del sidebar */
+    transform: translateX(-100%); /* Ocultar el sidebar completamente fuera de la pantalla */
+    transition: transform 0.3s ease, width 0.3s ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Sombra para visibilidad */
 }
 
-.sidebar-cerrado ul li a {
-  justify-content: center;
-  padding: 1rem;
+/* El botón del header debe ser visible en móviles */
+#menu-btn {
+    display: block; 
 }
 
-.sidebar-cerrado svg {
-  margin: 0 auto;
+/* Ocultar el botón de la barra lateral en la vista móvil, ya que el header tiene el principal */
+#sidebar-menu-btn {
+    display: none;
 }
 
-/* Usuario reducido a círculo */
-.user-mini {
-  justify-content: center !important;
-  width: 60px !important;
-  height: 60px !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  background-color: #0A2342 !important;
+/* Estado 'open' del menú lateral en móviles: Lo volvemos a mostrar */
+.menu-open #sidebar {
+    transform: translateX(0);
 }
 
-.user-mini img {
-  width: 45px !important;
-  height: 45px !important;
-  border-radius: 50%;
+/* La transición del contenido principal: para que el body empuje el contenido */
+.menu-open + .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
+    padding-left: 256px;
+    transition: padding-left 0.3s ease;
 }
 
-.user-mini div {
-  display: none;
+/* Ocultar el bloque de usuario en la vista móvil del sidebar, no hay espacio. */
+#sidebar #userBlock {
+    display: none;
 }
 
-/* Transiciones suaves */
+/* El header siempre tiene el 100% de ancho */
+header {
+    width: 100%;
+}
+
+/* ------------------------------------------------------------------- */
+/* 2. Media Query (Tablets y Desktop: Pantallas >= 768px) */
+/* ------------------------------------------------------------------- */
+@media screen and (min-width: 768px) {
+    /* Mostramos el menú por defecto en pantallas grandes (Desktop-First) */
+    #sidebar {
+        transform: translateX(0); /* Siempre visible por defecto en desktop */
+        position: fixed; /* Asegura que no se mueva con el scroll */
+    }
+
+    /* Ocultamos el botón de menú del header, ya que la barra lateral está siempre visible */
+    header #menu-btn {
+        display: none;
+    }
+
+    /* Mostramos el botón de la barra lateral para permitir el estado cerrado/compacto */
+    #sidebar #sidebar-menu-btn {
+        display: block;
+    }
+
+    /* El contenido principal debe dejar espacio para el sidebar */
+    .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
+        padding-left: 256px;
+        transition: padding-left 0.3s ease;
+    }
+    
+    /* El header debe considerar el ancho del sidebar para su contenido (padding a la izquierda) */
+    header {
+        padding-left: 272px; /* 256px de sidebar + 16px de padding del header */
+    }
+
+    /* Estado de menú cerrado (Sidebar Compacto) */
+    .menu-closed #sidebar {
+        width: 80px;
+    }
+
+    .menu-closed .main-content {
+        padding-left: 80px;
+    }
+    
+    .menu-closed header {
+        padding-left: 96px; /* 80px de sidebar + 16px de padding del header */
+    }
+
+    /* Usuario vuelve a ser visible en desktop */
+    #sidebar #userBlock {
+        display: flex;
+    }
+
+    /* Tus estilos para la versión compacta (user-mini y sidebar-cerrado) se aplican ahora con la clase en <html> */
+    .menu-closed #sidebar .user-mini {
+        justify-content: center !important;
+        width: 60px !important;
+        height: 60px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        background-color: #0A2342 !important;
+    }
+    
+    .menu-closed #sidebar .user-mini div {
+        display: none;
+    }
+    
+    .menu-closed #sidebar .sidebar-cerrado ul li a {
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .menu-closed #sidebar .sidebar-cerrado svg {
+        margin: 0 auto;
+    }
+
+}
+/* ------------------------------------------------------------------- */
+/* 3. Estilos de Transición (Mantenemos los tuyos) */
+/* ------------------------------------------------------------------- */
+
 #sidebar,
-#userBlock {
+#userBlock,
+.main-content,
+header {
   transition: all 0.3s ease;
 }
-
 </style>
