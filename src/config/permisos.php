@@ -1,8 +1,8 @@
 <?php
 $permisos = [
-    "Admin" => ["nueva venta", "ventas", "productos", "proveedores", "caja", "reportes", "clientes", "empleados"],
-    "Gerente" => ["nueva venta","ventas", "productos", "proveedores", "caja", "reportes", "clientes"],
-    "Cajero" => ["nueva venta", "ventas", "productos", "proveedores", "caja", "reportes", "clientes"]
+    "super_admin" => ["nueva venta", "ventas", "productos", "proveedores", "caja", "reportes", "clientes", "empleados"],
+    "gerente" => ["nueva venta","ventas", "productos", "proveedores", "caja", "reportes", "clientes"],
+    "cajero" => ["nueva venta", "ventas", "productos", "proveedores", "caja", "reportes", "clientes"]
 ];
 
 // Ejemplo de validación

@@ -1,7 +1,7 @@
 <?php
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    header("Location: pages/login.php");
     exit;
 }
 
@@ -12,7 +12,7 @@ $rol = $_SESSION['rol'];
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: login.php");
+    header("Location: pages/login.php");
     exit;
 }
 // Foto del usuario
