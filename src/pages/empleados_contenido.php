@@ -1,6 +1,7 @@
 <?php 
     require_once __DIR__ . '/../config/db.php';
 
+<<<<<<< HEAD
 
     $busqueda = $_GET['busqueda'] ?? '';
     $puesto = $_GET['puesto'] ?? '';
@@ -19,6 +20,33 @@
 
     if(!empty($busqueda)) $sql .= " AND (u.nombre_completo LIKE :busqueda OR u.correo LIKE :busqueda)";
     if(!empty($puesto)) $sql .= " AND u.rol_id = :puesto";
+=======
+    $busqueda = $_GET['busqueda'] ?? '';
+    $puesto = $_GET['puesto'] ?? '';
+    $orden = $_GET['orden'] ?? 'e.nombre ASC';
+    $allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
+    if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
+    $vista_actual = $_GET['view'] ?? 'empleados_contenido';
+
+    $sql = "SELECT
+                e.id_empleado AS numero,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
+                u.correo AS correo,
+                e.estatus AS estatus,
+                e.fecha AS fecha
+            FROM usuarios u 
+            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+            LEFT JOIN roles r ON e.id_rol = r.id_rol
+            WHERE 1=1";
+
+    if(!empty($busqueda)) $sql .= " AND (
+                                e.id_empleado LIKE :busqueda
+                                OR e.nombre LIKE :busqueda
+                                OR e.apellido_paterno LIKE :busqueda
+                                OR e.apellido_materno LIKE :busqueda
+                                OR u.correo LIKE :busqueda)";
+    if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
+>>>>>>> 374693a (avances y cambios)
 
     $sql .= " ORDER BY $orden";
 
@@ -36,8 +64,13 @@
 
     $stmt->execute($params);
     $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+<<<<<<< HEAD
     $stmt = $pdo->query("SELECT id AS id_rol, nombre FROM roles");
     $puestos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+=======
+    $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
+    $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
+>>>>>>> 374693a (avances y cambios)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,6 +79,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empleados</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<<<<<<< HEAD
+=======
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+>>>>>>> 374693a (avances y cambios)
     <style>
         /* --- ESTILOS BASE Y GENERALES --- */
         body {
@@ -98,7 +136,10 @@
             width: 100%;
             box-sizing: border-box;
             font-size: 15px;
+<<<<<<< HEAD
             
+=======
+>>>>>>> 374693a (avances y cambios)
         }
 
         /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
@@ -286,7 +327,11 @@
                     <option value="">-- Todos los puestos --</option>
                     <?php foreach ($puestos as $pu): ?>
                         <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
+<<<<<<< HEAD
                             <?= htmlspecialchars($pu['nombre']) ?>
+=======
+                            <?= htmlspecialchars($pu['nombre_rol']) ?>
+>>>>>>> 374693a (avances y cambios)
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -297,10 +342,17 @@
                     <span class="icon">⇅</span> Ordenar
                 </button>
                 <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()">
+<<<<<<< HEAD
                     <option value="u.nombre_completo ASC" <?= ($orden == 'u.nombre_completo ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
                     <option value="u.nombre_completo DESC" <?= ($orden == 'u.nombre_completo DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
                     <option value="u.correo ASC" <?= ($orden == 'u.correo ASC') ? 'selected' : '' ?>>Correo A-Z</option>
                     <option value="u.correo DESC" <?= ($orden == 'u.correo DESC') ? 'selected' : '' ?>>Correo Z-A</option>
+=======
+                    <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
+                    <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                    <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
+                    <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
+>>>>>>> 374693a (avances y cambios)
                 </select>
             </div>
         </form>
@@ -315,9 +367,15 @@
             <thead>
                 <tr>
                     <th style="width: 10%;">No.</th>
+<<<<<<< HEAD
                     <th style="width: 45%">Nombre</th>
                     <th style="width: 20%">Correo</th>
                     <th style="width: 30%">Estatus</th>
+=======
+                    <th style="width: 45%">Nombre Completo</th>
+                    <th style="width: 20%">Correo</th>
+                    <th style="width: 30%">Estado</th>
+>>>>>>> 374693a (avances y cambios)
                     <th style="width: 30%">Fecha de Ingreso</th>
                     <th style="width: 10%"></th>
                 </tr>
@@ -328,15 +386,26 @@
                     <?php foreach ($empleados as $emp): ?>
                         <tr class="<?= $isFirst ? 'first-row' : '' ?>">
                             <td><?= htmlspecialchars($emp['numero']) ?></td>
+<<<<<<< HEAD
                             <td><?= htmlspecialchars($emp['nombre']) ?></td>
+=======
+                            <td><?= htmlspecialchars($emp['nombre_completo']) ?></td>
+>>>>>>> 374693a (avances y cambios)
                             <td><?= htmlspecialchars($emp['correo']) ?></td>
                             <td>
                                 <span style="color: <?= $emp['estatus'] == 1 ? 'green' : 'red' ?>;"><?= $emp['estatus'] == 1 ? 'Activo' : 'Inactivo' ?></span>
                             </td>
+<<<<<<< HEAD
                             <td><?= htmlspecialchars($emp['fecha_ingreso']) ?></td>
                             <td>
                                 <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
                                 <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este empleado?')">🗑︎</a>
+=======
+                            <td><?= htmlspecialchars($emp['fecha']) ?></td>
+                            <td>
+                                <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
+                                <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" data-id="<?= htmlspecialchars($emp['numero']) ?>">🗑︎</a>
+>>>>>>> 374693a (avances y cambios)
                             </td>
                         </tr>
                         <?php $isFirst = false; ?>
@@ -385,6 +454,43 @@
                 });
             }
         }
+<<<<<<< HEAD
+=======
+
+        // Añadir confirmación con SweetAlert2 para eliminar empleado
+        (function(){
+            function attachDeleteHandlers() {
+                document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        Swal.fire({
+                            title: '¿Estás seguro?',
+                            html: '¿Realmente deseas eliminar este empleado?<br>Esta acción no se puede deshacer.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Redirigir a la URL que ejecuta la eliminación en el servidor
+                                window.location.href = href;
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Adjuntar cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
+            } else {
+                attachDeleteHandlers();
+            }
+        })();
+>>>>>>> 374693a (avances y cambios)
     </script>
 </body>
 </html>

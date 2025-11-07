@@ -34,8 +34,42 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 <!-- Header -->
 <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
-  <img src="../public/img/logo.jpeg" alt="logo" class="h-12 ml-6">
+  <img src="../public/img/logo2.png" alt="logo" class="h-12 ml-6">
+<!-- 🔘 BOTONES DE TEMA E IDIOMA -->
+<div style="display:flex; align-items:center; gap:14px; position:absolute; right:20px; top:50%; transform:translateY(-50%);">
 
+  <!-- 🌙 Botón de tema -->
+  <div id="themeToggle"
+       style="width:36px; height:36px; 
+              display:flex; align-items:center; justify-content:center;
+              border-radius:50%; background:#0A2342; 
+              cursor:pointer; transition:all 0.3s ease; 
+              box-shadow:0 2px 6px rgba(0,0,0,0.2);"
+       onmouseover="this.style.transform='scale(1.1)';"
+       onmouseout="this.style.transform='scale(1)';">
+    <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
+  </div>
+
+  <!-- 🌐 Botón de idioma -->
+  <div style="display:flex; align-items:center; gap:6px;">
+    <div id="languageToggle"
+         style="width:36px; height:36px; 
+                display:flex; align-items:center; justify-content:center;
+                border-radius:50%; background:#0A2342; 
+                cursor:pointer; transition:all 0.3s ease; 
+                box-shadow:0 2px 6px rgba(0,0,0,0.2);"
+         onclick="toggleLanguage()"
+         onmouseover="this.style.transform='scale(1.1)';"
+         onmouseout="this.style.transform='scale(1)';">
+      <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
+    </div>
+    <span id="languageCode" style="color:#fff; font-weight:600; font-size:14px;">ES</span>
+  </div>
+
+</div>
+
+
+</header>
 
   <!-- Sidebar -->
 <nav id="sidebar" 
@@ -103,8 +137,6 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 </div>
 
 </nav>
-</header>
-
 
 
 

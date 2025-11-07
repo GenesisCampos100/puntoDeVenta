@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* 🎨 MODO OSCURO GLOBAL */
+=======
+/*  MODO OSCURO GLOBAL */
+>>>>>>> 374693a (avances y cambios)
 
 body.dark-mode {
   background-color: #121212;
@@ -11,6 +15,10 @@ body.dark-mode .modal,
 body.dark-mode .sidebar,
 body.dark-mode .content,
 body.dark-mode .userModal,
+<<<<<<< HEAD
+=======
+body.dark-mode .productosContainer,
+>>>>>>> 374693a (avances y cambios)
 body.dark-mode #configBox {
   background: #1e1e1e !important;
   color: #f5f5f5 !important;

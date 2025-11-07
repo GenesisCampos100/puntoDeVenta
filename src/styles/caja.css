@@ -8,17 +8,34 @@ body {
 
 /* 📦 Contenedor principal más amplio y centrado */
 .contenedor {
+<<<<<<< HEAD
   max-width: 1200px;
   margin: 0 auto;
   padding: 60px 40px;
+=======
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 15px 40px;
+>>>>>>> 374693a (avances y cambios)
 }
 
 /* 🔠 Títulos más grandes */
 .titulo {
+<<<<<<< HEAD
   color: #e23c65;
   font-size: 2.4rem;
   margin-bottom: 10px;
   text-align: left;
+=======
+  /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
+  text-align: left;
+  color: #f43f5e; 
+  margin: 40px auto 25px; 
+  font-weight: 700; 
+  font-size: 28px; 
+  letter-spacing: 1.5px; 
+  text-transform: uppercase;
+>>>>>>> 374693a (avances y cambios)
 }
 
 .subtitulo {
@@ -70,6 +87,7 @@ body {
 /* 🧾 Caja principal (ahora lado a lado) */
 .caja-contenedor {
   display: flex;
+<<<<<<< HEAD
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
@@ -78,11 +96,22 @@ body {
 
 /* Cada tarjeta ahora es más ancha */
 .caja, .efectivo {
+=======
+  justify-content: flex-start; /* en lugar de space-between */
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px; /* antes tenías 30px */
+}
+
+/* Cada tarjeta ahora es más ancha */
+.caja {
+>>>>>>> 374693a (avances y cambios)
   background: white;
   border-radius: 14px;
   box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   padding: 30px;
   width: 48%;
+<<<<<<< HEAD
   min-height: 260px;
 }
 
@@ -93,6 +122,28 @@ body {
   color: #e23c65;
   margin-bottom: 20px;
   font-size: 1.4rem;
+=======
+  min-height: 160px;
+  
+}
+.efectivo {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 30px;
+  width: 38%;
+  min-height: 60px;
+  
+}
+
+/* Títulos dentro de tarjetas */
+.efectivo h3 {
+  text-align: left;
+  font-weight: 700;
+  color: #e23c65;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+>>>>>>> 374693a (avances y cambios)
 }
 
 /* Tabla */
@@ -114,6 +165,7 @@ td {
   font-size: 1.05rem;
 }
 
+<<<<<<< HEAD
 /* Caja derecha */
 .efectivo p {
   color: #888;
@@ -127,6 +179,29 @@ td {
   text-align: center;
   color: #000;
 }
+=======
+.efectivo .fila {
+  display: flex;
+  justify-content: space-between; /* separa los dos extremos */
+  align-items: center; /* los alinea verticalmente */
+  margin-top: 5px;
+}
+
+.efectivo p {
+  color: #888;
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: left;
+}
+
+.efectivo h4 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: #000;
+  text-align: right;
+}
+
+>>>>>>> 374693a (avances y cambios)
  /* Estilos del modal */
     .modal {
       display: none; 

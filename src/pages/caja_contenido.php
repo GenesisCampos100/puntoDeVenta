@@ -10,7 +10,7 @@
     <style>
     body { 
             font-family: 'Poppins', sans-serif; 
-            padding-left: 250px; /* Compensa el ancho del sidebar */
+            padding-left: 120px; /* Compensa el ancho del sidebar */
         }
   </style>
 </head>
@@ -27,7 +27,6 @@
 
     <section class="caja-contenedor">
       <div class="caja">
-        <h3>CAJA</h3>
         <table>
           <tr><td>Efectivo</td><td>$1,250</td></tr>
           <tr><td>Tarjeta de Crédito</td><td>$1,250</td></tr>
@@ -37,10 +36,13 @@
       </div>
 
       <div class="efectivo">
-        <h3>Efectivo</h3>
-        <p>Al inicio</p>
+       <h3>Efectivo</h3>
+      <div class="fila">
+        <p>Ingreso</p>
         <h4>$0.00</h4>
+       </div>
       </div>
+
     </section>
   </main>
 

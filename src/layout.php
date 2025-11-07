@@ -8,6 +8,7 @@
   <!-- Tu CSS personalizado -->
   <link rel="stylesheet" href="styles/output.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/modo-oscuro.css">
 
 </head>
 <body class="bg-gray-100">
@@ -22,7 +23,7 @@
 
   <main 
   id="content" 
-  class="mt-16 pt-20 pl-0 pr-80 transition-all duration-300"
+  class="mt-16 pt-20 px-8 transition-all duration-300"
 >
   <?php
     // Aquí se cargará el contenido de cada vista
@@ -41,7 +42,7 @@
               position:relative;">
      <!-- ❌ Botón elegante para cerrar -->
     <button id="closeUserModal"
-            style="position:absolute; top:15px; left:15px; background:none; border:none;
+            style="position:absolute; top:15px; right:15px; background:none; border:none;
                    cursor:pointer; padding:6px; border-radius:50%; transition:all 0.25s ease;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"
            fill="none" stroke="#ff4d6d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -79,12 +80,9 @@
   <label for="fotoPerfilInput" 
          style="position:absolute; bottom:0; right:0; background:#FFFFFF; 
                 border-radius:50%; width:28px; height:28px; display:flex; 
-                align-items:center; justify-content:center; cursor:pointer;">
+                align-items:center; justify-content:center; ">
     <img src="../public/img/cambioUsuario.png" alt="">
   </label>
-
-  <!-- Input file oculto -->
-  <input type="file" id="fotoPerfilInput" name="foto" accept="image/*" style="display:none;">
 </div>
 
     <!-- Nombre -->
@@ -99,38 +97,12 @@
 
     <!-- Caja blanca con opciones -->
     <div style="margin-top:20px; background:#fff; border-radius:16px; padding:15px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
-      <!-- Tema -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <img src="../public/img/tema.png" alt="Tema" style="width:16px; height:16px;">
-          Tema
-        </span>
-        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:7px 12px;">
-          <option value="claro">Claro</option>
-          <option value="oscuro">Oscuro</option>
-        </select>
-      </div>
-
-      <!-- IDIOMA -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <img src="../public/img/idiomaIcon.png" alt="Tema" style="width:16px; height:16px;">
-          Idioma
-        </span>
-        <select id="idimaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
-          <option value="claro">Español</option>
-          <option value="oscuro">Inglés</option>
-        </select>
-      </div>
-
-
       <!-- Cerrar sesión -->
-      <div id="logoutOption" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:#e63946; font-weight:600;">
+      <div id="logoutOption" style="display:flex; align-items:center; justify-content:center; hover:bg-red-500; cursor:pointer; color:#e63946; font-weight:600;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
           <img src="../public/img/logout.png" alt="Cerrar sesión" style="width:16px; height:16px;">
           Cerrar sesión
         </span>
-        <span></span>
       </div>
 
     <!-- Confirmación de logout -->
@@ -175,8 +147,12 @@
       <div style="background:#f0f8ff; border-radius:20px; padding:25px;">
         <div style="background:#ffb6c1; border-radius:50%; width:120px; height:120px;
                     display:flex; justify-content:center; align-items:center; margin:0 auto 15px;">
-          <img id="previewFoto" src="../public/img/1.png"
-               style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
+        <!-- Imagen visible -->
+        <img id="mainFotoPerfil" 
+       src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? '../public/img/1.png') ?>" 
+       alt="Usuario"
+       style="width:120px; height:120px; border-radius:50%; object-fit:cover; cursor:pointer;">
+
         </div>
         <p style="font-weight:500; margin-bottom:15px;">Seleccione una foto</p>
         <!-- contenido seleccion de imagen -->
@@ -405,5 +381,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   <?php unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']); ?>
 <?php endif; ?>
+
+
+<script src="./scripts/tema.js"></script>
 </body>
 </html>
