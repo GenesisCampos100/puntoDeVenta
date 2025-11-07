@@ -1,0 +1,51 @@
+/* 🎨 MODO OSCURO GLOBAL */
+
+body.dark-mode {
+  background-color: #121212;
+  color: #f5f5f5;
+}
+
+/* Cajas, paneles, modales, etc. */
+body.dark-mode .card,
+body.dark-mode .modal,
+body.dark-mode .sidebar,
+body.dark-mode .content,
+body.dark-mode .userModal,
+body.dark-mode #configBox {
+  background: #1e1e1e !important;
+  color: #f5f5f5 !important;
+  box-shadow: 0 2px 10px rgba(255,255,255,0.05) !important;
+}
+
+/* Entradas y selects */
+body.dark-mode select,
+body.dark-mode input,
+body.dark-mode textarea {
+  background: #2c2c2c !important;
+  color: #fff !important;
+  border-color: #000000 !important;
+}
+
+/* Botones */
+body.dark-mode button {
+  background: #333 !important;
+  color: #fff !important;
+  border-color: #555 !important;
+}
+
+body.dark-mode button:hover {
+  background: #444 !important;
+}
+
+/* Sidebar y header */
+body.dark-mode header,
+body.dark-mode nav {
+  background: #1c1c1c!important;
+  color: #fff !important;
+}
+
+/* Transición suave */
+* {
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
