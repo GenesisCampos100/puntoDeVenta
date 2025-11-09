@@ -13,6 +13,7 @@
             /* --- Validación de campos obligatorios --- */
             $campos_obligatorios = [
                 'apellido_p' => 'Apellido Paterno',
+                'apellido_m' => 'Apellido Materno',
                 'nombres' => 'Nombre',
                 'correo' => 'Correo',
                 'contra' => 'Contraseña',
@@ -183,7 +184,40 @@
                 'contrasena' => $hash,
                 'id_empleado' => $id_empleado
             ]);
-            
+
+            $nombre_p = 'No especificado';
+            if (!empty($id_rol) && is_array($roles)) {
+                foreach ($roles as $rol_item) {
+                    // id_rol en la base puede ser string o int, normalizamos
+                    if (isset($rol_item['id_rol']) && (string)$rol_item['id_rol'] === (string)$id_rol) {
+                        $nombre_p = isset($rol_item['nombre_rol']) && $rol_item['nombre_rol'] !== '' ? $rol_item['nombre_rol'] : $nombre_p;
+                        break;
+                    }
+                }
+            }
+
+            // Enviar el correo en segundo plano
+            $datosCorreo = [
+                'nombre' => $nombre,
+                'apellido_paterno' => $apellido_paterno,
+                'apellido_materno' => $apellido_materno,
+                'id_empleado' => $id_empleado,
+                'nombre_p' => $nombre_p,
+                'correo' => $correo
+            ];
+
+            try {
+                $url = "http://localhost/puntoDeVenta/src/scripts/enviar_correo.php?" . http_build_query($datosCorreo);
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 100);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
+            }
+
             echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
             exit();
         } catch (Exception $e) {
@@ -339,7 +373,7 @@
                         <input type="text" name="apellido_p" maxlength="50">
                     </div>
                     <div>
-                        <label>Apellido Materno: </label>
+                        <label>Apellido Materno: *</label>
                         <input type="text" name="apellido_m" maxlength="50">
                     </div>
                 </div>
