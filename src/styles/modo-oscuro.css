@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* 🎨 MODO OSCURO GLOBAL */
-=======
 /*  MODO OSCURO GLOBAL */
->>>>>>> 374693a (avances y cambios)
 
 body.dark-mode {
   background-color: #121212;
@@ -11,20 +7,10 @@ body.dark-mode {
 
 /* Cajas, paneles, modales, etc. */
 body.dark-mode .card,
-body.dark-mode .modal,
 body.dark-mode .sidebar,
 body.dark-mode .content,
-body.dark-mode .userModal,
-<<<<<<< HEAD
-=======
 body.dark-mode .productosContainer,
->>>>>>> 374693a (avances y cambios)
-body.dark-mode #configBox {
-  background: #1e1e1e !important;
-  color: #f5f5f5 !important;
-  box-shadow: 0 2px 10px rgba(255,255,255,0.05) !important;
-}
-
+ 
 /* Entradas y selects */
 body.dark-mode select,
 body.dark-mode input,
@@ -32,6 +18,19 @@ body.dark-mode textarea {
   background: #2c2c2c !important;
   color: #fff !important;
   border-color: #000000 !important;
+}
+/* Fondo translúcido del overlay */
+body.dark-mode .modal {
+  background: rgba(0,0,0,0.7) !important;
+}
+
+/* Caja interna del modal (contenido real) */
+body.dark-mode .modal > div,
+body.dark-mode .modal-content {
+  background: #1e1e1e !important;
+  color: #f5f5f5 !important;
+  box-shadow: 0 4px 25px rgba(255,255,255,0.08) !important;
+  border: 1px solid #2a2a2a !important;
 }
 
 /* Botones */
@@ -51,6 +50,377 @@ body.dark-mode nav {
   background: #1c1c1c!important;
   color: #fff !important;
 }
+/*  Cajas principales en modo oscuro */
+body.dark-mode .caja,
+body.dark-mode .efectivo {
+  background: #1e1e1e !important;
+  color: #f5f5f5 !important;
+  box-shadow: 0 3px 8px rgba(255,255,255,0.05) !important;
+  border: 1px solid #2c2c2c !important;
+}
+
+/*  Tabla dentro de la caja */
+body.dark-mode .caja table td {
+  border-bottom: 1px solid #333 !important;
+  color: #ddd !important;
+}
+
+/*  Sección de efectivo */
+body.dark-mode .efectivo h3 {
+  color: #f43f5e !important;
+}
+
+body.dark-mode .efectivo p,
+body.dark-mode .efectivo h4 {
+  color: #fff !important;
+}
+
+/*  Estilos modo oscuro para la vista de Empleados */
+body.dark-mode .productos-container {
+  background: #1e1e1e !important;
+  border: 1px solid #2a2a2a !important;
+  box-shadow: 0 3px 8px rgba(255,255,255,0.05) !important;
+}
+
+body.dark-mode table {
+  background: transparent !important;
+  color: #f5f5f5 !important;
+}
+
+body.dark-mode thead {
+  background: #2f455c !important; /* mantiene tu azul del encabezado */
+  color: #fff !important;
+}
+
+body.dark-mode tbody tr {
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark-mode tbody tr:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* Celdas y texto */
+body.dark-mode td,
+body.dark-mode th {
+  color: #ddd !important;
+}
+
+/* Mantiene los colores originales de los estados y botones */
+body.dark-mode .btn-editar {
+  background: #f43f5e !important;
+}
+body.dark-mode .btn-eliminar {
+  background: #b6c649 !important;
+}
+body.dark-mode span[style*="color: green"],
+body.dark-mode span[style*="color: red"] {
+  color: inherit !important; /* respeta su color inline */
+}
+/* Fondo general de los modales */
+body.dark-mode #userModal,
+body.dark-mode #changePhotoModal {
+  background: rgba(0, 0, 0, 0.7) !important; /* fondo translúcido más oscuro */
+}
+
+/* Cajas internas (el contenido del modal) */
+body.dark-mode #userModal > div,
+body.dark-mode #changePhotoModal > div {
+  background: #1e1e1e !important;
+  color: #f5f5f5 !important;
+  box-shadow: 0 4px 25px rgba(255,255,255,0.08) !important;
+  border: 1px solid #2a2a2a !important;
+}
+
+/* Textos dentro del modal */
+body.dark-mode #userModal h3,
+body.dark-mode #userModal p,
+body.dark-mode #changePhotoModal h2,
+body.dark-mode #changePhotoModal p {
+  color: #f5f5f5 !important;
+}
+
+/*  Enlaces (Términos / Privacidad) */
+body.dark-mode #userModal a {
+  color: #9ca3af !important;
+}
+body.dark-mode #userModal a:hover {
+  color: #ff4d6d !important;
+}
+
+/*  Caja blanca con opciones (Cerrar sesión) */
+body.dark-mode #userModal div[style*="background:#fff"] {
+  background: #2b2b2b !important;
+  box-shadow: 0 2px 10px rgba(255,255,255,0.05) !important;
+}
+
+/*  Caja de confirmación de logout */
+body.dark-mode #confirmLogout {
+  background: #122b50 !important;
+  color: #fff !important;
+}
+
+/* Botones */
+body.dark-mode #btnConfirmLogout {
+  background: #e63946 !important;
+}
+body.dark-mode #btnCancelLogout {
+  background: #475569 !important;
+}
+
+/*  Caja de cambiar foto */
+body.dark-mode #changePhotoModal div[style*="background:#f0f8ff"] {
+  background: #2a2a2a !important;
+}
+body.dark-mode #changePhotoModal div[style*="background:#ffb6c1"] {
+  background: #ff4d6d !important;
+}
+
+/*  Botón subir desde computadora */
+body.dark-mode #changePhotoModal label[for="inputArchivo"] {
+  background: #ff4d6d !important;
+  color: #fff !important;
+}
+/*  Fondo general del carrito lateral */
+body.dark-mode #cart {
+  background: #1b1b1b !important;
+  color: #f3f4f6 !important;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.8) !important;
+}
+
+/*  Título y texto del carrito */
+body.dark-mode #cart h2,
+body.dark-mode #cart span,
+body.dark-mode #cart p {
+  color: #f3f4f6 !important;
+}
+
+/*  Productos dentro del carrito (si los hay) */
+body.dark-mode #cart-items > div {
+  background: #252525 !important;
+  border: 1px solid #333 !important;
+  color: #f3f4f6 !important;
+  border-radius: 12px;
+}
+
+/*  Líneas divisoras y bordes */
+body.dark-mode #cart .border-t {
+  border-color: #2f2f2f !important;
+}
+
+/*  Subtotal / Descuento / Total */
+body.dark-mode #subtotal,
+body.dark-mode #total {
+  color: #f3f4f6 !important;
+}
+body.dark-mode #discount {
+  color: #ef4444 !important; /* mantiene rojo */
+}
+
+/* Mantener los botones coloridos sin cambios */
+body.dark-mode #discount-btn,
+body.dark-mode #clear-cart,
+body.dark-mode #pay-btn {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/*  Modal de pago en modo oscuro */
+body.dark-mode #payment-modal .bg-white {
+  background: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+body.dark-mode #payment-modal h2 {
+  color: #f5f5f5 !important;
+}
+body.dark-mode #payment-modal label {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+}
+body.dark-mode #payment-modal #cancel-payment {
+  background: #333 !important;
+  color: #f5f5f5 !important;
+}
+body.dark-mode #payment-modal #cancel-payment:hover {
+  background: #444 !important;
+}
+
+/*  Mantiene botón confirmar con su color */
+body.dark-mode #payment-modal button[type="submit"] {
+  background: #65a30d !important;
+}
+
+/*  Modales de descuento (global e individual) */
+body.dark-mode #discount-modal .bg-white,
+body.dark-mode #product-discount-modal .bg-white {
+  background: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+body.dark-mode #discount-modal select,
+body.dark-mode #product-discount-modal select,
+body.dark-mode #discount-modal input,
+body.dark-mode #product-discount-modal input {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+  color: #f5f5f5 !important;
+}
+body.dark-mode #discount-modal button,
+body.dark-mode #product-discount-modal button {
+  border: none !important;
+}
+
+/*  Restaura sus colores originales */
+body.dark-mode #cart button#discount-btn {
+  background: #fde047 !important; /* amarillo */
+  color: #000 !important;
+}
+
+body.dark-mode #cart button#clear-cart {
+  background: #f9a8d4 !important; /* rosa */
+  color: #000 !important;
+}
+
+body.dark-mode #cart button#pay-btn {
+  background: #84cc16 !important; /* verde */
+  color: #fff !important;
+}
+/*  Texto del idioma en modo claro */
+#languageCode {
+  color: #000 !important; /* negro cuando no hay modo oscuro */
+  transition: color 0.3s ease;
+}
+
+/*  Texto del idioma en modo oscuro */
+body.dark-mode #languageCode {
+  color: #fff !important; /* blanco */
+}
+/* -------------------------
+   Forzar colores originales
+   botones Confirmar / Cancelar
+   ------------------------- */
+
+/* Especificidad máxima para modo oscuro */
+body.dark-mode #modalIngreso button.confirmar,
+body.dark-mode #modalRetiro button.confirmar,
+body.dark-mode #modalIngreso .modal-content button.confirmar,
+body.dark-mode #modalRetiro .modal-content button.confirmar {
+  background: #22c55e !important; /* verde confirmar */
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover */
+body.dark-mode #modalIngreso button.confirmar:hover,
+body.dark-mode #modalRetiro button.confirmar:hover,
+body.dark-mode #modalIngreso .modal-content button.confirmar:hover,
+body.dark-mode #modalRetiro .modal-content button.confirmar:hover {
+  background: #16a34a !important;
+}
+
+/* Cancelar - rojo */
+body.dark-mode #modalIngreso button.cancelar,
+body.dark-mode #modalRetiro button.cancelar,
+body.dark-mode #modalIngreso .modal-content button.cancelar,
+body.dark-mode #modalRetiro .modal-content button.cancelar {
+  background: #ef4444 !important; /* rojo cancelar */
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover Cancelar */
+body.dark-mode #modalIngreso button.cancelar:hover,
+body.dark-mode #modalRetiro button.cancelar:hover,
+body.dark-mode #modalIngreso .modal-content button.cancelar:hover,
+body.dark-mode #modalRetiro .modal-content button.cancelar:hover {
+  background: #dc2626 !important;
+}
+
+/* Asegura que no se apliquen filtros (por si hay reglas que usan filter/opacity) */
+body.dark-mode #modalIngreso button.confirmar,
+body.dark-mode #modalRetiro button.confirmar,
+body.dark-mode #modalIngreso button.cancelar,
+body.dark-mode #modalRetiro button.cancelar {
+  filter: none !important;
+}
+/*  Modo oscuro - Modal Corte de Caja */
+body.dark-mode #modalCorte .modal-content {
+  background: #1e1e1e !important;
+  color: #f5f5f5 !important;
+  border: 1px solid #2a2a2a !important;
+}
+
+body.dark-mode #modalCorte table thead {
+  background: #2f455c !important;
+}
+
+body.dark-mode #modalCorte input,
+body.dark-mode #modalCorte textarea {
+  background: #2a2a2a !important;
+  color: #fff !important;
+  border-color: #3a3a3a !important;
+}
+/*  Modo oscuro */
+body.dark .modal-corte {
+  background: #1e1e1e;
+  color: #eee;
+}
+
+body.dark .tabla-corte th,
+body.dark .tabla-corte td {
+  color: #ddd;
+  border-color: #333;
+}
+
+body.dark .tabla-corte input,
+body.dark #comentarios {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+}
+/* Forzar colores consistentes para botones del modal de corte */
+
+/* Confirmar - verde */
+body.dark-mode #modalCorte .confirmar,
+body.dark #modalCorte .confirmar,
+body.dark-mode .modal-corte .confirmar,
+body.dark .modal-corte .confirmar {
+  background: #22c55e !important; /* verde confirmar */
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hover confirmar */
+body.dark-mode #modalCorte .confirmar:hover,
+body.dark #modalCorte .confirmar:hover,
+body.dark-mode .modal-corte .confirmar:hover,
+body.dark .modal-corte .confirmar:hover {
+  background: #16a34a !important;
+}
+
+/* Cancelar - rojo */
+body.dark-mode #modalCorte .cancelar,
+body.dark #modalCorte .cancelar,
+body.dark-mode .modal-corte .cancelar,
+body.dark .modal-corte .cancelar {
+  background: #ef4444 !important; /* rojo cancelar */
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hover cancelar */
+body.dark-mode #modalCorte .cancelar:hover,
+body.dark #modalCorte .cancelar:hover,
+body.dark-mode .modal-corte .cancelar:hover,
+body.dark .modal-corte .cancelar:hover {
+  background: #dc2626 !important;
+}
+
 
 /* Transición suave */
 * {

@@ -178,7 +178,7 @@
   </div>
 </div>
 <script>
-  // 🎨 Efecto hover y volver al modal anterior
+  //  Efecto hover y volver al modal anterior
   const btnVolver = document.getElementById('btnVolver');
 
   btnVolver.addEventListener('mouseover', () => {
@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
  
-    <script src="../src/scripts/menu.js"></script>
+    <script src="./scripts/menu.js"></script>
 
     <?php if (!empty($_SESSION['mensaje'])): ?>
   <div id="toast" class="toast <?= $_SESSION['mensaje_tipo'] ?? 'info' ?>">
@@ -384,5 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 <script src="./scripts/tema.js"></script>
+
 </body>
 </html>

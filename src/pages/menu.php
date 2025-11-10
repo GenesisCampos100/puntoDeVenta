@@ -63,7 +63,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
          onmouseout="this.style.transform='scale(1)';">
       <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
     </div>
-    <span id="languageCode" style="color:#fff; font-weight:600; font-size:14px;">ES</span>
+    <span id="languageCode"  font-weight:600; font-size:14px;">ES</span>
   </div>
 
 </div>
