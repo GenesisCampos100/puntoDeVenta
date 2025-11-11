@@ -282,11 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-sm text-gray-500 mt-1">Añade la información básica, detalles, precios y variantes de tu producto.</p>
                 <p class="text-xs text-red-500 mt-2">* Campos obligatorios</p>
             </div>
-            <a href="index.php?view=productos" 
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-100 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                Volver
-            </a>
+           
         </div>
 
         <form id="form-producto" method="post" enctype="multipart/form-data"
@@ -635,7 +631,7 @@ function addVariantRow(type = 'ambas', data = {}) {
     const btnDelete = tr.querySelector('.btn-delete-row');
     const marginInput = tr.querySelector('.variant-margin');
 
-    // File preview
+    // Prevista de la imagen - variante
     fileInput.addEventListener('change', function(e){
         const f = this.files[0];
         if(!f) { thumb.innerHTML = ''; return; }
@@ -646,7 +642,7 @@ function addVariantRow(type = 'ambas', data = {}) {
         reader.readAsDataURL(f);
     });
 
-    // Margin calc
+    // Calcula margen
     function calcMargin(){
         const c = parseFloat(costoInputVar.value) || 0;
         const p = parseFloat(precioInputVar.value) || 0;
