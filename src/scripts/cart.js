@@ -206,34 +206,56 @@ function recalcTotals() {
 // ======================
 // AGREGAR AL CARRITO DESDE GRID
 // ======================
-document.querySelectorAll(".add-to-cart").forEach(btn => {
+// ==============================
+// AGREGAR PRODUCTO AL CARRITO
+// ==============================
+document.querySelectorAll(".add-to-cart").forEach((btn) => {
   btn.addEventListener("click", () => {
-    const card = btn.closest(".producto");
-    const id = card.dataset.id;
-    const name = card.dataset.name;
-    const price = parseFloat(card.dataset.price);
-    const img = card.dataset.img ? `uploads/${card.dataset.img}` : "uploads/sin-imagen.png";
-    const variants = card.dataset.variants ? JSON.parse(card.dataset.variants) : [];
+    const article = btn.closest(".producto");
+    const code = article.dataset.code; // Código de barras del producto
+    const name = article.dataset.name;
+    const price = parseFloat(article.dataset.price);
+    const img = article.dataset.img;
+    const category = article.dataset.category;
 
-    const sizeSelect = card.querySelector(".variant-size");
-    const colorSelect = card.querySelector(".variant-color");
+    // Obtener talla y color seleccionados
+    const sizeSelect = article.querySelector(".variant-size");
+    const colorSelect = article.querySelector(".variant-color");
+    const size = sizeSelect ? sizeSelect.value : "Única";
+    const color = colorSelect ? colorSelect.value : "Sin color";
 
-    const size = sizeSelect ? sizeSelect.value : (card.dataset.sizeDefault || "Única");
-    const color = colorSelect ? colorSelect.value : (card.dataset.colorDefault || "Sin color");
+    // Variantes (si las hay)
+    const variants = article.dataset.variants ? JSON.parse(article.dataset.variants) : [];
 
-    const sizes = sizeSelect ? Array.from(sizeSelect.options).map(o => o.value) : [size];
-    const colors = colorSelect ? Array.from(colorSelect.options).map(o => o.value) : [color];
+    // Crear el objeto del producto
+    const product = {
+      code: code,           // usado para identificar en el backend
+      cod_barras: code,     // compatibilidad con la base de datos
+      name: name,
+      price: price,
+      img: img,
+      category: category,
+      size: size,
+      color: color,
+      variants: variants,
+      quantity: 1,
+      discount: 0
+    };
 
-    addToCart({id, name, price, img, size, color, sizes, colors, variants, quantity:1, discount:0});
+    // Agregar al carrito
+    addToCart(product);
+
+    // Notificación visual
+    Toastify({
+      text: `${name} agregado al carrito`,
+      duration: 2000,
+      gravity: "top",
+      position: "right",
+      style: { background: "#4CAF50" }
+    }).showToast();
   });
 });
 
-function addToCart(product){
-  const existing = cart.find(p => p.id===product.id && p.size===product.size && p.color===product.color);
-  if(existing){ existing.quantity += product.quantity; existing.price = product.price; existing.img = product.img; }
-  else cart.push(product);
-  saveCart();
-}
 
 // Vaciar carrito
 clearCartBtn?.addEventListener("click", () => {

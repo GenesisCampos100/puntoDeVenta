@@ -6,7 +6,6 @@ if (!isset($_POST['cart_data'])) {
     die("No se recibieron datos del carrito.");
 }
 
-
 $cart = json_decode($_POST['cart_data'], true);
 if (!$cart || count($cart) === 0) {
     die("El carrito está vacío.");
@@ -35,58 +34,69 @@ try {
     }
 
     // Insertar venta
-    $stmt = $pdo->prepare("INSERT INTO ventas (fecha, tipo_pago, pago_total, id_cliente, id_empleado) VALUES (NOW(), ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("
+        INSERT INTO ventas (fecha, tipo_pago, pago_total, id_cliente, id_empleado) 
+        VALUES (NOW(), ?, ?, ?, ?)
+    ");
     $stmt->execute([$tipo_pago, $total, $id_cliente, $id_empleado]);
     $id_venta = $pdo->lastInsertId();
 
     // Insertar detalle ventas y actualizar inventario
-    $stmt_detalle = $pdo->prepare("INSERT INTO detalle_ventas (cantidad, precio_unitario, id_venta, cod_barras, id_variante) VALUES (?, ?, ?, ?, ?)");
+    $stmt_detalle = $pdo->prepare("
+    INSERT INTO detalle_ventas (cantidad, precio_unitario, id_venta, cod_barras, id_variante)
+    VALUES (?, ?, ?, ?, ?)
+");
 
-    foreach ($cart as $item) {
+foreach ($cart as $item) {
     $cantidad = intval($item['quantity'] ?? 1);
     $precio_unitario = floatval($item['price'] ?? 0);
-    $cod_barras = $item['barcode'] ?? null;
-    $id_variante = $item['variant_id'] ?? null;
+    $cod_barras = $item['cod_barras'] ?? $item['code'] ?? $item['barcode'] ?? null;
+    $id_variante = $item['id_variante'] ?? $item['variant_id'] ?? null;
 
-    // Insertar detalle de venta
+
+    // 🧠 Si el carrito contiene variantes (por talla/color), buscar el id_variante correspondiente
+     if (!$id_variante && !empty($item['variants']) && !empty($item['size']) && !empty($item['color'])) {
+        foreach ($item['variants'] as $v) {
+            if (($v['talla'] ?? $v['size'] ?? null) === $item['size']
+             && ($v['color'] ?? null) === $item['color']) {
+                $id_variante = $v['id'] ?? $v['id_variante'] ?? null;
+                $cod_barras = $v['cod_barras'] ?? $cod_barras;
+                break;
+            }
+        }
+    }
+
+    // 🔹 Registrar detalle
     $stmt_detalle->execute([$cantidad, $precio_unitario, $id_venta, $cod_barras, $id_variante]);
 
-    // ==============================
-    // ACTUALIZAR INVENTARIO
-    // ==============================
+    // 🔁 Actualizar inventario según exista variante o no
     if (!empty($id_variante)) {
-        // Variante encontrada
         $stmt_update = $pdo->prepare("
             UPDATE variantes 
             SET cantidad = GREATEST(cantidad - ?, 0)
             WHERE id_variante = ?
         ");
         $stmt_update->execute([$cantidad, $id_variante]);
-
     } elseif (!empty($cod_barras)) {
-        // Producto sin variante
         $stmt_update = $pdo->prepare("
             UPDATE productos 
             SET cantidad = GREATEST(cantidad - ?, 0)
             WHERE cod_barras = ?
         ");
         $stmt_update->execute([$cantidad, $cod_barras]);
-
-    } else {
-        // ⚠️ Caso inesperado
-        error_log("No se pudo actualizar inventario: faltan id_variante y cod_barras");
     }
 }
+
+
 
 
     $pdo->commit();
 
     echo "<script>
-    localStorage.removeItem('cart');
-    alert('✅ Venta registrada con éxito. Total: $" . number_format($total,2) . "');
-    window.location.href = '../index.php?view=ventas';
-</script>";
-
+        localStorage.removeItem('cart');
+        alert('✅ Venta registrada con éxito. Total: $" . number_format($total, 2) . "');
+        window.location.href = '../index.php?view=ventas';
+    </script>";
 
 } catch (Exception $e) {
     $pdo->rollBack();
