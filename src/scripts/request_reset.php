@@ -122,7 +122,7 @@ try {
         ],
     ];
 
-    $fromEmail = $mailConfig['from_email'] ?? ($mailConfig['username'] ?? 'no-reply@example.com');
+    $fromEmail = $mailConfig['from_email'] ?? ($mailConfig['username'] ?? 'no-reply@Prisma.com');
     $fromName = $mailConfig['from_name'] ?? 'Soporte';
     $mail->setFrom($fromEmail, $fromName);
 
