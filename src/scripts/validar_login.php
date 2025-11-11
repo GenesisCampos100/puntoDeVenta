@@ -73,6 +73,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // En caso de error, volver al login con mensaje
+    // Buscar usuario con su imagen
+    $stmt = $pdo->prepare("SELECT 
+                u.id_usuario AS id,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
+                u.contrasena AS password,
+                u.correo AS correo,
+                u.imagen AS imagen,  -- ✅ agregamos la columna imagen
+                r.nombre_rol AS rol
+            FROM usuarios u
+            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+            INNER JOIN roles r ON e.id_rol = r.id_rol
+            WHERE u.correo = :correo
+        ");
+    $stmt->execute(['correo' => $usuario]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($password, $user['password'])) {
+        // ✅ Guardar variables de sesión
+        $_SESSION['usuario_id'] = $user['id'];
+        $_SESSION['rol'] = $user['rol'];
+        $_SESSION['nombre_completo'] = $user['nombre_completo'];
+        $_SESSION['correo'] = $user['correo'];
+        $_SESSION['foto_perfil'] = $user['imagen'] ?? '../public/img/1.png'; // ✅ foto guardada o default
+
+        header("Location: ../index.php?view=nueva_venta");
+        exit;
+    } else {
         $_SESSION['error'] = "Usuario o contraseña incorrectos";
         header("Location: ../pages/login.php");
         exit;

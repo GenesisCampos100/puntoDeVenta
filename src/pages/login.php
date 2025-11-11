@@ -8,6 +8,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="stylesheet" href="../styles/login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
@@ -50,7 +51,6 @@ session_start();
                 <div class="login-logo">
                     <img src="../imagenesDev/logo2.png">
                 </div>
-                <H1 class="login-titulo">Tu punto de venta favorito</H1>
 
                     <form id="loginFormulario" action="../scripts/validar_login.php" method="post">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
@@ -64,7 +64,7 @@ session_start();
                                 <path
                                     d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
                             </svg>
-                            <input type="text" id="usuario" name="usuario" required placeholder="">
+                            <input type="text" id="usuario" name="usuario" >
                         </div>
 
                         <div class="campo">
@@ -75,7 +75,7 @@ session_start();
                                     d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
                                     clip-rule="evenodd" />
                             </svg>
-                            <input type="password" id="password" name="password" required placeholder="">
+                            <input type="password" id="password" name="password" >
 
                             <div class="icon_right js-password-toggle">
                                 <svg class="input-icon toggle-closed" xmlns="http://www.w3.org/2000/svg"
