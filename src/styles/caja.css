@@ -6,19 +6,23 @@ body {
   color: #000000;
 }
 
-/* 📦 Contenedor principal más amplio y centrado */
+/*  Contenedor principal más amplio y centrado */
 .contenedor {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 60px 40px;
+  padding: 15px 40px;
 }
 
-/* 🔠 Títulos más grandes */
+/* Títulos más grandes */
 .titulo {
-  color: #e23c65;
-  font-size: 2.4rem;
-  margin-bottom: 10px;
+  /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
   text-align: left;
+  color: #f43f5e; 
+  margin: 40px auto 25px; 
+  font-weight: 700; 
+  font-size: 28px; 
+  letter-spacing: 1.5px; 
+  text-transform: uppercase;
 }
 
 .subtitulo {
@@ -28,7 +32,7 @@ body {
   text-align: left;
 }
 
-/* 🎯 Botones centrados y más amplios */
+/* Botones centrados y más amplios */
 .acciones {
   display: flex;
   justify-content: left;
@@ -51,7 +55,7 @@ body {
   opacity: 0.9;
 }
 
-/* 🎨 Botones */
+/*  Botones */
 .ingreso {
   background-color: #d9f9d8;
   color: #128018;
@@ -67,32 +71,42 @@ body {
   color: #4b7000;
 }
 
-/* 🧾 Caja principal (ahora lado a lado) */
+/* Caja principal (ahora lado a lado) */
 .caja-contenedor {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* en lugar de space-between */
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 40px;
+  gap: 20px; /* antes tenías 30px */
 }
 
 /* Cada tarjeta ahora es más ancha */
-.caja, .efectivo {
+.caja {
   background: white;
   border-radius: 14px;
   box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   padding: 30px;
   width: 48%;
-  min-height: 260px;
+  min-height: 160px;
+  
+}
+.efectivo {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 30px;
+  width: 38%;
+  min-height: 60px;
+  
 }
 
 /* Títulos dentro de tarjetas */
-.caja h3, .efectivo h3 {
-  text-align: center;
+.efectivo h3 {
+  text-align: left;
   font-weight: 700;
   color: #e23c65;
   margin-bottom: 20px;
-  font-size: 1.4rem;
+  font-size: 1.1rem;
 }
 
 /* Tabla */
@@ -114,19 +128,27 @@ td {
   font-size: 1.05rem;
 }
 
-/* Caja derecha */
+.efectivo .fila {
+  display: flex;
+  justify-content: space-between; /* separa los dos extremos */
+  align-items: center; /* los alinea verticalmente */
+  margin-top: 5px;
+}
+
 .efectivo p {
   color: #888;
-  text-align: center;
   font-size: 0.95rem;
+  margin: 0;
+  text-align: left;
 }
 
 .efectivo h4 {
-  font-size: 2.2rem;
-  margin: 15px 0 0 0;
-  text-align: center;
+  font-size: 1.05rem;
+  margin: 0;
   color: #000;
+  text-align: right;
 }
+
  /* Estilos del modal */
     .modal {
       display: none; 
@@ -202,3 +224,98 @@ td {
       background-color: #d9f9d8;
       color: #555;
     }
+
+/* Modal Corte de Caja */
+.modal-corte {
+  width: 800px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  max-height: none;
+}
+
+
+/* Tabla del modal */
+.tabla-corte {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.tabla-corte th {
+  text-align: left;
+  color: #444;
+  font-weight: 600;
+  font-size: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabla-corte td {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.tabla-corte input {
+  width: 100px;
+  text-align: right;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.tabla-corte input:focus {
+  border-color: #16a34a;
+}
+
+.tabla-corte .total td {
+  font-weight: 600;
+  border-top: 2px solid #ccc;
+}
+
+/* Textarea */
+#comentarios {
+  width: 100%;
+  height: 70px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 8px;
+  font-family: 'Poppins', sans-serif;
+  margin-top: 8px;
+  resize: none;
+}
+
+/* Footer botones */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.modal-footer .cancelar {
+  background: #f8d7da;
+  color: #dc2626;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-footer .confirmar {
+  background: #d1fae5;
+  color: #16a34a;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}

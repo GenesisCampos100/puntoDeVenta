@@ -5,9 +5,11 @@
   <meta charset="UTF-8">
   <title>Punto de Venta</title>
 
+  
   <!-- Tu CSS personalizado -->
   <link rel="stylesheet" href="styles/output.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/modo-oscuro.css">
 
 </head>
 <body class="bg-gray-100">
@@ -96,29 +98,7 @@
 
     <!-- Caja blanca con opciones -->
     <div style="margin-top:20px; background:#fff; border-radius:16px; padding:15px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
-      <!-- Tema -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <img src="../public/img/tema.png" alt="Tema" style="width:16px; height:16px;">
-          Tema
-        </span>
-        <select id="temaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:7px 12px;">
-          <option value="claro">Claro</option>
-          <option value="oscuro">Oscuro</option>
-        </select>
-      </div>
-
-      <!-- IDIOMA -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <img src="../public/img/idiomaIcon.png" alt="Tema" style="width:16px; height:16px;">
-          Idioma
-        </span>
-        <select id="idimaSelect" style="border:none; background:#f1f1f1; border-radius:8px; padding:5px 10px;">
-          <option value="claro">Español</option>
-          <option value="oscuro">Inglés</option>
-        </select>
-      </div>
+     
 
 
       <!-- Cerrar sesión -->
@@ -406,5 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   <?php unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']); ?>
 <?php endif; ?>
+
+
+<script src="./scripts/tema.js"></script>
 </body>
 </html>

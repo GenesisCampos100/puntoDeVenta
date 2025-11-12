@@ -39,33 +39,32 @@ foreach ($rows as $row) {
     // Si el producto no existe aún en el arreglo, se agrega
     if (!isset($productos[$codigo])) {
         $productos[$codigo] = [
-            'codigo' => $codigo,
-            'nombre' => $row['producto_nombre'],
-            'descripcion' => $row['descripcion'],
-            'imagen' => $row['producto_imagen'],
-            'precio' => $row['producto_precio'] ?: 0,
-            'costo' => $row['producto_costo'] ?: 0,
-            'cantidad' => $row['producto_cantidad'] ?: 0,
-            'cantidad_min' => $row['producto_cantidad_min'] ?: 0,
-            'categoria' => $row['categoria'] ?? 'Sin categoría',
-            'variantes' => [],
-            'talla_default' => $row['producto_talla'] ?: 'Única',
-            'color_default' => $row['producto_color'] ?: 'Sin color',
-        ];
+    'producto_cod_barras' => $codigo,
+    'nombre' => $row['producto_nombre'],
+    'descripcion' => $row['descripcion'],
+    'imagen' => $row['producto_imagen'],
+    'precio' => $row['producto_precio'] ?: 0,
+    'costo' => $row['producto_costo'] ?: 0,
+    'cantidad' => $row['producto_cantidad'] ?: 0,
+    'cantidad_min' => $row['producto_cantidad_min'] ?: 0,
+    'categoria' => $row['categoria'] ?? 'Sin categoría',
+    'variantes' => [],
+    'talla_default' => $row['producto_talla'] ?: 'Única',
+    'color_default' => $row['producto_color'] ?: 'Sin color',
+];
+
     }
 
     // Si tiene variantes, las agregamos al producto
     if ($row['id_variante'] !== null) {
         $productos[$codigo]['variantes'][] = [
-            'id' => $row['id_variante'],
-            'talla' => $row['variante_talla'] ?: $productos[$codigo]['talla_default'],
-            'color' => $row['variante_color'] ?: $productos[$codigo]['color_default'],
-            'precio' => $row['variante_precio'] ?: $productos[$codigo]['precio'],
-            'costo' => $row['variante_costo'] ?: $productos[$codigo]['costo'],
-            'cantidad' => $row['variante_cantidad'] ?: 0,
-            'cantidad_min' => $row['variante_cantidad_min'] ?: 0,
-            'imagen' => $row['variante_imagen'] ?: $productos[$codigo]['imagen'],
-            'cod_barras' => $row['variante_cod_barras'],
+    'id' => (int)$row['id_variante'],
+    'cod_barras' => $row['variante_cod_barras'],
+    'talla' => $row['variante_talla'],
+    'color' => $row['variante_color'],
+    'precio' => $row['variante_precio'],
+    'imagen' => $row['variante_imagen'],
+    'cantidad' => $row['variante_cantidad'] ?: 0,
         ];
     }
 }
@@ -108,7 +107,7 @@ function normalizeCategory($name) {
   <?php foreach($productos as $prod): ?>
     <?php 
       // ✅ Convertir variantes a JSON para JS
-      $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
+      $variantes = json_encode($prod['variantes'] ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT);
 
       // ✅ Obtener tallas y colores (usando las claves correctas)
       $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'], $prod['variantes'])));
@@ -122,12 +121,14 @@ function normalizeCategory($name) {
       $precio = $prod['precio'] ?: 0;
     ?>
     <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-             data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-             data-code="<?= htmlspecialchars($prod['codigo']) ?>"
-             data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-             data-price="<?= htmlspecialchars($precio) ?>"
-             data-category="<?= normalizeCategory($prod['categoria']) ?>"
-             data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
+    data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
+    data-name="<?= htmlspecialchars($prod['nombre']) ?>"
+    data-img="../src/uploads/<?= htmlspecialchars($prod['imagen'] ?? 'sin-imagen.png') ?>"
+    data-price="<?= htmlspecialchars($prod['precio']) ?>"
+    data-category="<?= htmlspecialchars($prod['categoria']) ?>"
+    data-variants='<?= json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE) ?>'>
+
+
 
       <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
            alt="<?= htmlspecialchars($prod['nombre']) ?>" 
