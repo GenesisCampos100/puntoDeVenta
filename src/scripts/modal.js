@@ -107,19 +107,21 @@ paymentForm?.addEventListener('submit', async (e) => {
 
   try {
     const res = await fetch(paymentForm.action, { method: 'POST', body: formData });
-    const text = await res.text();
+    const data = await res.json();
+    console.log("Respuesta del servidor:", data);
 
-    console.log("Respuesta del servidor:", text);
+    if (data.status === 'success') {
+      localStorage.removeItem('cart');
+      paymentModal.classList.add('hidden');
+      alert(`✅ Venta realizada correctamente. Total: $${data.total}`);
+      window.location.href = `index.php?view=ventas&id=${data.id_venta}`;
+    } else {
+      alert(`❌ ${data.message}`);
+    }
 
-    // Limpiar carrito y cerrar modal
-    localStorage.removeItem('cart');
-    paymentModal.classList.add('hidden');
-
-    alert("✅ Venta realizada correctamente.");
-    window.location.href = 'index.php?view=nueva_venta';
   } catch (err) {
     console.error("Error al procesar el pago:", err);
-    alert("❌ Hubo un error al procesar la venta.");
+    alert("❌ Error al procesar la venta.");
   }
 });
 

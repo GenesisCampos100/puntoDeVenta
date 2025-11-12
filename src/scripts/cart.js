@@ -30,6 +30,29 @@ function getItemDiscountAmount(item) {
   return Number(item.discount) || 0; // compatibilidad antigua
 }
 
+// ======================
+// FUNCIÓN PARA AGREGAR PRODUCTO AL CARRITO
+// ======================
+function addToCart(product) {
+  const existingIndex = cart.findIndex(
+    (item) =>
+      item.cod_barras === product.cod_barras &&
+      item.size === product.size &&
+      item.color === product.color
+  );
+
+  if (existingIndex >= 0) {
+    // Si ya existe el mismo producto (misma talla/color), aumentar cantidad
+    cart[existingIndex].quantity += 1;
+  } else {
+    // Si no existe, agregarlo nuevo
+    cart.push(product);
+  }
+
+  saveCart();
+}
+
+
 function updateCart() {
   cartContainer.innerHTML = "";
 
