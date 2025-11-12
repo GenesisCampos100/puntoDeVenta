@@ -75,6 +75,7 @@ foreach ($variantesRaw as $v) {
 // categorías (para filtro)
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -82,51 +83,119 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Productos — Inventario</title>
 
-    <!-- Fuentes y Tailwind -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Librerías JS necesarias (jQuery para tu código actual y lucide para iconos si los usas en partials) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/lucide@0.257.0/dist/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .product-inactive { opacity: 0.65; background-color: #fff7f7; }
-        .fila-variantes { transition: all .12s ease; }
-        /* Mobile friendly adjustments (resumen) */
-        @media screen and (max-width: 1023px) {
-            .productos-container table { border-spacing: 0 !important; }
-            .productos-container thead { display: none; }
-            .product-row, .fila-variantes { display: block; margin-bottom: 18px; }
-            .product-row td { display: block; text-align: right !important; padding: 10px 15px; }
+        /* Definición de la Paleta de Colores en Tailwind JIT */
+        :root {
+            --color-primary: #2d4353; /* Azul Oscuro */
+            --color-success: #b4c24d; /* Verde Oliva */
+            --color-alert: #e15871; /* Rosa/Rojo Suave */
+            --color-background-subtle: #eeeeee; /* Gris Claro */
         }
+        
+        .bg-primary { background-color: var(--color-primary); }
+        .text-primary { color: var(--color-primary); }
+        .hover\:bg-primary-dark:hover { background-color: #243747; } /* Tono más oscuro de primary */
+        .bg-success { background-color: var(--color-success); }
+        .text-success { color: var(--color-success); }
+        .text-alert { color: var(--color-alert); }
+        .border-alert { border-color: var(--color-alert); }
+        .bg-background-subtle { background-color: var(--color-background-subtle); }
+
+
+        body { font-family: 'Poppins', sans-serif; }
+        .product-inactive { opacity: 0.7; background-color: #fcfcfc; } /* Gris más sutil */
+
+        /* Estilos de transición para la tabla */
+        .variant-group.hidden {
+            display: none !important;
+        }
+
+        /* Alineación de las columnas de la variante (Clave para la limpieza visual) */
+        .variant-item {
+            display: grid;
+            /* La rejilla se ajusta a las columnas de la cabecera:
+               Producto (col-span-5) | Stock (w-28) | Categoria (w-40) | Precio (w-28) | Columna Botón (w-20) | Acciones (w-36)
+               Esto es una simulación de tabla dentro de un div, ajustada por grid.
+               Se usa flex en el item y se ajustan los anchos relativos de la variante.
+            */
+        }
+        
+        /* Asegurar que el padding interno de la celda de la variante coincida con el padding de las celdas principales */
+        .variant-item > div:first-child {
+             /* 40% (Producto) + 28px (pl-4) */
+             width: calc(40% - 3rem); /* Ajuste de ancho para la primera columna de la variante */
+             padding-left: 2rem !important; /* pl-8 para indentación del contenido de la variante */
+        }
+
+        /* Medias Queries (Se mantiene tu base de Mobile First) */
+        @media screen and (min-width: 1024px) {
+            /* Definición de las columnas de la tabla para alinear la variante */
+            #productos-table {
+                table-layout: fixed;
+            }
+            #productos-table th:nth-child(1), #productos-table td:nth-child(1) { width: 40%; }
+            #productos-table th:nth-child(2), #productos-table td:nth-child(2) { width: 10%; } /* Stock: 10% */
+            #productos-table th:nth-child(3), #productos-table td:nth-child(3) { width: 15%; } /* Categoría: 15% */
+            #productos-table th:nth-child(4), #productos-table td:nth-child(4) { width: 10%; } /* Precio: 10% */
+            #productos-table th:nth-child(5), #productos-table td:nth-child(5) { width: 5%; } /* Toggle: 5% */
+            #productos-table th:nth-child(6), #productos-table td:nth-child(6) { width: 20%; } /* Acciones: 20% */
+
+            /* Ajuste de ancho para la estructura interna de la variante para que coincida con la tabla principal */
+            .variant-row .variant-item > div {
+                /* Padding uniforme */
+                padding-top: 0.75rem; /* py-3 */
+                padding-bottom: 0.75rem; /* py-3 */
+            }
+
+            .variant-row .variant-item > div:nth-child(1) { width: 40%; padding-left: 3rem; } /* Producto + Indentación */
+            .variant-row .variant-item > div:nth-child(2) { width: 10%; } /* Stock */
+            .variant-row .variant-item > div:nth-child(3) { width: 15%; } /* Categoría (vacío) */
+            .variant-row .variant-item > div:nth-child(4) { width: 10%; } /* Precio */
+            .variant-row .variant-item > div:nth-child(5) { width: 5%; } /* Toggle (vacío) */
+            .variant-row .variant-item > div:nth-child(6) { width: 20%; text-align: right; } /* Acciones */
+        }
+        
     </style>
 </head>
-<body class="bg-[#f3f6f9] text-[#0f172a]">
 
-<div class="max-w-7xl mx-auto p-4 lg:pt-8">
-    <!-- TOOLBAR -->
-    <div class="bg-white shadow rounded-xl p-4 flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
-        <div class="flex items-center gap-3 w-full lg:w-2/3">
+<body class="bg-background-subtle text-[#0f172a]">
+    
+    <div class="max-w-7xl mx-auto p-4 lg:pt-8">
+    
+    <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col lg:flex-row gap-4 lg:items-center justify-between border-b border-gray-100 mb-6">
+        
+        <div class="flex items-center gap-3 w-full lg:w-3/5">
             <div class="relative w-full">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input id="busqueda" type="text" placeholder="Buscar producto por nombre o SKU..." 
-                       value="<?= htmlspecialchars($busqueda) ?>"
-                       class="pl-10 pr-10 py-2 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-green-200 focus:border-green-300"/>
-                <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hidden">
-                    ✖
+                        value="<?= htmlspecialchars($busqueda) ?>"
+                        class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-success/50 focus:border-success/80 transition duration-150"/>
+                <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-alert hidden">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div id="tabs" class="ml-2 inline-flex bg-gray-100 rounded-full p-1">
-                <button data-status="activo" class="tab-btn px-3 py-1 rounded-full bg-white text-sm font-semibold tab-activa">Activos</button>
-                <button data-status="descatalogado" class="tab-btn px-3 py-1 rounded-full text-sm font-semibold text-gray-600">Descatalogados</button>
+            <div id="tabs" class="ml-2 inline-flex bg-background-subtle rounded-full p-1 shadow-inner flex-shrink-0">
+                <button data-status="activo" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200 
+                    <?= ($status === 'activo' || empty($status)) ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
+                    Activos
+                </button>
+                <button data-status="descatalogado" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200
+                    <?= ($status === 'descatalogado') ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
+                    Descatalogados
+                </button>
             </div>
         </div>
 
-        <div class="flex gap-3 items-center w-full lg:w-auto">
-            <select id="categoria" class="rounded-full border border-gray-200 px-4 py-2 bg-white">
+        <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
+            <select id="categoria" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
                 <option value="">Todas las categorías</option>
                 <?php foreach ($categorias as $cat): ?>
                     <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
@@ -135,138 +204,176 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                 <?php endforeach; ?>
             </select>
 
-            <select id="orden" class="rounded-full border border-gray-200 px-4 py-2 bg-white">
-                <option value="nom_asc">Nombre (A → Z)</option>
-                <option value="nom_desc">Nombre (Z → A)</option>
-                <option value="precio_asc">Precio ↑</option>
-                <option value="precio_desc">Precio ↓</option>
+            <select id="orden" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
+                <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A → Z)</option>
+                <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z → A)</option>
+                <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio ↑</option>
+                <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio ↓</option>
             </select>
 
-            <!-- Botón Agregar: tiene id para JS (si prefieres link directo, cambia la lógica) -->
-            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2d4353] text-white hover:bg-[#243747]">
-                ➕ Agregar
+            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white font-semibold transition duration-200 hover:bg-primary-dark shadow-md">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Agregar
             </button>
         </div>
     </div>
-
-    <!-- TABLE CARD -->
-    <div class="mt-4 bg-white rounded-xl shadow overflow-hidden productos-container">
+    
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden productos-container">
         <div class="overflow-x-auto">
-            <table id="productos-table" class="min-w-full divide-y">
-                <thead class="bg-[#0f172a] text-white">
+            <table id="productos-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-primary text-white sticky top-0 z-10">
                     <tr>
-                        <th class="px-4 py-3 text-left text-sm font-semibold">Producto</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold w-28">Stock</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold w-40 hidden sm:table-cell">Categoría</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold w-28">Precio</th>
-                        <th class="px-4 py-3 text-right text-sm font-semibold w-36">Acciones</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider rounded-tl-2xl">
+                            Producto / SKU
+                        </th>
+                        <th class="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">Stock</th>
+                        <th class="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                        <th class="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">Precio</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider"></th>
+                        <th class="px-4 py-4 text-right text-xs font-bold uppercase tracking-wider rounded-tr-2xl">Acciones</th>
                     </tr>
                 </thead>
 
-                <!-- cuerpo será renderizado por AJAX; pero dejamos contenido inicial (progresivo) -->
-                <tbody id="tabla-productos" class="bg-white divide-y">
+                <tbody id="tabla-productos" class="bg-white divide-y divide-gray-100">
                     <?php if (!empty($productos)): ?>
                         <?php foreach ($productos as $producto):
                             $pid = htmlspecialchars($producto['id_producto']);
                             $nombre = htmlspecialchars($producto['producto_nombre']);
                             $sku = htmlspecialchars($producto['producto_cod_barras']);
+                            $tieneVariantes = $producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']]);
                             $cantidad = (int)($producto['cantidad'] ?? 0);
                             $cantidad_min = (int)($producto['cantidad_min'] ?? 0);
                             $is_active = (int)($producto['is_active'] ?? 1);
-                            $stockClass = ($cantidad <= $cantidad_min && $cantidad_min > 0) ? 'bg-red-100 text-red-600' : 'bg-green-50 text-green-800';
+                            
+                            // Colores de la paleta: #e15871 (Alert/Rosa) vs #b4c24d (Success/Verde)
+                            $stockClass = ($cantidad <= $cantidad_min && $cantidad_min > 0) 
+                                ? 'bg-[#e15871]/20 text-alert font-bold border border-alert/50' 
+                                : 'bg-[#b4c24d] text-white font-bold';
                             $imagen = !empty($producto['producto_imagen']) ? "uploads/".htmlspecialchars($producto['producto_imagen']) : "../uploads/sin-imagen.png";
                             $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
                         ?>
-                        <tr class="producto-row <?php if(!$is_active) echo 'product-inactive'; ?>" 
+                        
+                        <tr class="producto-row transition duration-300 ease-in-out hover:bg-gray-50 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'product-inactive'; ?>" 
                             id="product-row-<?= $pid ?>"
-                            data-name="<?= strtolower($nombre) ?>"
-                            data-sku="<?= strtolower($sku) ?>"
-                            data-category="<?= htmlspecialchars($producto['id_categoria']) ?>"
-                            data-price="<?= htmlspecialchars($producto['precio_unitario']) ?>"
-                            data-active="<?= $is_active ?>"
+                            data-product-id="<?= $pid ?>"
                             data-details="<?= $jsonProducto ?>">
-                            <td class="px-4 py-4 flex items-center gap-4">
-                                <img src="<?= $imagen ?>" class="w-12 h-14 object-cover rounded" alt="img">
-                                <div>
-                                    <div class="font-semibold text-sm"><?= $nombre ?></div>
-                                    <div class="text-xs text-gray-500">SKU: <?= $sku ?></div>
+
+                            <td class="px-6 py-4 align-top">
+                                <div class="flex items-center gap-4">
+                                    <img src="<?= $imagen ?>" class="w-14 h-16 object-cover rounded-lg shadow-sm border border-gray-200" alt="img">
+                                    <div>
+                                        <div class="font-semibold text-base text-gray-800 line-clamp-2"><?= $nombre ?></div>
+                                        <div class="text-xs text-gray-500 mt-0.5">SKU: **<?= $sku ?>**</div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-4">
-                                <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="px-3 py-1 rounded-full text-sm font-semibold <?= $stockClass ?>"><?= $cantidad ?> unid.</span>
+
+                            <td class="px-4 py-4 align-top">
+                                <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="inline-block px-3 py-1 rounded-full text-xs <?= $stockClass ?>">
+                                    <?= $cantidad ?> unid.
+                                </span>
                             </td>
-                            <td class="px-4 py-4 hidden sm:table-cell"><?= htmlspecialchars($producto['categoria']) ?></td>
-                            <td class="px-4 py-4 font-semibold">$<?= number_format($producto['precio_unitario'], 2) ?></td>
-                            <td class="px-4 py-4 text-right">
-                                <div class="inline-flex items-center gap-2 justify-end">
-                                    <button title="Ajustar stock" class="btn-ajuste inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200"
-                                        onclick="openMovimientoModal('<?= $pid ?>','producto','<?= addslashes($nombre) ?>', <?= $producto['tiene_variante'] > 0 ? 'true' : 'false' ?>)">
-                                        ⚙ Ajuste
+
+                            <td class="px-4 py-4 align-top text-sm text-gray-600 hidden sm:table-cell"><?= htmlspecialchars($producto['categoria']) ?></td>
+
+                            <td class="px-4 py-4 align-top font-bold text-gray-800">$<?= number_format($producto['precio_unitario'], 2) ?></td>
+                            
+                            <td class="px-4 py-4 align-top text-center">
+                                <?php if ($tieneVariantes): ?>
+                                    <button class="toggle-variants p-1 rounded-full text-primary hover:bg-gray-200 transition duration-150" data-target-id="variants-<?= $pid ?>" title="Ver variantes">
+                                        <svg class="h-5 w-5 transform transition duration-300 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                <?php endif; ?>
+                            </td>
+
+                            <td class="px-4 py-4 align-top text-right">
+                                <div class="inline-flex items-center gap-1 justify-end">
+                                    <button title="Ajustar stock" class="btn-ajuste p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-primary transition"
+                                        onclick="openMovimientoModal('<?= $pid ?>','producto','<?= addslashes($nombre) ?>', <?= $tieneVariantes ? 'true' : 'false' ?>)">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.747 2.25-1.747 2.676 0l.504 2.052a1 1 0 00.9.607l2.179.336c1.808.277 1.808 2.678 0 2.954l-2.179.336a1 1 0 00-.9.607l-.504 2.052c-.426 1.747-2.25 1.747-2.676 0l-.504-2.052a1 1 0 00-.9-.607l-2.179-.336c-1.808-.277-1.808-2.678 0-2.954l2.179-.336a1 1 0 00.9-.607l.504-2.052z"/></svg>
                                     </button>
 
-                                    <button title="Ver detalle" class="inline-flex items-center px-3 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 open-modal-btn" 
+                                    <button title="Ver detalle" class="p-2 rounded-full text-primary hover:bg-primary-dark hover:text-white open-modal-btn transition" 
                                         data-details='<?= $jsonProducto ?>'>
-                                        👁 Ver
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
 
                                     <button title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>" 
-                                            class="toggle-active inline-flex items-center px-3 py-2 rounded-full <?= $is_active ? 'bg-red-50 hover:bg-red-100' : 'bg-green-50 hover:bg-green-100' ?>"
-                                            data-id="<?= $pid ?>" data-type="producto" data-active="<?= $is_active ? 'true' : 'false' ?>">
-                                        <?= $is_active ? '🗙' : '✔' ?>
+                                        class="toggle-active p-2 rounded-full <?= $is_active ? 'text-alert hover:bg-red-50' : 'text-success hover:bg-green-50' ?> transition"
+                                        data-id="<?= $pid ?>" data-type="producto" data-active="<?= $is_active ? 'true' : 'false' ?>">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= $is_active ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7' ?>" /></svg>
                                     </button>
                                 </div>
                             </td>
                         </tr>
 
-                        <!-- VARIANTES (si existen) -->
-                        <?php if ($producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']])): ?>
-                            <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var):
-                                $vsku = htmlspecialchars($var['cod_barras']);
-                                $vcant = (int)($var['cantidad'] ?? 0);
-                                $vcant_min = (int)($var['cantidad_min'] ?? 0);
-                                $vstockClass = ($vcant <= $vcant_min && $vcant_min > 0) ? 'bg-red-100 text-red-600' : 'bg-green-50 text-green-800';
-                                $jsonVar = htmlspecialchars(json_encode($var + ['producto_nombre' => $producto['producto_nombre'], 'categoria' => $producto['categoria'], 'id_producto' => $producto['id_producto']]), ENT_QUOTES, 'UTF-8');
-                            ?>
-                                <tr class="variant-row bg-gray-50" id="variant-row-<?= $vsku ?>"
-                                    data-name="<?= htmlspecialchars(strtolower($producto['producto_nombre'] . ' ' . ($var['talla'] ?? '') . ' ' . ($var['color'] ?? ''))) ?>"
-                                    data-sku="<?= htmlspecialchars(strtolower($vsku)) ?>"
-                                    data-category="<?= htmlspecialchars($producto['id_categoria']) ?>"
-                                    data-price="<?= htmlspecialchars($var['precio']) ?>"
-                                    data-active="<?= $is_active ?>">
-                                    <td class="px-4 py-3 pl-20">
-                                        <div class="text-sm font-semibold"><?= htmlspecialchars($producto['producto_nombre']) ?> — <span class="text-xs text-gray-500">SKU: <?= $vsku ?></span></div>
-                                        <div class="text-xs text-gray-500">Talla: <?= htmlspecialchars($var['talla'] ?: '—') ?> | Color: <?= htmlspecialchars($var['color'] ?: '—') ?></div>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span id="stock-<?= $vsku ?>" data-min="<?= $vcant_min ?>" class="px-3 py-1 rounded-full text-sm font-semibold <?= $vstockClass ?>"><?= $vcant ?> unid.</span>
-                                    </td>
-                                    <td class="px-4 py-3 hidden sm:table-cell"><?= htmlspecialchars($producto['categoria']) ?></td>
-                                    <td class="px-4 py-3">$<?= number_format($var['precio'] ?? 0, 2) ?></td>
-                                    <td class="px-4 py-3 text-right">
-                                        <div class="inline-flex gap-2 justify-end items-center">
-                                            <button class="inline-flex items-center px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200"
-                                                    onclick="openMovimientoModal('<?= htmlspecialchars($vsku) ?>','variante','<?= addslashes($producto['producto_nombre'] . ' - ' . ($var['talla'] ?? '')) ?>', false)">
-                                                ⚙ Ajuste
-                                            </button>
-                                            <button class="inline-flex items-center px-3 py-2 rounded-full bg-indigo-50 hover:bg-indigo-100 open-modal-btn"
-                                                    data-details='<?= $jsonVar ?>'>
-                                                👁 Ver
-                                            </button>
+                        <?php if ($tieneVariantes): ?>
+                            <tr id="variants-<?= $pid ?>" class="variant-group hidden transition-all duration-300 ease-in-out">
+                                <td colspan="6" class="p-0 border-t border-gray-200/50">
+                                    <div class="px-0 py-0 overflow-hidden">
+                                        <div class="bg-gray-50 border-b border-gray-100 divide-y divide-gray-100">
+                                            <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var):
+                                                $vsku = htmlspecialchars($var['cod_barras']);
+                                                $vcant = (int)($var['cantidad'] ?? 0);
+                                                $vcant_min = (int)($var['cantidad_min'] ?? 0);
+                                                // Colores de la paleta: #e15871 (Alert/Rosa) vs #b4c24d (Success/Verde)
+                                                $vstockClass = ($vcant <= $vcant_min && $vcant_min > 0) 
+                                                    ? 'bg-[#e15871]/20 text-alert font-semibold' 
+                                                    : 'bg-[#b4c24d]/20 text-success font-semibold';
+                                                $jsonVar = htmlspecialchars(json_encode($var + ['producto_nombre' => $producto['producto_nombre'], 'categoria' => $producto['categoria'], 'id_producto' => $producto['id_producto']]), ENT_QUOTES, 'UTF-8');
+                                            ?>
+                                                <div class="variant-item flex items-center text-sm">
+                                                    
+                                                    <div class="text-gray-700 px-4"> 
+                                                        <span class="font-medium">Talla: **<?= htmlspecialchars($var['talla'] ?: '—') ?>** | Color: **<?= htmlspecialchars($var['color'] ?: '—') ?>**</span>
+                                                        <div class="text-xs text-gray-500 mt-0.5">SKU: <?= $vsku ?></div>
+                                                    </div>
+
+                                                    <div class="px-4">
+                                                        <span id="stock-<?= $vsku ?>" data-min="<?= $vcant_min ?>" class="px-2 py-0.5 rounded-md text-xs <?= $vstockClass ?>">
+                                                            <?= $vcant ?> unid.
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="hidden sm:block px-4"></div>
+
+                                                    <div class="px-4 font-bold text-gray-700">
+                                                        $<?= number_format($var['precio'] ?? 0, 2) ?>
+                                                    </div>
+                                                    
+                                                    <div class="px-4"></div>
+
+                                                    <div class="px-4 text-right">
+                                                        <div class="inline-flex gap-1 justify-end items-center">
+                                                            <button title="Ajustar stock variante" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-primary transition"
+                                                                onclick="openMovimientoModal('<?= htmlspecialchars($vsku) ?>','variante','<?= addslashes($producto['producto_nombre'] . ' - ' . ($var['talla'] ?? '')) ?>', false)">
+                                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.747 2.25-1.747 2.676 0l.504 2.052a1 1 0 00.9.607l2.179.336c1.808.277 1.808 2.678 0 2.954l-2.179.336a1 1 0 00-.9.607l-.504 2.052c-.426 1.747-2.25 1.747-2.676 0l-.504-2.052a1 1 0 00-.9-.607l-2.179-.336c-1.808-.277-1.808-2.678 0-2.954l2.179-.336a1 1 0 00.9-.607l.504-2.052z"/></svg>
+                                                            </button>
+                                                            <button title="Ver detalle variante" class="p-2 rounded-full text-primary hover:bg-primary-dark hover:text-white open-modal-btn transition"
+                                                                data-details='<?= $jsonVar ?>'>
+                                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
                                         </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
+                                    </div>
+                                </td>
+                            </tr>
                         <?php endif; ?>
 
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="5" class="p-8 text-center text-gray-500">No hay productos registrados.</td></tr>
+                        <tr><td colspan="6" class="p-8 text-center text-gray-500">No se encontraron productos que coincidan con los filtros.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+
 
 <!-- DETALLE MODAL -->
 <div id="modal" class="hidden fixed inset-0 flex items-center justify-center z-[1000] bg-[#2d4353]/80 p-4">
@@ -611,5 +718,52 @@ $(document).ready(function(){
 });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButtons = document.querySelectorAll('.toggle-variants');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation(); // Evita que se dispare el evento del row padre si lo hubiese.
+                
+                const targetId = button.getAttribute('data-target-id');
+                const targetRow = document.getElementById(targetId);
+                const arrowIcon = button.querySelector('.arrow-icon');
+
+                if (targetRow.classList.contains('hidden')) {
+                    // Abrir
+                    targetRow.classList.remove('hidden');
+                    arrowIcon.classList.add('rotate-180');
+                    
+                    // Animación de opacidad (opcional, si las filas internas lo soportan)
+                    setTimeout(() => {
+                        targetRow.style.opacity = '1';
+                    }, 50);
+
+                } else {
+                    // Cerrar
+                    targetRow.style.opacity = '0'; // Animación de fade-out
+                    
+                    setTimeout(() => {
+                        targetRow.classList.add('hidden');
+                        arrowIcon.classList.remove('rotate-180');
+                    }, 300); // Coincide con la duración de la transición
+                }
+            });
+        });
+        
+        // Agregar funcionalidad para que hacer clic en la fila principal (si tiene variantes) también haga el toggle
+        document.querySelectorAll('.product-parent').forEach(row => {
+            row.addEventListener('click', (e) => {
+                const productId = row.getAttribute('data-product-id');
+                const toggleButton = document.querySelector(`.toggle-variants[data-target-id="variants-${productId}"]`);
+                if (toggleButton) {
+                    toggleButton.click();
+                }
+            });
+        });
+    });
+</script>
+
 </body>
-</html>
+</html>     

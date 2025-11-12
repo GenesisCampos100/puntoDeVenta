@@ -60,12 +60,11 @@
     }
   });
 
- // ======================
-// MODAL DE PAGO
-// ======================
+
 // ======================
 // MODAL DE PAGO
 // ======================
+
 const payBtn = document.getElementById('pay-btn');
 const paymentModal = document.getElementById('payment-modal');
 const cancelPayment = document.getElementById('cancel-payment');
@@ -127,48 +126,71 @@ paymentForm?.addEventListener('submit', async (e) => {
 
 
 
+
+
+
+
     // ======================
     // MODAL DETALLE DE VENTA
     // ======================
     window.verDetalleVenta = function(idVenta) {
-      console.log("ID de venta recibido:", idVenta);
-        fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`)
-        .then(res => res.json())
-        .then(data => {
-            const contenedor = document.getElementById('venta-detalles');
-            contenedor.innerHTML = '';
+    console.log("ID de venta recibido:", idVenta);
+    fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`)
+    .then(res => res.json())
+    
+    .then(data => {
+        const contenedor = document.getElementById('venta-detalles');
+        contenedor.innerHTML = '';
 
-            if (!data || data.length === 0) {
-                contenedor.innerHTML = '<p class="text-center text-gray-500">No hay detalles para esta venta.</p>';
-            } else {
-                data.forEach(item => {
-                    const div = document.createElement('div');
-                    div.classList.add('border-b', 'py-2');
-                    div.innerHTML = `
-                        <strong>${item.nombre}</strong><br>
-                        Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}
-                    `;
-                    contenedor.appendChild(div);
-                });
-            }
+        if (!data || !data.productos || data.productos.length === 0) {
+            contenedor.innerHTML = '<p class="text-center text-gray-500">No hay detalles para esta venta.</p>';
+            return;
+        }
 
-            // Abrir modal
-            const modal = document.getElementById('venta-modal');
-            modal.classList.remove('hidden');
-        })
-        .catch(err => {
-            console.error(err);
-            alert("❌ Error al obtener los detalles de la venta");
-        });
-    };
+        // 🧍 Cliente
+        const clienteHTML = `
+            <div class="mb-3">
+                <p class="font-semibold">Cliente: 
+                    <span class="font-normal">${data.cliente}</span>
+                </p>
+            </div>
+        `;
 
-    // Cerrar modal detalle de venta
+        // 🧾 Productos
+        const productosHTML = data.productos.map(item => `
+            <div class="border-b py-2">
+                <strong>${item.nombre}</strong><br>
+                Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}
+            </div>
+        `).join('');
+
+        // 💰 Total
+        const totalHTML = `
+            <div class="mt-3 font-bold text-right text-lg">
+                Total: $${parseFloat(data.total).toFixed(2)}
+            </div>
+        `;
+
+        contenedor.innerHTML = clienteHTML + productosHTML + totalHTML;
+
+        // Mostrar modal
+        document.getElementById('venta-modal').classList.remove('hidden');
+    })
+    .catch(err => {
+        console.error(err);
+        alert("❌ Error al obtener los detalles de la venta");
+    });
+};
+
+// 🧩 Cerrar modal (solo definir si aún no existe)
+if (typeof window._ventaModalListenerAttached === 'undefined') {
     const closeVentaModalBtn = document.getElementById('close-venta-modal');
     if (closeVentaModalBtn) {
         closeVentaModalBtn.addEventListener('click', () => {
-            const modal = document.getElementById('venta-modal');
-            modal.classList.add('hidden');
+            document.getElementById('venta-modal').classList.add('hidden');
         });
     }
+    window._ventaModalListenerAttached = true;
+}
 
 })();

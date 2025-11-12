@@ -360,20 +360,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Talla Base</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Talla Base *</label>
                             <input id="talla_base" name="talla_base" value="<?= isset($_POST['talla_base']) ? htmlspecialchars($_POST['talla_base']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Color Base</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Color Base *</label>
                             <input id="color_base" name="color_base" value="<?= isset($_POST['color_base']) ? htmlspecialchars($_POST['color_base']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
-                            <input id="cantidad" name="cantidad" type="number" min="0" value="<?= isset($_POST['cantidad']) ? intval($_POST['cantidad']) : 0 ?>" class="form-input w-full">
+                            <input  id="cantidad"  name="cantidad"  type="number" min="0" placeholder="0" value="<?= (isset($_POST['cantidad']) && intval($_POST['cantidad']) >= 0) ? intval($_POST['cantidad']) : '' ?>" class="form-input w-full">
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo *</label>
-                            <input id="cantidad_min" name="cantidad_min" type="number" min="0" value="<?= isset($_POST['cantidad_min']) ? intval($_POST['cantidad_min']) : 0 ?>" class="form-input w-full">
+                        <div> <label class="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo *</label>
+                              <input  id="cantidad_min"  name="cantidad_min"  type="number"  min="0"  placeholder="(Permite 0)" value="<?= (isset($_POST['cantidad_min']) && intval($_POST['cantidad_min']) >= 0) ? intval($_POST['cantidad_min']) : '' ?>"  class="form-input w-full">
                         </div>
 
                         <div>
@@ -881,29 +880,78 @@ form.addEventListener('submit', function(e){
 
     const hasVariants = variantsBody.querySelectorAll('tr').length > 0;
 
-    // if no variants => validate base inventory & price
+    // if no variants => validate base inventory, price, and required details (Talla/Color Base)
     if(!hasVariants){
-        // cantidad, cantidad_min, costo, precio_unitario
-        if(cantidadInput.value === '' || isNaN(parseFloat(cantidadInput.value)) || parseInt(cantidadInput.value) < 0){
-            cantidadInput.classList.add('input-error'); hasError = true;
+     // 1. Validaciones numéricas base (cantidad, costo, precio)
+    
+    // Cantidad (Stock Inicial)
+    const q_base_val = cantidadInput.value.trim();
+    const q_base_parsed = parseFloat(q_base_val);
+
+    if(q_base_val === '' || isNaN(q_base_parsed) || q_base_parsed < 0){
+        cantidadInput.classList.add('input-error'); 
+        hasError = true;
+    } else {
+        cantidadInput.classList.remove('input-error');
+    }
+
+
+    // Cantidad Mínima: PERMITE 0, solo falla si es negativo.
+    const q_min_val = cantidadMinInput.value.trim();
+    const q_min_parsed = parseFloat(q_min_val);
+
+    if(q_min_val === '' || isNaN(q_min_parsed) || q_min_parsed < 0){
+        cantidadMinInput.classList.add('input-error'); 
+        hasError = true;
+    } else {
+        cantidadMinInput.classList.remove('input-error');
+    }
+    
+    // Costo
+    if(costoInput.value === '' || isNaN(parseFloat(costoInput.value)) || parseFloat(costoInput.value) <= 0){
+        costoInput.classList.add('input-error'); hasError = true;
+    }
+    
+    // Precio
+    if(precioInput.value === '' || isNaN(parseFloat(precioInput.value)) || parseFloat(precioInput.value) <= 0){
+        precioInput.classList.add('input-error'); hasError = true;
+    }
+
+        // 2. NUEVA VALIDACIÓN: TALLA O COLOR BASE OBLIGATORIOS
+        const tallaBaseInput = document.getElementById('talla_base');
+        const colorBaseInput = document.getElementById('color_base');
+        const tallaBase = tallaBaseInput.value.trim();
+        const colorBase = colorBaseInput.value.trim();
+
+        // Se requiere al menos Talla Base o Color Base
+        if(!tallaBase && !colorBase){
+            tallaBaseInput.classList.add('input-error');
+            colorBaseInput.classList.add('input-error');
+            
+            // Si ya hay un error, no mostramos el Swal, solo marcamos los campos
+            if(!hasError){
+                 Swal.fire({ 
+                    title:'Detalles de Producto requeridos', 
+                    text:'Para productos simples que usan Talla o Color (Ej: Unitalla/Rojo), debes llenar al menos uno de los campos "Talla Base" o "Color Base" para una mejor trazabilidad en el POS.', 
+                    icon:'warning', 
+                    confirmButtonColor:'#b4c24d' 
+                });
+            }
+            hasError = true;
+        } else {
+            // Limpiamos los errores si se corrige
+            tallaBaseInput.classList.remove('input-error');
+            colorBaseInput.classList.remove('input-error');
         }
-        if(cantidadMinInput.value === '' || isNaN(parseFloat(cantidadMinInput.value)) || parseInt(cantidadMinInput.value) < 0){
-            cantidadMinInput.classList.add('input-error'); hasError = true;
-        }
-        if(costoInput.value === '' || isNaN(parseFloat(costoInput.value)) || parseFloat(costoInput.value) <= 0){
-            costoInput.classList.add('input-error'); hasError = true;
-        }
-        if(precioInput.value === '' || isNaN(parseFloat(precioInput.value)) || parseFloat(precioInput.value) <= 0){
-            precioInput.classList.add('input-error'); hasError = true;
-        }
-        // also ensure cod_barras or sku_principal present
+
+        
+        // 3. Validación de Identificación (código de barras o sku principal)
         const codBarras = document.getElementById('cod_barras').value.trim();
         const skuPr = skuPrincipalInput.value.trim();
         if(!codBarras && !skuPr){
             document.getElementById('cod_barras').classList.add('input-error');
             skuPrincipalInput.classList.add('input-error');
-            Swal.fire({ title:'Identificación requerida', text:'Para productos simples debes proporcionar Código de Barras o SKU Principal.', icon:'warning', confirmButtonColor:'#b4c24d' });
-            e.preventDefault(); return;
+            hasError = true;
         }
     } else {
         // validate each variant row
@@ -976,10 +1024,14 @@ form.addEventListener('submit', function(e){
         }
     }
 
-    if(hasError){
+     if(hasError){
+
         Swal.fire({ title:'Campos incompletos', text:'Por favor completa los campos obligatorios en rojo.', icon:'error', confirmButtonColor:'#b4c24d' });
+
         e.preventDefault();
+
         return;
+
     }
 
     // Fill empty SKUs for variants before submit (NOMBRE-TALLA-COLOR)
