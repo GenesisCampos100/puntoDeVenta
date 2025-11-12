@@ -1,8 +1,7 @@
 <?php
 // src/pages/productos_contenido.php
 // Versión corregida y funcional — Inventario (productos + variantes + filtros AJAX)
-// Autor: ChatGPT (senior dev POS)
-// NOTA: Ajusta rutas si tu estructura difiere (API_URL abajo también).
+
 
 require_once __DIR__ . "/../config/db.php";
 
