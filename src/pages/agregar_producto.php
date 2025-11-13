@@ -271,14 +271,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             vertical-align: top; /* Alinear arriba para inputs apilados */
         }
         /* ==========================================
-   🛒 Modo Oscuro - Agregar Producto
+   Modo Oscuro - Agregar Producto
    ========================================== */
 body.dark-mode {
   background-color: #121212 !important;
   color: #e5e7eb !important;
 }
 
-/* 🔲 Tarjetas (card, secciones, aside) */
+/*  Tarjetas (card, secciones, aside) */
 body.dark-mode .card,
 body.dark-mode section.bg-white,
 body.dark-mode aside .card {
@@ -288,7 +288,7 @@ body.dark-mode aside .card {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* 🏷️ Títulos y subtítulos */
+/*  Títulos y subtítulos */
 body.dark-mode h1,
 body.dark-mode h2,
 body.dark-mode h3,
@@ -316,7 +316,7 @@ body.dark-mode .text-red-400 {
   color: #f87171 !important;
 }
 
-/* 🧾 Formularios e Inputs */
+/*  Formularios e Inputs */
 body.dark-mode input,
 body.dark-mode select,
 body.dark-mode textarea,
@@ -338,7 +338,7 @@ body.dark-mode .form-input-disabled {
   border-color: #3a3a3a !important;
 }
 
-/* 📦 Tabla de variantes */
+/*  Tabla de variantes */
 body.dark-mode #table-variants {
   background-color: #1e1e1e !important;
   color: #f1f1f1 !important;
@@ -353,7 +353,7 @@ body.dark-mode #table-variants tbody tr {
   border-color: #333 !important;
 }
 
-/* 📸 Subida de imagen */
+/*  Subida de imagen */
 body.dark-mode #file-main-label {
   background-color: #252525 !important;
   border-color: #3a3a3a !important;
@@ -363,7 +363,7 @@ body.dark-mode #preview-main {
   background-color: #2a2a2a !important;
 }
 
-/* 🧮 Botones */
+/* Botones */
 body.dark-mode button {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -403,15 +403,63 @@ body.dark-mode .bg-rose-50:hover {
   background-color: #4c0a0a !important;
 }
 
-/* 🧩 Checkbox */
+/*  Checkbox */
 body.dark-mode input[type="checkbox"] {
   accent-color: #b4c24d !important;
 }
 
-/* 🧱 Sticky footer y aside */
+/* Sticky footer y aside */
 body.dark-mode .sticky {
   background-color: #1e1e1e !important;
   border-top: 1px solid #2c2c2c !important;
+}
+/*  Mejora de tablas en modo oscuro */
+body.dark-mode table {
+  background: #1b1b1b !important; /* gris oscuro uniforme */
+  border-collapse: collapse !important;
+  border: 1px solid #2a2a2a !important;
+  box-shadow: 0 2px 8px rgba(255,255,255,0.05) !important;
+}
+
+body.dark-mode thead {
+  background: #2a2a2a !important; /* menos contraste que el blanco */
+  color: #f5f5f5 !important;
+}
+
+body.dark-mode tbody tr {
+  background: #1e1e1e !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark-mode tbody tr:nth-child(even) {
+  background: #222 !important; /* alterna ligeramente el tono */
+}
+
+body.dark-mode tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important; /* resalta sutilmente */
+}
+
+body.dark-mode td,
+body.dark-mode th {
+  color: #ddd !important;
+  border-color: #333 !important;
+}
+
+/* Inputs dentro de la tabla */
+body.dark-mode table input,
+body.dark-mode table select {
+  background: #2b2b2b !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+}
+
+/* Bordes redondeados del encabezado */
+body.dark-mode thead tr:first-child th:first-child {
+  border-top-left-radius: 10px !important;
+}
+body.dark-mode thead tr:first-child th:last-child {
+  border-top-right-radius: 10px !important;
 }
 
         
