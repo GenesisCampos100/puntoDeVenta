@@ -37,15 +37,35 @@ Este repositorio contiene:
 ---
 
 ## Características principales
-✔ Registro y gestión de productos  
-✔ Control de inventario (altas, bajas y ajustes)  
-✔ Registro de ventas con generación de recibo  
-✔ Envío de correos con **PHPMailer**  
-  - Comprobantes de registro de empleados  
-  - Recuperación de contraseña  
-✔ Interfaz responsiva con **TailwindCSS** + SASS  
-✔ Búsqueda avanzada y filtros  
-✔ Administración de usuarios y empleados  
+✔ **Registro y gestión de productos**  
+✔ **Variantes de productos** (colores, tallas, códigos únicos por variante)  
+✔ **Control de inventario completo**  
+   - Altas y bajas  
+   - Ajustes manuales  
+   - Historial de movimientos  
+   - Manejo independiente por variante  
+✔ **Registro de ventas con generación de recibo**  
+✔ **Carrito dinámico** con actualización en tiempo real  
+✔ **Gestión de caja:**  
+   - Apertura de caja  
+   - Cierre de caja  
+   - Total de ventas por sesión  
+✔ **Envío de correos mediante PHPMailer**  
+   - Comprobantes de registro de empleados  
+   - Recuperación de contraseña  
+   - Confirmación de cuenta  
+✔ **Administración de empleados y roles**  
+   - Crear, editar, suspender y activar usuarios  
+✔ **Búsqueda avanzada y filtros** para productos y ventas  
+✔ **Sistema responsivo** con **TailwindCSS + SASS**  
+✔ **CRUD completos**: productos, empleados, proveedores y clientes
+
+✔ **Dashboard inicial con estadísticas básicas**  
+✔ **Gestión visual del inventario** con fotos de cada producto   
+✔ **Registro seguro de usuario** con tokens y verificación por correo  
+✔ **Recuperación segura de contraseña**  
+✔ **Historial de cambios y acciones en inventario**  
+✔ **Estructura modular y escalable en PHP** 
 
 ---
 
