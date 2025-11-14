@@ -53,3 +53,11 @@ Realiza una venta y prueba el envío de comprobante por correo.
 # Estructura
 <img width="776" height="1049" alt="image" src="https://github.com/user-attachments/assets/113bdc25-77c9-49c3-9461-76e4be296c7a" />
 
+# ¿Quienes somos?
+Somos el equipo 3 del tercer semestre grupo E de ingeniería de Software de la Facultad de Ingeniería Electromecánica de la Universidad de Colima.  
+Estamos conformados por: 
+Ballato Román Mario Alberto.  
+Campos Fajardo Génesis Joselyn.  
+Jacobo Sanchéz Kevin Ramón.   
+Miranda Campos Zinedine Hiram.  
+Sibaja Barragán Vanessa Yamile. 
