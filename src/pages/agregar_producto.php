@@ -270,6 +270,199 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding-bottom: 0.75rem; /* Aumento del espaciado */
             vertical-align: top; /* Alinear arriba para inputs apilados */
         }
+        /* ==========================================
+   Modo Oscuro - Agregar Producto
+   ========================================== */
+body.dark-mode {
+  background-color: #121212 !important;
+  color: #e5e7eb !important;
+}
+
+/*  Tarjetas (card, secciones, aside) */
+body.dark-mode .card,
+body.dark-mode section.bg-white,
+body.dark-mode aside .card {
+  background-color: #1e1e1e !important;
+  color: #e5e7eb !important;
+  border: 1px solid #2c2c2c !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/*  Títulos y subtítulos */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode label {
+  color: #f5f5f5 !important;
+}
+
+body.dark-mode p,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-400 {
+  color: #cbd5e1 !important;
+}
+/* Mantener texto rojo en modo oscuro */
+body.dark-mode .text-red-500,
+body.dark-mode p.text-red-500,
+body.dark-mode span.text-red-500 {
+  color: #ef4444 !important; /* rojo original */
+}
+
+/* Si usas variantes como text-red-600 o text-red-400 */
+body.dark-mode .text-red-600 {
+  color: #dc2626 !important;
+}
+body.dark-mode .text-red-400 {
+  color: #f87171 !important;
+}
+
+/*  Formularios e Inputs */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode .form-input {
+  background-color: #2b2b2b !important;
+  border-color: #3a3a3a !important;
+  color: #f1f1f1 !important;
+}
+
+body.dark-mode .form-input:focus {
+  border-color: #b4c24d !important;
+  box-shadow: 0 0 0 3px rgba(180, 194, 77, 0.35) !important;
+}
+
+/* Campos deshabilitados */
+body.dark-mode .form-input-disabled {
+  background-color: #2a2a2a !important;
+  color: #9ca3af !important;
+  border-color: #3a3a3a !important;
+}
+
+/*  Tabla de variantes */
+body.dark-mode #table-variants {
+  background-color: #1e1e1e !important;
+  color: #f1f1f1 !important;
+}
+
+body.dark-mode #table-variants thead {
+  background-color: #2a2a2a !important;
+  color: #f1f1f1 !important;
+}
+
+body.dark-mode #table-variants tbody tr {
+  border-color: #333 !important;
+}
+
+/*  Subida de imagen */
+body.dark-mode #file-main-label {
+  background-color: #252525 !important;
+  border-color: #3a3a3a !important;
+}
+
+body.dark-mode #preview-main {
+  background-color: #2a2a2a !important;
+}
+
+/* Botones */
+body.dark-mode button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Guardar (verde oliva - color principal) */
+body.dark-mode button[type="submit"],
+body.dark-mode .bg-brand-500 {
+  background-color: #b4c24d !important;
+  color: #fff !important;
+}
+
+body.dark-mode button[type="submit"]:hover,
+body.dark-mode .bg-brand-500:hover {
+  background-color: #9aa841 !important;
+}
+
+/* Cancelar */
+body.dark-mode #btn-cancel,
+body.dark-mode button.border-gray-300 {
+  background-color: #2b2b2b !important;
+  color: #e5e7eb !important;
+  border-color: #3a3a3a !important;
+}
+
+body.dark-mode #btn-cancel:hover {
+  background-color: #3a3a3a !important;
+}
+
+/* Botones secundarios (eliminar, variante, etc.) */
+body.dark-mode .bg-rose-50 {
+  background-color: #3a0a0a !important;
+  color: #fca5a5 !important;
+  border-color: #7f1d1d !important;
+}
+
+body.dark-mode .bg-rose-50:hover {
+  background-color: #4c0a0a !important;
+}
+
+/*  Checkbox */
+body.dark-mode input[type="checkbox"] {
+  accent-color: #b4c24d !important;
+}
+
+/* Sticky footer y aside */
+body.dark-mode .sticky {
+  background-color: #1e1e1e !important;
+  border-top: 1px solid #2c2c2c !important;
+}
+/*  Mejora de tablas en modo oscuro */
+body.dark-mode table {
+  background: #1b1b1b !important; /* gris oscuro uniforme */
+  border-collapse: collapse !important;
+  border: 1px solid #2a2a2a !important;
+  box-shadow: 0 2px 8px rgba(255,255,255,0.05) !important;
+}
+
+body.dark-mode thead {
+  background: #2a2a2a !important; /* menos contraste que el blanco */
+  color: #f5f5f5 !important;
+}
+
+body.dark-mode tbody tr {
+  background: #1e1e1e !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark-mode tbody tr:nth-child(even) {
+  background: #222 !important; /* alterna ligeramente el tono */
+}
+
+body.dark-mode tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important; /* resalta sutilmente */
+}
+
+body.dark-mode td,
+body.dark-mode th {
+  color: #ddd !important;
+  border-color: #333 !important;
+}
+
+/* Inputs dentro de la tabla */
+body.dark-mode table input,
+body.dark-mode table select {
+  background: #2b2b2b !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+}
+
+/* Bordes redondeados del encabezado */
+body.dark-mode thead tr:first-child th:first-child {
+  border-top-left-radius: 10px !important;
+}
+body.dark-mode thead tr:first-child th:last-child {
+  border-top-right-radius: 10px !important;
+}
+
+        
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-700">

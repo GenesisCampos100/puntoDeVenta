@@ -149,9 +149,6 @@ $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre ASC")->fetch
         initialOrden: <?= json_encode($orden) ?>
     };
 </script>
-<!-- ===========================
-     PARTE 2/4 - HTML (Toolbar, Tabla, Modales)
-     =========================== -->
 
 <div class="max-w-7xl mx-auto p-4 lg:pt-8">
   <!-- TOOLBAR: SEARCH, TABS, FILTERS, AGREGAR -->
@@ -251,7 +248,6 @@ $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nombre ASC")->fetch
 
     <h3 class="text-xl font-semibold mb-2">Ajuste de stock</h3>
     <div id="ajuste-content">
-      <!-- formulario inyectado por JS (Parte 3) -->
     </div>
   </div>
 </div>
@@ -385,8 +381,15 @@ function bindRowEvents() {
   });
 
   document.querySelectorAll(".btn-ajuste").forEach(btn => {
-    btn.onclick = () => openAjusteModal(btn.dataset.cod);
-  });
+    btn.onclick = () => {
+    const cod = btn.dataset.cod;
+    const name = btn.closest("tr").querySelector(".font-semibold").textContent.trim();
+    const isVar = String(btn.dataset.isvariante) === "true";
+
+    openAjusteModal(cod, isVar ? "variante" : "producto", name, isVar);
+};
+
+});
 
   document.querySelectorAll(".btn-toggle").forEach(btn => {
     btn.onclick = () => toggleEstado(btn.dataset.cod, btn.dataset.current);
@@ -452,36 +455,62 @@ function cerrarModal(){ document.querySelector("#modal").classList.add("hidden")
 // ===========================
 let ajusteCod="";
 
-function openAjusteModal(cod){
-  ajusteCod = cod;
-  document.querySelector("#ajuste-content").innerHTML = `
-    <label class="text-sm">Cantidad a ajustar:</label>
-    <input id="ajuste-cantidad" type="number" class="mt-1 w-full border rounded p-2">
-    <label class="text-sm mt-3">Motivo:</label>
-    <textarea id="ajuste-motivo" class="w-full border rounded p-2"></textarea>
-    <button onclick="submitAjuste()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded">Confirmar ajuste</button>
-  `;
-  document.querySelector("#ajusteModal").classList.remove("hidden");
+function openAjusteModal(cod, type = "producto", name = "", isVar = false) {
+    ajusteCod = cod;
+    ajusteType = type;
+    ajusteIsVar = isVar;
+
+    document.querySelector("#ajuste-content").innerHTML = `
+      <label class="text-sm">Cantidad a ajustar:</label>
+      <input id="ajuste-cantidad" type="number" class="mt-1 w-full border rounded p-2">
+
+      <label class="text-sm mt-3">Motivo:</label>
+      <textarea id="ajuste-motivo" class="w-full border rounded p-2"></textarea>
+
+      <button onclick="submitAjuste()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+        Confirmar ajuste
+      </button>
+    `;
+
+    document.querySelector("#ajusteModal").classList.remove("hidden");
 }
-function closeAjusteModal(){ document.querySelector("#ajusteModal").classList.add("hidden"); }
 
-function submitAjuste(){
-  const cantidad = document.querySelector("#ajuste-cantidad").value;
-  const motivo = document.querySelector("#ajuste-motivo").value;
+function closeAjusteModal() {
+    document.querySelector("#ajusteModal").classList.add("hidden");
+}
 
-  fetch("pages/inventario_ajustar.php",{
-    method:"POST",
-    headers:{ "Content-Type": "application/json" },
-    body: JSON.stringify({ cod_barras:ajusteCod, cantidad, motivo })
-  }).then(r=>r.json()).then(res=>{
-    if(!res.success) return Swal.fire("Error",res.message,"error");
-    Swal.fire("OK",res.message,"success");
+function submitAjuste() {
+    const cantidad = parseInt(document.querySelector("#ajuste-cantidad").value, 10);
+    const motivo = document.querySelector("#ajuste-motivo").value;
 
-    const p = window.__INITIAL_DATA.find(x=>x.cod_barras===ajusteCod);
-    if(p) p.stock = res.new_stock ?? p.stock;
-    closeAjusteModal();
-    renderTable();
-  });
+    const fd = new FormData();
+    fd.append("cod_entidad", ajusteCod);
+    fd.append("cantidad", cantidad);
+    fd.append("motivo", motivo);
+    fd.append("ajusteEsVariante", ajusteIsVar ? "true" : "false");
+
+    fetch(API_URL + "?action=ajustar_stock", {
+        method: "POST",
+        body: fd
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.success) {
+            return Swal.fire("Error", res.message, "error");
+        }
+
+        Swal.fire("OK", res.message, "success");
+        closeAjusteModal();
+
+        const target = document.getElementById("stock-" + ajusteCod);
+        if (target && typeof res.nuevo_stock !== "undefined") {
+            target.textContent = res.nuevo_stock + " unid.";
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Falla de conexión", "error");
+    });
 }
 
 // ===========================

@@ -71,15 +71,22 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 
 </header>
 
-  <!-- Sidebar -->
+<!-- Sidebar -->
 <nav id="sidebar" 
      class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
   <div>
-    <!-- Logo y botón -->
-    <div class="flex items-center justify-center p-4 border-b border-white">
-      <button id="sidebar-menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
-      <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
-    </div>
+   <!-- Logo y botón en el mismo div -->
+<div class="flex items-center border-b border-white" style="gap: 15px; padding: 1rem 0 1rem 1rem;">
+  <button id="sidebar-menu-btn" 
+          class="text-2xl focus:outline-none hover:text-pink-400 transition" 
+          style="width: 40px; text-align: left; display: flex; align-items: center; justify-content: flex-start; padding-left: 1rem;">
+    &#9776;
+  </button>
+  <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
+</div>
+
+
+
     <?php
     // Íconos SVG según módulo
     $iconos = [
@@ -95,7 +102,21 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-  <ul class="mt-4 space-y-2 pl-4">
+  <ul class="mt-4 space-y-2">
+  <style>
+    #sidebar ul li a {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* izquierda */
+      padding-left: 1rem; /* ajusta 1rem = 16px */
+    }
+    /* Para mover más hacia el centro */
+    #sidebar ul li a svg {
+      margin-center: 6px; /* ajusta según lo que necesites */
+    }
+    
+  </style>
+
     <?php 
       // Detectar la vista actual
       $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
@@ -162,8 +183,8 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
   width: 60px !important;
   height: 60px !important;
   padding: 0 !important;
-  border-radius: 50% !important;
-  background-color: #0A2342 !important;
+  
+  
 }
 
 .user-mini img {
