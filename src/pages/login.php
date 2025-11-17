@@ -1,13 +1,15 @@
 <?php
-session_start();
+// Incluir el sistema de traducción al principio de todo.
+// La sesión se inicia dentro de translation.php si es necesario.
+require_once __DIR__ . '/../config/translation.php';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title><?php echo __('login_title'); ?></title>
     <link rel="stylesheet" href="../styles/login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,10 +18,45 @@ session_start();
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../styles/login.css">
-
+    <style>
+        /* Estilos para el selector de idioma */
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 8px;
+            display: flex;
+            gap: 5px;
+        }
+        .language-selector a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .language-selector a.active {
+            border-color: #FFC107; /* Borde amarillo */
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.7); /* Sombra iluminada */
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+        .language-selector a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
 
 <body class="fondo_login">
+
+    <!-- Selector de Idioma -->
+    <div class="language-selector">
+        <a href="?lang=es" class="<?php echo ($lang === 'es') ? 'active' : ''; ?>">ES</a>
+        <a href="?lang=en" class="<?php echo ($lang === 'en') ? 'active' : ''; ?>">EN</a>
+    </div>
 
     <?php
     // Mostrar error de sesión si existe
@@ -51,12 +88,13 @@ session_start();
                 <div class="login-logo">
                     <img src="../imagenesDev/logo2.png">
                 </div>
+                <h2><?php echo __('login_welcome'); ?></h2>
 
                     <form id="loginFormulario" action="../scripts/validar_login.php" method="post">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
-                            <label for="usuario">Ingrese su usuario:</label>
+                            <label for="usuario"><?php echo __('login_email_label'); ?></label>
                             <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                 fill="currentColor" class="size-6">
                                 <path
@@ -68,7 +106,7 @@ session_start();
                         </div>
 
                         <div class="campo">
-                            <label for="password">Ingrese su contraseña:</label>
+                            <label for="password"><?php echo __('login_password_label'); ?></label>
                             <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                 fill="currentColor" class="size-6">
                                 <path fill-rule="evenodd"
@@ -98,13 +136,13 @@ session_start();
                             </div>
                         </div>
 
-                        <button class="boton" type="submit">Entrar</button>
+                        <button class="boton" type="submit"><?php echo __('login_button_text'); ?></button>
 
                     </div> <!--Fin contenedor de campos-->
                 </form>
 
                 <div class="login-navegacion"> <!--Inicio de navegación-->
-                <a href="recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
+                <a href="recuperar_contrasena.html"><?php echo __('login_forgot_password'); ?></a>
 
                 </div> <!--Final de navegación-->
 
@@ -112,7 +150,6 @@ session_start();
 
         </section> <!--Fin de login-->
 
-                <script src="../scripts/alertaslogin_y_mostrarcontra.js"> </script>
                 <script src="../scripts/show_password.js"></script>
 
     </main>
@@ -133,6 +170,5 @@ session_start();
             <button id="closeErrorModal" class="boton" style="margin-top: 20px;">Cerrar</button>
         </div>
     </div>
-
 </body>
 </html>
