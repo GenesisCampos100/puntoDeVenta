@@ -1,41 +1,81 @@
 <?php
 // src/api/product_row.partial.php
-// Renderiza una sola fila de producto (se llama dentro del foreach principal en inventario_api.php)
+// Render: Fila de un producto PRINCIPAL (con variantes o sin variantes)
+
+$id         = htmlspecialchars($producto['cod_barras']);
+$nombre     = htmlspecialchars($producto['nom_producto']);
+$codigo     = htmlspecialchars($producto['cod_barras']);
+$categoria  = htmlspecialchars($producto['nombre_categoria']);
+$cantidad   = (int)$producto['cantidad'];
+$estado     = (int)$producto['is_active'];
+$precio     = number_format($producto['precio'], 2, '.', ',');
 ?>
-<tr class="border-b hover:bg-gray-50 transition" data-id="<?= htmlspecialchars($producto['id_producto']) ?>">
-    <td class="px-4 py-2 text-sm font-medium text-gray-700"><?= htmlspecialchars($producto['nom_producto']) ?></td>
-    <td class="px-4 py-2 text-sm text-gray-600"><?= htmlspecialchars($producto['cod_barras']) ?></td>
-    <td class="px-4 py-2 text-sm"><?= htmlspecialchars($producto['nombre_categoria']) ?></td>
-    <td class="px-4 py-2 text-sm text-center"><?= (int)$producto['cantidad'] ?></td>
+
+<tr class="border-b hover:bg-gray-50 transition" data-tipo="producto" data-id="<?= $id ?>">
     
-    <!-- Columna de Acciones - ALINEADA AL CENTRO -->
-    <td class="px-4 py-2 text-center">
-        <div class="flex justify-center items-center gap-3">
-            <!-- Botón Ver Detalles -->
-            <button class="btn-detalle inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition shadow-sm" 
-                    data-id="<?= $producto['id_producto'] ?>" 
-                    title="Ver detalles">
-                <i data-lucide="eye" class="h-5 w-5"></i>
+    <!-- Nombre -->
+    <td class="px-4 py-2 text-sm font-medium text-gray-800">
+        <?= $nombre ?>
+    </td>
+
+    <!-- Stock  -->
+    <td class="px-4 py-2 text-sm text-gray-600">
+        <?= $cantidad ?>
+    </td>
+
+    <!-- Categoría -->
+    <td class="px-4 py-2 text-sm text-gray-600">
+        <?= $categoria ?>
+    </td>
+
+    <!-- Precio  -->
+    <td class="px-4 py-2 text-sm text-center">
+        <?= $precio ?>
+    </td>
+
+    <!-- Acciones -->
+    <td class="px-4 py-2">
+        <div class="flex items-center justify-center gap-3">
+
+            <!-- Ver detalles -->
+            <button 
+                class="btn-detalle w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition shadow-sm"
+                data-id="<?= $id ?>"
+                data-tipo="producto"
+                data-nombre="<?= $nombre ?>"
+                title="Ver detalles"
+            >
+                <i data-lucide="eye" class="w-5 h-5"></i>
             </button>
-            
-            <!-- Botón Ajustar Stock -->
-            <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm" 
-                    data-id="<?= $producto['id_producto'] ?>" 
-                    title="Ajustar stock">
-                <i data-lucide="settings" class="h-5 w-5"></i>
+
+            <!-- Ajustar stock -->
+            <button 
+                class="btn-ajuste w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm"
+                data-id="<?= $id ?>"
+                data-tipo="producto"
+                data-nombre="<?= $nombre ?>"
+                title="Ajustar stock"
+            >
+                <i data-lucide="settings" class="w-5 h-5"></i>
             </button>
-            
-            <!-- Botón Activar/Desactivar -->
-            <button class="btn-toggle inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-50 text-red-600 hover:bg-red-100 transition shadow-sm" 
-                    data-id="<?= $producto['id_producto'] ?>" 
-                    data-estado="<?= $producto['is_active'] ?>" 
-                    title="<?= $producto['is_active'] ? 'Desactivar producto' : 'Activar producto' ?>">
-                <?php if (!empty($producto['is_active'])): ?>
-                    <i data-lucide="x" class="h-5 w-5"></i>
+
+            <!-- Activar / Desactivar -->
+            <button 
+                class="btn-toggle w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-gray-100 transition shadow-sm
+                <?= $estado ? 'text-red-600' : 'text-green-600' ?>"
+                data-id="<?= $id ?>"
+                data-tipo="producto"
+                data-estado="<?= $estado ?>"
+                data-nombre="<?= $nombre ?>"
+                title="<?= $estado ? 'Desactivar producto' : 'Activar producto' ?>"
+            >
+                <?php if ($estado): ?>
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 <?php else: ?>
-                    <i data-lucide="check" class="h-5 w-5"></i>
+                    <i data-lucide="check" class="w-5 h-5"></i>
                 <?php endif; ?>
             </button>
+
         </div>
     </td>
 </tr>

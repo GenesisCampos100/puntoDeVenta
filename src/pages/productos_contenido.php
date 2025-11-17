@@ -5,7 +5,19 @@
 
 require_once __DIR__ . "/../config/db.php";
 
+// 1. Mapeo para prevenir errores de SQL Injection y columna inválida
+$mapOrder = [
+    'nom_asc'    => 'p.nom_producto ASC',
+    'nom_desc'   => 'p.nom_producto DESC',
+    'precio_asc' => 'p.precio ASC',
+    'precio_desc' => 'p.precio DESC',
+    // Fallback si no viene nada o viene algo inválido
+    'p.nom_producto ASC' => 'p.nom_producto ASC'
+];
 
+// Obtener el valor del GET y mapearlo, o usar el default seguro
+$orden_get = $_GET['orden'] ?? 'nom_asc';
+$orden_sql = $mapOrder[$orden_get] ?? $mapOrder['nom_asc'];
 
 // --- Parámetros GET (fallback igual que tenías) ---
 $busqueda = $_GET['busqueda'] ?? '';
@@ -28,6 +40,7 @@ $sql = "SELECT
             c.nombre AS categoria,
             p.cantidad,
             p.color,
+            p.sku,
             p.cantidad_min,
             p.costo,
             p.precio AS precio_unitario,
@@ -485,25 +498,38 @@ function cargarProductos() {
         url: API_URL,
         method: "GET",
         data: params,
+        // *** IMPORTANTE: Especificar que esperas JSON ***
+        dataType: "json", 
+        
         beforeSend: function() {
             $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500">Cargando productos...</td></tr>`);
         },
         success: function(res) {
-            if (!res) {
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Respuesta vacía del servidor.</td></tr>`);
+            // Verifica si el resultado es nulo o si la respuesta es HTML (no JSON)
+            if (typeof res !== 'object' || res === null) {
+                // Si la respuesta no es un objeto JSON, muestra el contenido crudo
+                const rawContent = (typeof res === 'string' && res.length > 0) ? res.substring(0, 100) + '...' : 'Respuesta no JSON o vacía';
+                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error de formato: ${rawContent}</td></tr>`);
+                console.error("Respuesta no es JSON:", res);
                 return;
             }
+
             if (res.success) {
                 $tablaCuerpo.html(res.html);
-                // Reactivar lucide si lo necesitas (silencioso si falla)
+                // Reactivar lucide
                 try { if (window.lucide) lucide.createIcons(); } catch(e){}
             } else {
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">${res.message || 'Error'}</td></tr>`);
+                // Muestra el mensaje de error del servidor PHP
+                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error del API: ${res.message || 'Error desconocido'}</td></tr>`);
+                console.error("Error lógico del API:", res.message, res);
             }
         },
         error: function(xhr, status, err) {
-            console.error("AJAX error:", status, err);
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error al cargar los productos.</td></tr>`);
+            console.error("AJAX error:", status, err, xhr.responseText);
+            // Muestra un mensaje detallado del error de comunicación
+            const httpStatus = xhr.status || 'N/A';
+            const errorMsg = `Error HTTP ${httpStatus}. Revisa la consola para el detalle del servidor.`;
+            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">${errorMsg}</td></tr>`);
         }
     });
 }
@@ -545,37 +571,47 @@ $("#btnAgregarProducto").on("click", function(){
    Delegación de eventos para filas renderizadas por AJAX
    ========================== */
 
-// Abrir detalle: .open-modal-btn (usa data-details JSON)
-$(document).on("click", ".open-modal-btn", function(){
-    const details = $(this).attr("data-details");
-    if (!details) return;
-    let obj = null;
-    try {
-        obj = JSON.parse(details);
-    } catch(e) {
-        console.error("Error parseando data-details:", e);
-        Swal.fire('Error','No se pudo leer la información del producto','error');
-        return;
-    }
-    openCustomModalFromJSON(obj);
+// 1. Ver detalles (Botón: .btn-detalle)
+// Llama al API para obtener detalles completos y historial, luego abre el modal.
+$(document).on("click", ".btn-detalle", function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const id = $btn.data('id');
+    const tipo = $btn.data('tipo'); // 'producto' o 'variante'
+    const nombre = $btn.data('nombre');
+    
+    // Llama a la nueva función que hace el AJAX y luego abre el modal.
+    fetchDetalle(id, tipo, nombre);
 });
 
-// Ajuste de stock (abre prompt simple o modal)
+// 2. Ajuste de stock (Botón: .btn-ajuste)
 $(document).on("click", ".btn-ajuste", function(){
-   const isVar = String($(this).data("isvariante")) === "true";
-openMovimientoModal(id, isVar ? 'variante' : 'producto', name, isVar);
-
-});
-
-// Toggle activo/inactivo (botón con class toggle-active)
-$(document).on("click", ".toggle-active", function(){
     const $btn = $(this);
     const id = $btn.data("id");
-    const currentActive = String($btn.data("active")) === 'true';
-    const newStatus = currentActive ? 0 : 1;
+    const nombre = $btn.data("nombre");
+    const tipo = $btn.data("tipo"); // 'producto' o 'variante'
+    const isVar = tipo === 'variante';
+
+    // openMovimientoModal(cod_entidad, type, nombre, hasVariantes)
+    openMovimientoModal(id, tipo, nombre, isVar);
+});
+
+// 3. Toggle activo/inactivo (Botón: .btn-toggle)
+// CRÍTICO: Se cambia el selector de .toggle-active a .btn-toggle 
+// y el atributo de data-active a data-estado.
+$(document).on("click", ".btn-toggle", function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const id = $btn.data("id");
+    // Usamos 'data-estado' que generaste en el PHP (0 o 1)
+    const currentStatus = parseInt($btn.data("estado"), 10);
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    const nombre = $btn.data("nombre");
+
+    const accion = newStatus === 1 ? 'activar' : 'descatalogar';
 
     Swal.fire({
-        title: `¿Confirmar ${newStatus === 1 ? 'activar' : 'descatalogar'}?`,
+        title: `¿Confirmar ${accion} "${nombre}"?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, continuar',
@@ -585,7 +621,7 @@ $(document).on("click", ".toggle-active", function(){
         $.post(API_URL, { action: "toggle_activo", id: id, status: newStatus }, function(res){
             if (res.success) {
                 Swal.fire('Hecho', res.message || 'Estado cambiado', 'success');
-                cargarProductos();
+                cargarProductos(); // Recargar para actualizar la tabla
             } else {
                 Swal.fire('Error', res.message || 'No se pudo cambiar', 'error');
             }
@@ -594,6 +630,7 @@ $(document).on("click", ".toggle-active", function(){
         });
     });
 });
+
 
 /* ==========================
    Modal: abrir con data-details (robusto)
@@ -639,6 +676,47 @@ function openCustomModalFromJSON(obj) {
 
 function cerrarModal(){
     $("#modal").fadeOut(120, function(){ $(this).addClass('hidden'); });
+}
+
+
+/**
+ * Llama al API para obtener detalles completos (incluyendo historial).
+ * Una vez obtenidos, usa openCustomModalFromJSON(obj) para mostrarlo.
+ */
+function fetchDetalle(id, tipo, nombre) {
+    // Puedes mostrar un spinner o mensaje de carga aquí
+    
+    $.ajax({
+        url: API_URL,
+        method: 'GET',
+        // Asegúrate de que tu inventario_api.php tiene el 'case fetch_historial'
+        data: { action: 'fetch_historial', id: id, type: tipo }, 
+        dataType: 'json',
+        success: function(res) {
+            if (res.success && res.data) {
+                // Combina los datos de respuesta con un fallback para el nombre
+                const fullObj = { 
+                    ...res.data, 
+                    historial: res.historial,
+                    // Asegura que la función modal tenga el nombre si el API falla en devolverlo
+                    nom_producto: res.data.nom_producto || nombre,
+                    producto_nombre: res.data.producto_nombre || nombre,
+                };
+                
+                // Abre el modal utilizando tu función existente
+                openCustomModalFromJSON(fullObj);
+
+                // NOTA: Si tu modal requiere que el historial se renderice por separado, 
+                // aquí deberás llamar a esa función (ej: renderizarHistorial(res.historial))
+                
+            } else {
+                Swal.fire('Error', res.message || `No se encontraron detalles para ${nombre}.`, 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Falla de comunicación al obtener los detalles.', 'error');
+        }
+    });
 }
 
 /* ==========================
