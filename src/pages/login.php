@@ -151,6 +151,7 @@ require_once __DIR__ . '/../config/translation.php';
         </section> <!--Fin de login-->
 
                 <script src="../scripts/show_password.js"></script>
+                <script src="../scripts/alertaslogin_y_mostrarcontra.js"></script>
 
     </main>
 
