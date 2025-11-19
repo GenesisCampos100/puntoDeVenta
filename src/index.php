@@ -1,19 +1,26 @@
 <?php
-// 🚀 Iniciar salida antes de cualquier texto
 ob_start();
 session_start();
 
-// ⚙️ Verificar sesión correctamente
+// ⚙️ Verificar sesión
 if (!isset($_SESSION['usuario_id'])) {
-    // ⚠️ Asegurar que no haya espacios o salida antes del header
     header("Location: pages/login.php");
     exit;
 }
 
-// 🔍 Detectar vista
+// Detectar vista
 $view = $_GET['view'] ?? 'nueva_venta';
 
-// 🧭 Rutas válidas
+// Detectar si es una petición AJAX para JSON
+$action = $_GET['action'] ?? null;
+
+// 🟢 Si viene AJAX como "getCliente", NO cargar layout
+if ($view === 'clientes' && $action === 'getCliente') {
+    include __DIR__ . "/pages/clientes_contenido.php";
+    exit; // 🚀 IMPORTANTE
+}
+
+// Rutas válidas
 $views = [
     'nueva_venta' => __DIR__ . "/pages/nueva_venta.php",
     'caja' => __DIR__ . "/pages/caja_contenido.php",
@@ -22,6 +29,7 @@ $views = [
     'agregar_cliente' => __DIR__ . "/pages/agregar_cliente.php",
     'editar_cliente' => __DIR__ . "/pages/editar_cliente.php",
     'eliminar_cliente' => __DIR__ . "/pages/eliminar_cliente.php",
+    'detalle_cliente' => __DIR__ . "/pages/detalle_cliente.php",
     'empleados' => __DIR__ . "/pages/empleados_contenido.php",
     'productos' => __DIR__ . "/pages/productos_contenido.php",
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
@@ -34,13 +42,11 @@ $views = [
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
 ];
 
-// 🔐 Si la vista no existe, mostrar 404
-$contenido = array_key_exists($view, $views)
-    ? $views[$view]
-    : __DIR__ . "/pages/404.php";
+// Si no existe vista → 404
+$contenido = $views[$view] ?? __DIR__ . "/pages/404.php";
 
-// ✅ Incluir el layout (NO debe imprimir antes del header)
+// Cargar layout normal
 include __DIR__ . "/layout.php";
 
-ob_end_flush(); // 🔥 Finalizar buffer
+ob_end_flush();
 ?>
