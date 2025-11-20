@@ -81,6 +81,10 @@ try {
 
     $pdo->commit();
 
+    // ✅ Redirigir al ticket automáticamente
+    header("Location: ../ventas/ticket.php?id_venta=" . $id_venta);
+    exit;
+
     echo "<script>
     localStorage.removeItem('cart');
     alert('✅ Venta registrada con éxito. Total: $" . number_format($total,2) . "');
