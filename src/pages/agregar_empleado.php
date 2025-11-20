@@ -13,7 +13,6 @@
             /* --- Validación de campos obligatorios --- */
             $campos_obligatorios = [
                 'apellido_p' => 'Apellido Paterno',
-                'apellido_m' => 'Apellido Materno',
                 'nombres' => 'Nombre',
                 'correo' => 'Correo',
                 'contra' => 'Contraseña',
@@ -217,7 +216,6 @@
             } catch (Exception $e) {
                 error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
             }
-
             echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
             exit();
         } catch (Exception $e) {
@@ -373,7 +371,7 @@
                         <input type="text" name="apellido_p" maxlength="50">
                     </div>
                     <div>
-                        <label>Apellido Materno: *</label>
+                        <label>Apellido Materno: </label>
                         <input type="text" name="apellido_m" maxlength="50">
                     </div>
                 </div>

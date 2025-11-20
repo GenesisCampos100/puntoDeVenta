@@ -1,271 +1,260 @@
-// ======================
-// VARIABLES GLOBALES
-// ======================
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+// cart.js - manejo del carrito y UI lateral
+document.addEventListener('DOMContentLoaded', () => {
+
+const STORAGE_KEY = 'cart';
+const CLIENT_KEY = 'selectedClient';
+
+// parsear carrito seguro
+let cart = [];
+try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ cart = []; localStorage.removeItem(STORAGE_KEY); }
+
 let globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
 
+// elementos UI
 const cartContainer = document.getElementById("cart-items");
 const subtotalEl = document.getElementById("subtotal");
 const discountEl = document.getElementById("discount");
 const totalEl = document.getElementById("total");
-
 const clearCartBtn = document.getElementById("clear-cart");
-const discountBtn = document.getElementById("discount-btn");
 const payBtn = document.getElementById("pay-btn");
 
-let currentItemIndex = null; // Para saber qué producto estamos editando
+let selectedClient = null;
+try { selectedClient = JSON.parse(localStorage.getItem(CLIENT_KEY)) || null; } catch(e){ selectedClient = null; }
 
-// ======================
-// FUNCIONES AUXILIARES
-// ======================
+// --------------------
+// utilidades
+// --------------------
+function saveCart() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    updateCart();
+}
+
 function getItemDiscountAmount(item) {
-  if (!item.discount) return 0;
-  if (typeof item.discount === "object") {
-    if (item.discount.type === "percent") {
-      return item.price * item.quantity * (item.discount.value / 100);
-    } else {
-      return Number(item.discount.value) || 0;
+    if (!item.discount) return 0;
+    if (typeof item.discount === "object") {
+        return item.discount.type === "percent"
+            ? item.price * item.quantity * (item.discount.value / 100)
+            : Number(item.discount.value) || 0;
     }
-  }
-  return Number(item.discount) || 0; // compatibilidad antigua
-}
-
-function updateCart() {
-  cartContainer.innerHTML = "";
-
-  if (!cart.length) {
-    cartContainer.innerHTML = `
-      <div class="text-center text-gray-500 py-10">
-        <p class="text-lg font-medium">🛒 Tu carrito está vacío</p>
-        <p class="text-sm mt-2">Agrega productos desde el catálogo.</p>
-      </div>`;
-    subtotalEl.textContent = "$0.00";
-    discountEl.textContent = "-$0.00";
-    totalEl.textContent = "$0.00";
-    return;
-  }
-
-  cart.forEach((item, index) => {
-  const itemDiscount = getItemDiscountAmount(item);
-  const itemTotal = item.price * item.quantity - itemDiscount;
-
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = `
-    <div class="relative flex items-center justify-between bg-white shadow-md rounded-2xl p-3 mb-3 w-full">
-      
-      <!-- ETIQUETA DE DESCUENTO -->
-      ${itemDiscount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">-$${itemDiscount.toFixed(2)}</span>` : ''}
-
-      <div class="flex items-center gap-3 w-full">
-        <img src="../${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover">
-        <div class="flex flex-col w-full">
-          <div class="flex justify-between items-center">
-            <p class="font-semibold truncate text-gray-800">${item.name}</p>
-            <div class="flex gap-2">
-              <button class="discount-btn text-blue-600 hover:underline text-sm">Descuento</button>
-              <button class="remove-btn text-red-600 hover:underline text-sm">Eliminar</button>
-            </div>
-          </div>
-
-          <!-- Selects -->
-          ${(item.sizes && item.sizes.length > 0 ? `
-          <div class="flex gap-2 mt-1">
-            <select class="size-select border rounded-lg text-sm font-medium text-center p-2 w-24 focus:ring-1 focus:ring-blue-400">
-              ${item.sizes.map(s => `<option value="${s}" ${s===item.size?'selected':''}>${s}</option>`).join('')}
-            </select>
-            <select class="color-select border rounded-lg text-sm font-medium text-center p-2 w-24 focus:ring-1 focus:ring-blue-400">
-              ${item.colors.map(c => `<option value="${c}" ${c===item.color?'selected':''}>${c}</option>`).join('')}
-            </select>
-          </div>` : `
-          <p class="text-sm text-gray-500 mt-1">Talla: ${item.size}, Color: ${item.color}</p>
-          `)}
-
-          <div class="flex w-full mt-2">
-            <div class="flex items-center gap-2 justify-start w-1/2">
-              <button class="decrease-btn bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300">−</button>
-              <span class="font-medium">${item.quantity}</span>
-              <button class="increase-btn bg-gray-200 px-2 py-1 rounded-lg hover:bg-gray-300">+</button>
-            </div>
-            <div class="flex justify-end items-center w-1/2">
-              <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-
-  const card = wrapper.firstElementChild;
-
-  // --- CANTIDAD ---
-  card.querySelector(".increase-btn").addEventListener("click", () => { item.quantity++; saveCart(); });
-  card.querySelector(".decrease-btn").addEventListener("click", () => { if(item.quantity>1)item.quantity--; saveCart(); });
-
-  // --- DESCUENTO INDIVIDUAL ---
-  card.querySelector(".discount-btn").addEventListener("click", () => {
-    window.openProductDiscountModal(index, item.discount || 0);
-  });
-
-  // --- ELIMINAR ---
-  card.querySelector(".remove-btn").addEventListener("click", () => { cart.splice(index,1); saveCart(); });
-
-  // --- VARIANTES ---
-  const sizeSelect = card.querySelector(".size-select");
-  const colorSelect = card.querySelector(".color-select");
-
-  if(sizeSelect && colorSelect && item.variants && item.variants.length){
-    const colorMap = {};
-    item.variants.forEach(v => {
-      if (!colorMap[v.size]) colorMap[v.size] = [];
-      if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
-    });
-
-    const updateColors = () => {
-      const validColors = colorMap[sizeSelect.value] || [];
-      colorSelect.innerHTML = "";
-      validColors.forEach(color => {
-        const opt = document.createElement("option");
-        opt.value = color;
-        opt.textContent = color;
-        colorSelect.appendChild(opt);
-      });
-      if (!validColors.includes(item.color)) item.color = validColors[0] || "Sin color";
-      colorSelect.value = item.color;
-      updateVariant();
-    };
-
-    const updateVariant = () => {
-      const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
-      if (v) {
-        item.price = parseFloat(v.price);
-        if (v.image) item.img = `uploads/${v.image}`;
-      }
-      const newDiscount = getItemDiscountAmount(item);
-      card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - newDiscount).toFixed(2)}`;
-
-      // Actualizar etiqueta de descuento
-      let discountLabel = card.querySelector(".absolute");
-      if (newDiscount > 0) {
-        if (!discountLabel) {
-          discountLabel = document.createElement("span");
-          discountLabel.className = "absolute top-2 left-2 bg-pink-600 text-white text-xs px-2 py-1 rounded-full";
-          card.prepend(discountLabel);
-        }
-        discountLabel.textContent = `-$${newDiscount.toFixed(2)}`;
-      } else if(discountLabel) {
-        discountLabel.remove();
-      }
-
-      card.querySelector("img").src = item.img;
-      recalcTotals();
-    };
-
-    sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; updateColors(); });
-    colorSelect.addEventListener("change", () => { item.color = colorSelect.value; updateVariant(); });
-
-    updateColors();
-  }
-
-  cartContainer.appendChild(card);
-});
-
-
-  recalcTotals();
-}
-
-// ======================
-// GUARDAR Y RECALCULAR
-// ======================
-function saveCart() { 
-  localStorage.setItem("cart", JSON.stringify(cart)); 
-  updateCart(); 
+    return Number(item.discount) || 0;
 }
 
 function recalcTotals() {
-  let subtotal = 0, individualDiscounts = 0;
+    let subtotal = 0, individualDiscounts = 0;
+    cart.forEach(item => {
+        subtotal += (parseFloat(item.price)||0) * (parseInt(item.quantity)||0);
+        individualDiscounts += getItemDiscountAmount(item);
+    });
+    const subtotalAfterIndividual = subtotal - individualDiscounts;
+    const globalType = localStorage.getItem("globalDiscountType") || "percent";
+    let globalDiscountAmount = (globalType === "percent") ? subtotalAfterIndividual * (globalDiscount/100) : globalDiscount;
+    const totalDiscount = individualDiscounts + globalDiscountAmount;
+    const total = subtotal - totalDiscount;
 
-  cart.forEach(item => {
-    subtotal += item.price * item.quantity;
-    individualDiscounts += getItemDiscountAmount(item);
-  });
-
-  const subtotalAfterIndividual = subtotal - individualDiscounts;
-  let globalDiscountAmount = 0;
-  const globalType = localStorage.getItem("globalDiscountType") || "percent";
-
-  if (globalType === "percent") globalDiscountAmount = subtotalAfterIndividual * (globalDiscount / 100);
-  else globalDiscountAmount = globalDiscount;
-
-  const totalDiscount = individualDiscounts + globalDiscountAmount;
-  const total = subtotal - totalDiscount;
-
-  subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-  discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
-  totalEl.textContent = `$${total.toFixed(2)}`;
+    if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    if (discountEl) discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
+    if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
-// ======================
-// AGREGAR AL CARRITO DESDE GRID
-// ======================
-document.querySelectorAll(".add-to-cart").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const card = btn.closest(".producto");
-    const id = card.dataset.id;
-    const name = card.dataset.name;
-    const price = parseFloat(card.dataset.price);
-    const img = card.dataset.img ? `uploads/${card.dataset.img}` : "uploads/sin-imagen.png";
-    const variants = card.dataset.variants ? JSON.parse(card.dataset.variants) : [];
+// --------------------
+// render carrito
+// --------------------
+function updateCart() {
+    if (!cartContainer) return;
+    cartContainer.innerHTML = '';
 
-    const sizeSelect = card.querySelector(".variant-size");
-    const colorSelect = card.querySelector(".variant-color");
+    const clienteInfo = document.getElementById('cliente_info');
+    const clienteNombreEl = document.getElementById('cliente_nombre');
+    const clienteIdInput = document.getElementById('cliente_id');
+    const hiddenIdClienteForm = document.getElementById('id_cliente');
 
-    const size = sizeSelect ? sizeSelect.value : (card.dataset.sizeDefault || "Única");
-    const color = colorSelect ? colorSelect.value : (card.dataset.colorDefault || "Sin color");
+    if (selectedClient) {
+        clienteInfo?.classList.remove('hidden');
+        if (clienteNombreEl) clienteNombreEl.textContent = selectedClient.nombre;
+        if (clienteIdInput) clienteIdInput.value = selectedClient.id;
+        if (hiddenIdClienteForm) hiddenIdClienteForm.value = selectedClient.id;
+    } else {
+        clienteInfo?.classList.add('hidden');
+        if (clienteNombreEl) clienteNombreEl.textContent = 'No hay cliente seleccionado';
+        if (clienteIdInput) clienteIdInput.value = '';
+        if (hiddenIdClienteForm) hiddenIdClienteForm.value = '';
+    }
 
-    const sizes = sizeSelect ? Array.from(sizeSelect.options).map(o => o.value) : [size];
-    const colors = colorSelect ? Array.from(colorSelect.options).map(o => o.value) : [color];
+    if (!cart.length) {
+        cartContainer.innerHTML = `<div class="text-center text-gray-500 py-10"><p class="text-lg font-medium">🛒 Tu carrito está vacío</p><p class="text-sm mt-2">Agrega productos desde el catálogo.</p></div>`;
+        recalcTotals();
+        return;
+    }
 
-    addToCart({id, name, price, img, size, color, sizes, colors, variants, quantity:1, discount:0});
-  });
-});
+    cart.forEach((item, index) => {
+        const itemDiscount = getItemDiscountAmount(item);
+        const itemTotal = (parseFloat(item.price)||0) * (parseInt(item.quantity)||0) - itemDiscount;
 
-function addToCart(product){
-  const existing = cart.find(p => p.id===product.id && p.size===product.size && p.color===product.color);
-  if(existing){ existing.quantity += product.quantity; existing.price = product.price; existing.img = product.img; }
-  else cart.push(product);
-  saveCart();
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative flex items-center justify-between bg-white shadow-md rounded-2xl p-3 mb-3 w-full';
+        wrapper.innerHTML = `
+            ${itemDiscount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">-$${itemDiscount.toFixed(2)}</span>` : ''}
+            <div class="flex items-center gap-3 w-full">
+                <img src="${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover">
+                <div class="flex flex-col w-full">
+                    <div class="flex justify-between items-center">
+                        <p class="font-semibold truncate text-gray-800">${item.name}</p>
+                        <div class="flex gap-2">
+                            <button class="discount-btn text-blue-600 hover:underline text-sm">Descuento</button>
+                            <button class="remove-btn text-red-600 hover:underline text-sm">Eliminar</button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Talla: ${item.size}, Color: ${item.color}</p>
+                    <div class="flex w-full mt-2 items-center">
+                        <div class="flex items-center gap-2 justify-start w-1/2">
+                            <button class="decrease-btn bg-gray-200 px-2 py-1 rounded-lg">−</button>
+                            <input type="number" class="quantity-input font-medium w-16 text-center border rounded px-2 py-1" min="1" value="${item.quantity}">
+                            <button class="increase-btn bg-gray-200 px-2 py-1 rounded-lg">+</button>
+                        </div>
+                        <div class="flex justify-end items-center w-1/2">
+                            <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // events
+        wrapper.querySelector('.increase-btn').addEventListener('click', () => { item.quantity++; saveCart(); });
+        wrapper.querySelector('.decrease-btn').addEventListener('click', () => { if(item.quantity>1)item.quantity--; saveCart(); });
+        const qtyInput = wrapper.querySelector('.quantity-input');
+        qtyInput.addEventListener('change', () => { item.quantity = Math.max(1, parseInt(qtyInput.value)||1); saveCart(); });
+        wrapper.querySelector('.remove-btn').addEventListener('click', () => { cart.splice(index,1); saveCart(); });
+        wrapper.querySelector('.discount-btn').addEventListener('click', () => { window.openProductDiscountModal(index, item.discount || 0); });
+
+        cartContainer.appendChild(wrapper);
+    });
+
+    recalcTotals();
 }
 
-// Vaciar carrito
-clearCartBtn?.addEventListener("click", () => {
-  cart = [];
-  globalDiscount = 0;
-  saveCart();
+// --------------------
+// agregar desde grid
+// --------------------
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const article = btn.closest('.producto');
+        const code = article.dataset.code;
+        const name = article.dataset.name;
+        const price = parseFloat(article.dataset.price);
+        const img = article.dataset.img;
+        const category = article.dataset.category;
+        const sizeSelect = article.querySelector('.variant-size');
+        const colorSelect = article.querySelector('.variant-color');
+        const size = sizeSelect ? sizeSelect.value : 'Única';
+        const color = colorSelect ? colorSelect.value : 'Sin color';
+        const variants = article.dataset.variants ? JSON.parse(article.dataset.variants) : [];
+
+        const product = { cod_barras: code, code, name, price, img, category, size, color, variants, quantity:1, discount:0 };
+
+        const existingIndex = cart.findIndex(i=>i.cod_barras===product.cod_barras && i.size===size && i.color===color);
+        if(existingIndex>=0) cart[existingIndex].quantity +=1;
+        else cart.push(product);
+        saveCart();
+    });
 });
 
-// Pagar
-payBtn?.addEventListener("click", () => {
-  document.dispatchEvent(new CustomEvent("openPaymentModal"));
+// cliente: cambiar/eliminar
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'eliminarCliente') {
+    localStorage.removeItem(CLIENT_KEY);
+    selectedClient = null;
+    updateCart();
+  }
+  if (e.target && e.target.id === 'cambiarCliente') {
+    const modal = document.getElementById('modalClientes');
+    if (modal) { modal.classList.remove('hidden'); }
+  }
 });
 
-// ======================
-// DESCUENTOS GLOBALES E INDIVIDUALES
-// ======================
+// exponer guardarCliente globalmente
+window.guardarCliente = function(id, nombre, telefono = '') {
+  selectedClient = { id: String(id), nombre: String(nombre), telefono: telefono };
+  localStorage.setItem(CLIENT_KEY, JSON.stringify(selectedClient));
+  updateCart();
+};
 
-
-document.addEventListener("applyGlobalDiscount", (e) => {
-  const { value, type } = e.detail;
-  globalDiscount = value;
-  localStorage.setItem("globalDiscount", globalDiscount);
-  localStorage.setItem("globalDiscountType", type);
-  recalcTotals();
-});
-
-document.addEventListener("applyProductDiscount", (e) => {
+// recibir descuentos desde modal.js
+document.addEventListener('applyProductDiscount', e => {
   const { index, value, type } = e.detail;
   if (cart[index]) {
     cart[index].discount = { value, type };
     saveCart();
   }
 });
+document.addEventListener('applyGlobalDiscount', e => {
+  globalDiscount = e.detail.value || 0;
+  localStorage.setItem('globalDiscount', globalDiscount);
+  localStorage.setItem('globalDiscountType', e.detail.type || 'percent');
+  recalcTotals();
+});
+
+
+// --------------------
+// limpiar carrito
+// --------------------
+clearCartBtn?.addEventListener('click', () => { cart=[]; localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('globalDiscount'); saveCart(); });
+
+// --------------------
+// abrir modal de pago
+// --------------------
+payBtn?.addEventListener("click", () => {
+    const paymentModal = document.getElementById('payment-modal');
+    // setear inputs del modal
+    document.getElementById("cart-data-input").value = JSON.stringify(cart);
+    document.getElementById("cliente-input").value = selectedClient?.id||"";
+    document.getElementById("descuento-general-input").value = globalDiscount;
+    document.getElementById("descuento-general-type").value = localStorage.getItem("globalDiscountType") || "percent";
+    // calcular subtotal y total
+    let subtotal = 0, individualDiscounts=0;
+    cart.forEach(item=>{subtotal+=item.price*item.quantity; individualDiscounts+=getItemDiscountAmount(item);});
+    const subtotalAfterIndividual = subtotal - individualDiscounts;
+    const globalType = localStorage.getItem("globalDiscountType")||"percent";
+    let globalDiscountAmount = globalType==="percent"? subtotalAfterIndividual*(globalDiscount/100):globalDiscount;
+    const total = subtotal - (individualDiscounts+globalDiscountAmount);
+    document.getElementById("subtotal-input").value = subtotal.toFixed(2);
+    document.getElementById("total-input").value = total.toFixed(2);
+
+    paymentModal?.classList.remove('hidden');
+});
+
+// --------------------
+// recibir venta desde modal.js
+// --------------------
+document.addEventListener('processPayment', async (e)=>{
+    const { metodo, referencia, monto } = e.detail;
+    const formData = new FormData();
+    formData.append('cart_data', JSON.stringify(cart));
+    formData.append('tipo_pago', metodo);
+    formData.append('id_cliente', selectedClient?.id||'');
+    formData.append('descuento_general', document.getElementById("descuento-general-input").value);
+    formData.append('tipo_descuento_general', document.getElementById("descuento-general-type").value);
+    formData.append('subtotal', document.getElementById("subtotal-input").value);
+    formData.append('total', document.getElementById("total-input").value);
+    formData.append('monto', monto||document.getElementById("total-input").value);
+    formData.append('referencia', referencia||"");
+
+    try {
+        const r = await fetch('scripts/procesar_venta.php', { method:'POST', body: formData });
+        const data = await r.json();
+        if(data.status==='success'){
+            alert(`✅ Venta registrada. Total: $${data.total}`);
+            cart=[]; localStorage.removeItem('cart'); localStorage.removeItem('globalDiscount'); updateCart();
+            document.getElementById('payment-modal')?.classList.add('hidden');
+        } else {
+            alert(`❌ ${data.message||'Error al registrar la venta'}`);
+            console.error('Error procesar_venta:', data);
+        }
+    } catch(err){
+        console.error('Error fetch procesar_venta:', err);
+        alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
+    }
+});
 
 updateCart();
+});
