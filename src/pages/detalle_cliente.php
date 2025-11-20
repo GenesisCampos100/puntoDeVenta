@@ -2,6 +2,11 @@
 // pages/detalle_cliente.php
 require_once __DIR__ . '/../config/db.php';
 
+
+// -------------------------
+// Mostrar errores (opcional, quitar en producción)
+// ini_set('display_errors', 1); ini_set('display_startup_errors', 1); error_reporting(E_ALL);
+
 // -------------------------
 // Validar ID (GET)
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -23,26 +28,36 @@ if (!$cliente) {
 }
 
 // -------------------------
-// Obtener compras
+// Obtener compras (ventas) + pagos agregados por venta
+// Traemos total de la venta y suma de pagos (monto_pagado) y métodos concatenados
 $stmt2 = $pdo->prepare("
-    SELECT id_venta, fecha, tipo_pago, pago_total
-    FROM ventas
-    WHERE id_cliente = :id
-    ORDER BY fecha DESC
+    SELECT
+      v.id_venta,
+      v.fecha,
+      v.subtotal,
+      v.descuento_general,
+      v.total,
+      GROUP_CONCAT(DISTINCT p.metodo SEPARATOR ', ') AS metodo_pago,
+      IFNULL(SUM(p.monto), 0) AS monto_pagado
+    FROM ventas v
+    LEFT JOIN pagos_venta p ON p.id_venta = v.id_venta
+    WHERE v.id_cliente = :id
+    GROUP BY v.id_venta, v.fecha, v.subtotal, v.descuento_general, v.total
+    ORDER BY v.fecha DESC
 ");
 $stmt2->execute(['id' => $id]);
 $compras = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
 // -------------------------
-// Total gastado
-$stmtSum = $pdo->prepare("SELECT IFNULL(SUM(pago_total),0) as total FROM ventas WHERE id_cliente = :id");
+// Total gastado (sumando total desde ventas)
+$stmtSum = $pdo->prepare("SELECT IFNULL(SUM(total),0) as total FROM ventas WHERE id_cliente = :id");
 $stmtSum->execute(['id' => $id]);
 $totalGastado = (float)$stmtSum->fetchColumn();
 
 // -------------------------
-// Gasto por mes últimos 12 meses
+// Gasto por mes últimos 12 meses (SUM(total))
 $stmtMonths = $pdo->prepare("
-    SELECT DATE_FORMAT(fecha, '%Y-%m') as ym, DATE_FORMAT(fecha,'%b %Y') as label, SUM(pago_total) as total
+    SELECT DATE_FORMAT(fecha, '%Y-%m') as ym, DATE_FORMAT(fecha,'%b %Y') as label, IFNULL(SUM(total),0) as total
     FROM ventas
     WHERE id_cliente = :id
     GROUP BY ym
@@ -60,7 +75,7 @@ foreach ($monthsRaw as $m) {
 }
 
 // Avatar iniciales
-$iniciales = strtoupper(substr($cliente['nombre'] ?? '',0,1) . substr($cliente['apellido_paterno'] ?? '',0,1) ?: 'CL');
+$iniciales = strtoupper((substr($cliente['nombre'] ?? '',0,1) . substr($cliente['apellido_paterno'] ?? '',0,1)) ?: 'CL');
 ?>
 <!doctype html>
 <html lang="es">
@@ -99,11 +114,12 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
 }
 </style>
 </head>
+
 <body class="p-6">
 <div class="max-w-7xl mx-auto">
 
   <!-- HEADER -->
-  <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+  <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
     <div>
       <h1 class="text-2xl font-bold">Detalle del cliente</h1>
       <p class="text-sm text-gray-600 mt-1">Información completa y resumen de compras.</p>
@@ -113,11 +129,6 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
       <a href="index.php?view=clientes" class="px-4 py-2 rounded-lg border hover:bg-gray-50 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         Volver
-      </a>
-
-      <a href="index.php?view=editar_cliente&id=<?= $cliente['id_cliente'] ?>" class="px-4 py-2 rounded-lg btn-primary hover:opacity-95 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h6M4 7v10a2 2 0 0 0 2 2h10"/></svg>
-        Editar
       </a>
 
       <button id="btnEliminar" class="px-4 py-2 rounded-lg btn-danger hover:opacity-95 flex items-center gap-2">
@@ -151,7 +162,7 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
               <div class="text-sm text-gray-500">Total gastado</div>
               <div class="text-2xl font-semibold">$<?= number_format($totalGastado,2) ?></div>
             </div>
-            <div class="text-xs text-gray-400">USD</div>
+            <div class="text-xs text-gray-400">MXN</div>
           </div>
 
           <div class="stat">
@@ -177,52 +188,100 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
         <div id="chart" style="height: 340px;"></div>
       </div>
 
-      <!-- COMPRAS TABLE -->
-      <div class="card">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">Compras</h3>
-          <div class="text-sm text-gray-500"><?= count($compras) ?> registros</div>
+    <!-- COMPRAS TABLE -->
+    <div class="card mb-10">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Compras</h3>
+        <div class="text-sm text-gray-500"><?= count($compras) ?> registros</div>
+    </div>
+
+    <?php if (count($compras) === 0): ?>
+        <p class="text-gray-600">Este cliente aún no tiene compras registradas.</p>
+    <?php else: ?>
+
+        <?php 
+        // Ordenar por fecha ASC (más antigua primero)
+        usort($compras, function($a, $b) {
+            return strtotime($a['fecha']) - strtotime($b['fecha']);
+        });
+
+        $i = 1; // Enumeración
+        ?>
+
+        <div class="overflow-x-auto">
+        <table class="table w-full">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Método pago</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($compras as $c): ?>
+                <tr>
+                <td><?= $i++ ?></td>
+                <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($c['fecha']))) ?></td>
+                <td><?= htmlspecialchars($c['metodo_pago'] ?? '-') ?></td>
+                <td>$<?= number_format($c['total'],2) ?></td>
+                <td class="text-right">
+                    <a href="#" 
+                    class="btnVerVenta text-blue-600 hover:underline inline-flex items-center gap-2"
+                    data-id="<?= $c['id_venta'] ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Ver
+                    </a>
+                </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
         </div>
 
-        <?php if (count($compras) === 0): ?>
-          <p class="text-gray-600">Este cliente aún no tiene compras registradas.</p>
-        <?php else: ?>
-          <div class="overflow-x-auto">
-            <table class="table w-full">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Fecha</th>
-                  <th>Método pago</th>
-                  <th>Total</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($compras as $c): ?>
-                  <tr>
-                    <td>#<?= htmlspecialchars($c['id_venta']) ?></td>
-                    <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($c['fecha']))) ?></td>
-                    <td><?= htmlspecialchars(ucfirst($c['tipo_pago'])) ?></td>
-                    <td>$<?= number_format($c['pago_total'],2) ?></td>
-                    <td class="text-right">
-                      <a href="index.php?view=ventas&id=<?= $c['id_venta'] ?>" class="text-blue-600 hover:underline inline-flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        Ver
-                      </a>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
-        <?php endif; ?>
-      </div>
+    <?php endif; ?>
+    </div>
+
+
+
 
     </main>
 
   </div>
 </div>
+
+<!-- MODAL TAILWIND -->
+<div id="modalTW" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[999] opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="modalTWContent" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 scale-90 transition-transform duration-300">
+        
+        <div class="flex justify-between items-center border-b pb-3">
+            <h2 class="text-xl font-bold">Detalle de Venta</h2>
+            <button onclick="cerrarModalTW()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+
+        <div id="contenidoTW" class="py-6">
+            <div class="flex justify-center py-6">
+                <div class="animate-spin h-10 w-10 border-t-4 border-gray-700 rounded-full"></div>
+            </div>
+        </div>
+
+        <div class="flex justify-end border-t pt-3 mt-3">
+            <button onclick="cerrarModalTW()" class="px-4 py-2 rounded-xl bg-gray-800 text-white hover:bg-gray-700 transition">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
 
 <script>
 const chartLabels = <?= json_encode($chartLabels, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>;
@@ -278,6 +337,55 @@ document.getElementById('btnEliminar').addEventListener('click', function(){
     .catch(err => Swal.fire('Error', 'Error en el servidor: ' + err, 'error'));
   });
 });
+
+
+function abrirModalTW() {
+    const modal = document.getElementById('modalTW');
+    const content = document.getElementById('modalTWContent');
+
+    modal.classList.remove("opacity-0", "pointer-events-none");
+    setTimeout(() => {
+        content.classList.remove("scale-90");
+        content.classList.add("scale-100");
+    }, 10);
+}
+
+function cerrarModalTW() {
+    const modal = document.getElementById('modalTW');
+    const content = document.getElementById('modalTWContent');
+
+    content.classList.add("scale-90");
+    content.classList.remove("scale-100");
+
+    setTimeout(() => {
+        modal.classList.add("opacity-0", "pointer-events-none");
+    }, 200);
+}
+
+// EVENTO PARA VER DETALLE
+document.querySelectorAll('.btnVerVenta').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const idVenta = this.getAttribute('data-id');
+
+        document.getElementById("contenidoTW").innerHTML = `
+            <div class="flex justify-center py-6">
+                <div class="animate-spin h-10 w-10 border-t-4 border-gray-700 rounded-full"></div>
+            </div>
+        `;
+
+        // Cargar modal
+        fetch('/puntoDeVenta/src/pages/detalle_venta_modal.php?id=' + idVenta)
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("contenidoTW").innerHTML = html;
+            });
+
+        abrirModalTW();
+    });
+});
 </script>
+
 </body>
 </html>

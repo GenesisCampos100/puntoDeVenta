@@ -1,8 +1,44 @@
 <?php
-// clientes_contenido.php
+// clientes_contenido_tweaked.php
 require_once __DIR__ . '/../config/db.php'; // <<--- ajusta ruta si es necesario
 
-// Si viene acción AJAX → devolver JSON
+// ----------------------
+// Nota importante:
+// - Este archivo mejora UI y UX con Tailwind, animaciones y búsqueda en tiempo real.
+// - La tabla muestra un índice 1..N en vez del id_cliente bruto.
+// - Al eliminar un cliente el script intentará RE-INDEXAR (reenumerar) id_cliente en la tabla
+//   solo si NO existen claves foráneas apuntando a `clientes`. Si existen, NO tocará la DB
+//   (por seguridad). En entornos reales, no es recomendable renumerar claves primarias
+//   porque puede romper relaciones. Mejor usar un índice visual separado.
+// ----------------------
+
+
+// ----------------------
+// Helper: comprobar si existen FK que referencien a la tabla 'clientes'
+// ----------------------
+function hasForeignKeysReferencingClientes($pdo) {
+    try {
+        // Obtener nombre de la BD actual
+        $stmt = $pdo->query("SELECT DATABASE() AS db");
+        $db = $stmt->fetchColumn();
+        if (!$db) return true; // si no podemos saber, asumimos que sí para ser conservadores
+
+        $sql = "SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE
+                WHERE REFERENCED_TABLE_SCHEMA = :db
+                  AND REFERENCED_TABLE_NAME = 'clientes'";
+        $s = $pdo->prepare($sql);
+        $s->execute([':db' => $db]);
+        $count = (int) $s->fetchColumn();
+        return $count > 0;
+    } catch (Exception $e) {
+        // Si falla la consulta, asumimos que hay FK para evitar modificaciones peligrosas
+        return true;
+    }
+}
+
+// ----------------------
+// AJAX: obtener cliente por id
+// ----------------------
 if (isset($_GET['action']) && $_GET['action'] === "getCliente") {
     header("Content-Type: application/json; charset=utf-8");
 
@@ -29,7 +65,7 @@ if (isset($_GET['action']) && $_GET['action'] === "getCliente") {
 // Helper: intentar obtener ventas por cliente probando nombres comunes de tabla
 // ----------------------
 function getVentasByClienteTryTables($pdo, $clienteId) {
-    $tables = ['ventad','venta','ventas','venta_d']; // priorizamos 'ventad' si es tu tabla
+    $tables = ['ventad','venta','ventas','venta_d'];
     foreach ($tables as $t) {
         try {
             $sql = "SELECT id_venta, fecha, tipo_pago, pago_total, id_empleado FROM `$t` WHERE id_cliente = :id ORDER BY fecha DESC";
@@ -44,17 +80,16 @@ function getVentasByClienteTryTables($pdo, $clienteId) {
     return ['error' => 'No se encontró la tabla de ventas (verifica: ventad / venta / ventas).'];
 }
 
-
-
-
 // ----------------------
-// Handler: Búsqueda en tiempo real -> JSON (GET ?action=search&q=... or &name=...&email=...)
+// AJAX: búsqueda en tiempo real -> JSON
 // ----------------------
 if (isset($_GET['action']) && $_GET['action'] === 'search') {
     header('Content-Type: application/json; charset=utf-8');
     $q = isset($_GET['q']) ? trim($_GET['q']) : '';
     $nameFilter = isset($_GET['name']) ? trim($_GET['name']) : '';
     $emailFilter = isset($_GET['email']) ? trim($_GET['email']) : '';
+    $estadoFilter = isset($_GET['estado']) ? trim($_GET['estado']) : '';
+
     $whereParts = [];
     $params = [];
 
@@ -70,14 +105,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
         $whereParts[] = "correo LIKE :email";
         $params[':email'] = "%$emailFilter%";
     }
+    if ($estadoFilter !== '') {
+        // Este campo "estado" es genérico: se asume que está guardado en la columna 'estado'
+        $whereParts[] = "estado = :estado";
+        $params[':estado'] = $estadoFilter;
+    }
 
     $sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes";
     if (!empty($whereParts)) $sql .= " WHERE " . implode(' AND ', $whereParts);
-    $sql .= " ORDER BY id_cliente DESC LIMIT 100";
+    $sql .= " ORDER BY id_cliente ASC LIMIT 100"; // orden ascendente para numerar 1..N de forma estable
+
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         // Enviar una versión "display" para cada fila (compact)
         $data = array_map(function($r){
             $displayName = trim($r['nombre'].' '.$r['apellido_paterno'].' '.$r['apellido_materno']);
@@ -87,7 +129,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
                 'nombre' => $displayName,
                 'celular' => $r['celular'] ?? '',
                 'correo' => $r['correo'] ?? '',
-                'direccion' => $direccion
+                'direccion' => $direccion,
+                'estado' => $r['estado'] ?? ''
             ];
         }, $rows);
         echo json_encode(['success'=>true,'clientes'=>$data]);
@@ -98,7 +141,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
 }
 
 // ----------------------
-// Handler: Obtener ventas (GET ?action=getVentas&id=...)
+// AJAX: obtener ventas por cliente
 // ----------------------
 if (isset($_GET['action']) && $_GET['action'] === 'getVentas' && isset($_GET['id'])) {
     header('Content-Type: application/json; charset=utf-8');
@@ -117,7 +160,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'getVentas' && isset($_GET['id
 }
 
 // ----------------------
-// Eliminar via POST JSON a este archivo (fetch) => action=delete
+// AJAX: eliminar via POST JSON a este archivo (fetch) => action=delete
+// Después de eliminar intentamos reindexar si NO hay FK externos
 // ----------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'delete') {
     header('Content-Type: application/json; charset=utf-8');
@@ -128,11 +172,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         echo json_encode(['success'=>false,'error'=>'ID inválido']);
         exit;
     }
+
     try {
+        // borrar
+        $pdo->beginTransaction();
         $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente = :id");
         $stmt->execute([':id'=>$id]);
-        echo json_encode(['success'=>true]);
+
+        $reindexed = false;
+        $reindexWarning = null;
+
+        // Intentar reindexar solo si NO existen FK externos
+        if (!hasForeignKeysReferencingClientes($pdo)) {
+            // Renumerar con variable de usuario: cuidado en producción
+            // Nota: este método es destructivo respecto a IDs. Úsalo solo si entiendes las consecuencias.
+            // Usamos una tabla temporal para evitar problemas con MySQL que impide actualizar la PK en el mismo orden en algunas versiones.
+            try {
+                // Alternativa portátil: crear tabla temporal, copiar, truncar, volver a insertar
+                $tmp = 'clientes_tmp_reindex_' . time();
+                $pdo->exec("CREATE TABLE `$tmp` LIKE clientes");
+                $pdo->exec("ALTER TABLE `$tmp` DROP PRIMARY KEY");
+                // Insert rows in old order into temp
+                $pdo->exec("INSERT INTO `$tmp` (nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado)
+                            SELECT nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes ORDER BY id_cliente ASC");
+                // Truncate original
+                $pdo->exec("TRUNCATE TABLE clientes");
+                // Recreate with auto_increment starting from 1 and primary key id_cliente
+                // If original table had auto_increment PK, we need to add it back
+                // Assuming original schema had id_cliente INT AUTO_INCREMENT PRIMARY KEY
+                $pdo->exec("ALTER TABLE clientes ADD id_cliente INT NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST");
+                // Insert back from tmp (id will be reassigned)
+                $cols = '(nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado)';
+                $pdo->exec("INSERT INTO clientes $cols SELECT $cols FROM `$tmp` ORDER BY id_cliente ASC");
+                // Drop tmp
+                $pdo->exec("DROP TABLE `$tmp`");
+
+                $reindexed = true;
+            } catch (Exception $e) {
+                // si algo falla revertimos y avisamos
+                $pdo->rollBack();
+                echo json_encode(['success'=>false,'error'=>'Error al reindexar: '.$e->getMessage()]);
+                exit;
+            }
+        } else {
+            $reindexWarning = 'Se detectaron claves foráneas apuntando a clientes; la tabla no fue reindexada para evitar romper relaciones.';
+        }
+
+        $pdo->commit();
+        echo json_encode(['success'=>true,'reindexed'=>$reindexed,'warning'=>$reindexWarning]);
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         echo json_encode(['success'=>false,'error'=>$e->getMessage()]);
     }
     exit;
@@ -141,7 +230,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 // ----------------------
 // Mostrar HTML (server-rendered initial table + fallback)
 // ----------------------
-// Flash
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
@@ -165,10 +253,14 @@ if ($emailFilter !== '') {
     $whereParts[] = "correo LIKE :email";
     $params[':email'] = "%$emailFilter%";
 }
+if ($estadoFilter !== '') {
+    $whereParts[] = "estado = :estado";
+    $params[':estado'] = $estadoFilter;
+}
 
 $sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes";
 if (!empty($whereParts)) $sql .= " WHERE " . implode(' AND ', $whereParts);
-$sql .= " ORDER BY id_cliente DESC LIMIT 200";
+$sql .= " ORDER BY id_cliente ASC LIMIT 500";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -178,7 +270,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Clientes — Punto de Venta</title>
+  <title>Clientes — Punto de Venta (Mejorado)</title>
 
   <!-- Poppins -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -189,45 +281,40 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <!-- ENCABEZADO PROFESIONAL -->
+<div class="mb-6">
+<h1 class="text-4xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+<i class="fa-solid fa-users text-blue-600"></i>
+Gestión de Clientes
+</h1>
+<p class="text-gray-600">Administra, filtra y busca entre todos tus clientes.</p>
+</div>
+
   <style>
-    :root{
-      --verde: #b4c24d;
-      --azul:  #2d4353;
-      --rosa:  #e15871;
-      --gris:  #eeeeee;
-      --font: 'Poppins', sans-serif;
-    }
+    :root{ --verde: #b4c24d; --azul:  #2d4353; --rosa:  #e15871; --gris:  #f7f7f8; --font: 'Poppins', sans-serif; }
     body { font-family: var(--font); background: linear-gradient(180deg,#ffffff 0%, #f7fafc 100%); color: #0f172a; }
     .btn-primary { background: var(--verde); color: white; }
-    .input-error { border-color: var(--rosa) !important; box-shadow: 0 0 0 4px rgba(225,89,113,0.06); }
 
-    /* Animaciones & WOW */
-    @keyframes popIn { from { opacity:0; transform: translateY(10px) scale(.98) } to { opacity:1; transform: translateY(0) scale(1) } }
-    .animate-pop { animation: popIn .42s cubic-bezier(.2,.9,.3,1) both; }
+    @keyframes popIn { from { opacity:0; transform: translateY(8px) scale(.995) } to { opacity:1; transform: translateY(0) scale(1) } }
+    .animate-pop { animation: popIn .36s cubic-bezier(.2,.9,.3,1) both; }
     @keyframes slideUp { from { opacity:0; transform: translateY(12px) } to { opacity:1; transform: translateY(0) } }
-    .animate-slideUp { animation: slideUp .5s cubic-bezier(.2,.9,.3,1) both; }
+    .animate-slideUp { animation: slideUp .45s cubic-bezier(.2,.9,.3,1) both; }
 
-    /* Modal basics */
-    .modal-backdrop { background: rgba(2,6,23,0.6); backdrop-filter: blur(4px); }
     .card-wow { transform-origin: center; transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s; }
     .card-wow:hover { transform: translateY(-6px) scale(1.005); box-shadow: 0 18px 40px rgba(45,67,83,0.06); }
 
-    /* small helpers */
     .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   </style>
 </head>
 <body class="p-6 bg-[var(--gris)]">
   <div class="max-w-7xl mx-auto animate-pop">
 
-    <!-- ============================
-         HEADER PREMIUM (BUSCADOR / FILTROS / AGREGAR)
-         ============================ -->
+    <!-- HEADER -->
     <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col lg:flex-row gap-4 lg:items-center justify-between border-b border-gray-100 mb-6 animate-slideUp">
-        <!-- BUSCADOR (UNIFICADO - tiempo real) -->
         <div class="flex items-center gap-3 w-full lg:w-3/5">
             <div class="relative w-full">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="busqueda" type="text" placeholder="Buscar por nombre o correo..." value="<?= htmlspecialchars($q ?: $nameFilter ?: $emailFilter) ?>"
+                <input id="busqueda" type="text" placeholder="Buscar por nombre, correo o celular..." value="<?= htmlspecialchars($q ?: $nameFilter ?: $emailFilter) ?>"
                        class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-[var(--verde)] focus:border-[var(--verde)] transition duration-150"/>
                 <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[var(--rosa)] <?= ($q==='' && $nameFilter==='' && $emailFilter==='') ? 'hidden' : '' ?>">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -235,7 +322,6 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
 
-        <!-- FILTROS Y BOTÓN AGREGAR -->
         <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
             <select id="estadoFiltro" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-[var(--verde)]/50 focus:border-[var(--verde)] transition duration-150">
                 <option value="">Todos los estados</option>
@@ -251,9 +337,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- ============================
-         TABLA DE CLIENTES (RENDERIZADA POR JS EN BÚSQUEDA EN TIEMPO REAL)
-         ============================ -->
+    <!-- TABLA -->
     <div id="tabla-wrap" class="bg-white rounded-2xl shadow p-4 card-wow">
       <?php if($flash): ?>
         <div id="flash-data" data-msg="<?=htmlspecialchars($flash['msg'])?>" data-type="<?=htmlspecialchars($flash['type'])?>" style="display:none"></div>
@@ -263,7 +347,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <table id="tabla-clientes" class="min-w-full divide-y">
           <thead class="bg-[var(--gris)] rounded-t-lg">
             <tr>
-              <th class="px-4 py-3 text-left text-sm font-medium">ID</th>
+              <th class="px-4 py-3 text-left text-sm font-medium">#</th>
               <th class="px-4 py-3 text-left text-sm font-medium">Nombre</th>
               <th class="px-4 py-3 text-left text-sm font-medium">Celular</th>
               <th class="px-4 py-3 text-left text-sm font-medium">Correo</th>
@@ -272,16 +356,16 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </tr>
           </thead>
           <tbody id="tabla-body" class="divide-y">
-            <!-- Server-rendered rows as fallback / first paint -->
+            <!-- Server-rendered rows as fallback / first paint (agregamos índice visual) -->
             <?php if (count($clientes)===0): ?>
               <tr><td colspan="6" class="p-6 text-center text-gray-500">No hay clientes registrados.</td></tr>
             <?php else: ?>
-              <?php foreach($clientes as $c): 
+              <?php $idx = 0; foreach($clientes as $c): $idx++;
                 $displayName = htmlspecialchars(trim($c['nombre'].' '.$c['apellido_paterno'].' '.$c['apellido_materno']));
                 $direccion = htmlspecialchars(trim(($c['calle'] ?? '') . ' ' . ($c['num_ext'] ?? '') . ' ' . ($c['num_int'] ?? '') . ' ' . ($c['colonia'] ?? '') . ' ' . ($c['cp'] ?? '') . ' ' . ($c['estado'] ?? '')));
               ?>
                 <tr class="hover:bg-gray-50 transition">
-                  <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['id_cliente'])?></td>
+                  <td class="px-4 py-3 text-sm font-medium"><?= $idx ?></td>
                   <td class="px-4 py-3 text-sm"><?= $displayName ?></td>
                   <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['celular'])?></td>
                   <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['correo'])?></td>
@@ -294,6 +378,8 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                   </td>
                 </tr>
+
+                
               <?php endforeach; ?>
             <?php endif; ?>
           </tbody>
@@ -303,12 +389,8 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   </div>
 
-  <!-- ============================
-       MODAL: DETALLES DEL CLIENTE (solo datos básicos)
-       - "Ver más" -> detalle_cliente.php?id=...
-       - "Cargar en formulario" -> editar_cliente
-       ============================ -->
-  <div id="modalDetalle" class="fixed inset-0 hidden items-center justify-center z-50">
+  <!-- MODAL -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
     <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden animate-slideUp">
       <div class="p-4 border-b flex items-center justify-between">
@@ -345,10 +427,8 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="flex items-center justify-end gap-3">
-          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg border text-sm">Ver más</a>
-          <button id="btnCargarEnForm" class="px-4 py-2 rounded-lg btn-primary">Cargar en formulario</button>
+          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg btn-primary"> Ver más</a>
         </div>
-        
       </div>
     </div>
   </div>
@@ -360,18 +440,18 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
   function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
   // ----------------------
-  // Real-time search (name/email unified)
+  // Elementos
   // ----------------------
   const inputSearch = document.getElementById('busqueda');
   const estadoFiltro = document.getElementById('estadoFiltro');
   const clearSearch = document.getElementById('clear-search');
   const tablaBody = document.getElementById('tabla-body');
 
-  // build row HTML
-  function rowHtml(item){
+  // construir fila HTML (recibe índice visual)
+  function rowHtml(item, index){
     const direccion = item.direccion || '-';
     return `<tr class="hover:bg-gray-50 transition">
-      <td class="px-4 py-3 text-sm">${item.id_cliente}</td>
+      <td class="px-4 py-3 text-sm font-medium">${index}</td>
       <td class="px-4 py-3 text-sm">${escapeHtml(item.nombre)}</td>
       <td class="px-4 py-3 text-sm">${escapeHtml(item.celular)}</td>
       <td class="px-4 py-3 text-sm">${escapeHtml(item.correo)}</td>
@@ -386,57 +466,35 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </tr>`;
   }
 
-  // escape helpers
   function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"'`]/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' })[s]); }
   function escapeJs(str){ if(!str) return ''; return String(str).replace(/'/g,"\\'").replace(/\n/g,' '); }
 
   const doSearch = debounce(() => {
     const q = inputSearch.value.trim();
     const estado = estadoFiltro ? estadoFiltro.value.trim() : '';
-    // call search endpoint
     fetch(`${location.pathname}?action=search&q=${encodeURIComponent(q)}&estado=${encodeURIComponent(estado)}`)
       .then(r => r.json())
       .then(json => {
-        if (!json.success) {
-          // leave server-rendered content
-          return;
-        }
+        if (!json.success) return;
         const rows = json.clientes || [];
         if (rows.length === 0) {
           tablaBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">No hay clientes registrados.</td></tr>';
           return;
         }
-        tablaBody.innerHTML = rows.map(r => rowHtml(r)).join('');
+        // enumerar 1..N en UI
+        tablaBody.innerHTML = rows.map((r,i) => rowHtml(r, i+1)).join('');
       })
-      .catch(err => {
-        console.error('search err', err);
-      });
-  }, 300);
+      .catch(err => console.error('search err', err));
+  }, 220);
 
-  inputSearch && inputSearch.addEventListener('input', () => {
-    clearSearch.classList.remove('hidden');
-    doSearch();
-  });
+  inputSearch && inputSearch.addEventListener('input', () => { clearSearch.classList.remove('hidden'); doSearch(); });
+  clearSearch && clearSearch.addEventListener('click', () => { inputSearch.value = ''; clearSearch.classList.add('hidden'); doSearch(); });
+  estadoFiltro && estadoFiltro.addEventListener('change', () => { doSearch(); });
 
-  clearSearch && clearSearch.addEventListener('click', () => {
-    inputSearch.value = '';
-    clearSearch.classList.add('hidden');
-    doSearch();
-  });
-
-  estadoFiltro && estadoFiltro.addEventListener('change', () => {
-    doSearch();
-  });
+  document.getElementById('btnAgregar') && document.getElementById('btnAgregar').addEventListener('click', () => { window.location.href = 'index.php?view=agregar_cliente'; });
 
   // ----------------------
-  // Add / Back
-  // ----------------------
-  document.getElementById('btnAgregar') && document.getElementById('btnAgregar').addEventListener('click', () => {
-    window.location.href = 'index.php?view=agregar_cliente';
-  });
-
-  // ----------------------
-  // Delete with SweetAlert
+  // Delete with SweetAlert + re-fetch
   // ----------------------
   function confirmDelete(id, nombre){
     Swal.fire({
@@ -456,7 +514,10 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .then(r => r.json())
         .then(json => {
           if(json.success){
-            Swal.fire({title:'Eliminado', text:'Cliente eliminado correctamente', icon:'success', confirmButtonColor:'var(--verde)'}).then(()=> doSearch());
+            let msg = 'Cliente eliminado correctamente.';
+            if(json.reindexed) msg += ' Tabla reindexada.';
+            if(json.warning) msg += ' ' + json.warning;
+            Swal.fire({title:'Eliminado', text: msg, icon:'success', confirmButtonColor:'var(--verde)'}).then(()=> doSearch());
           } else {
             Swal.fire('Error', json.error || 'No se pudo eliminar','error');
           }
@@ -467,95 +528,45 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
 
   // ----------------------
-// Modal: abrir detalle (fetch cliente JSON)
-// ----------------------
-const modal = document.getElementById('modalDetalle');
-const detalle = {
-  nombre: document.getElementById('d-nombre'),
-  correo: document.getElementById('d-correo'),
-  celular: document.getElementById('d-celular'),
-  direccion: document.getElementById('d-direccion'),
-  cp: document.getElementById('d-cp'),
-  estado: document.getElementById('d-estado'),
-  btnVerMas: document.getElementById('btnVerMas'),
-  btnCargarEnForm: document.getElementById('btnCargarEnForm')
-};
+  // Modal detalle
+  // ----------------------
+  const modal = document.getElementById('modalDetalle');
+  const detalle = {
+    nombre: document.getElementById('d-nombre'),
+    correo: document.getElementById('d-correo'),
+    celular: document.getElementById('d-celular'),
+    direccion: document.getElementById('d-direccion'),
+    cp: document.getElementById('d-cp'),
+    estado: document.getElementById('d-estado'),
+    btnVerMas: document.getElementById('btnVerMas')
+  };
 
-let currentClienteId = null;
+  function openDetalle(id) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    detalle.nombre.textContent = 'Cargando...';
 
-function openDetalle(id) {
-  currentClienteId = id;
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+    const url = `index.php?view=clientes&action=getCliente&id=${encodeURIComponent(id)}`;
 
-  // placeholder mientras carga
-  detalle.nombre.textContent = 'Cargando...';
-  detalle.correo.textContent = '';
-  detalle.celular.textContent = '';
-  detalle.direccion.textContent = '';
-  detalle.cp.textContent = '';
-  detalle.estado.textContent = '';
-
-  // ---------- ADAPTADO A TU CÓDIGO ----------
- const url = `index.php?view=clientes&action=getCliente&id=${encodeURIComponent(id)}`;
-  // ------------------------------------------
-
-  fetch(url)
-    .then(response => {
-      // VALIDAMOS ANTES DE PARSEAR
-      if (!response.ok) throw new Error('Respuesta no OK del servidor (HTTP ' + response.status + ')');
-      return response.json();
-    })
-    .then(json => {
-      // VALIDAMOS ESTRUCTURA JSON
-      if (!json || typeof json !== 'object') {
-        throw new Error('Respuesta inesperada del servidor (no es JSON válido).');
-      }
-
-      if (!json.success) {
-        Swal.fire('Error', json.error || 'No se pudo obtener información', 'error');
-        closeDetalle();
-        return;
-      }
-
-      const c = json.cliente;
-
-      detalle.nombre.textContent = `${c.nombre || ''} ${c.apellido_paterno || ''} ${c.apellido_materno || ''}`;
-      detalle.correo.textContent = c.correo || '-';
-      detalle.celular.textContent = c.celular || '-';
-      detalle.direccion.textContent = [c.calle, c.num_ext, c.num_int, c.colonia].filter(Boolean).join(' ') || '-';
-      detalle.cp.textContent = c.cp || '-';
-      detalle.estado.textContent = c.estado || '-';
-
-      // Botones del modal
-    // dentro de openDetalle(id) después de cargar los datos:
-        detalle.btnVerMas.setAttribute('data-id', id);
+    fetch(url)
+      .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
+      .then(json => {
+        if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+        const c = json.cliente;
+        detalle.nombre.textContent = `${c.nombre || ''} ${c.apellido_paterno || ''} ${c.apellido_materno || ''}`;
+        detalle.correo.textContent = c.correo || '-';
+        detalle.celular.textContent = c.celular || '-';
+        detalle.direccion.textContent = [c.calle, c.num_ext, c.num_int, c.colonia].filter(Boolean).join(' ') || '-';
+        detalle.cp.textContent = c.cp || '-';
+        detalle.estado.textContent = c.estado || '-';
         detalle.btnVerMas.href = `index.php?view=detalle_cliente&id=${encodeURIComponent(id)}`;
+      })
+      .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+  }
+  function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
-      detalle.btnCargarEnForm.onclick = () => {
-        window.location.href = 'index.php?view=editar_cliente&id=' + encodeURIComponent(id);
-      };
-    })
-    .catch(err => {
-      console.error('ERROR al cargar detalle cliente:', err);
-
-      Swal.fire({
-        title: 'Error',
-        text: 'Error al cargar los datos del cliente. Detalle técnico: ' + err.message,
-        icon: 'error',
-        confirmButtonColor: '#b4c24d'
-      });
-
-      closeDetalle();
-    });
-}
-
-function closeDetalle() {
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-  currentClienteId = null;
-}
-
+  // Ejecutar búsqueda inicial para normalizar UI index
+  document.addEventListener('DOMContentLoaded', () => { doSearch(); });
 </script>
 </body>
 </html>

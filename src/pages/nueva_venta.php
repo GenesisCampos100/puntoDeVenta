@@ -59,7 +59,6 @@ foreach ($rows as $row) {
             'precio' => $row['producto_precio'] ?: 0,
             'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
-            'talla_default' => $row['producto_talla'] ?: 'Única',
             'color_default' => $row['producto_color'] ?: 'Sin color',
             'stock' => $row['producto_cantidad'] ?: 0, // STOCK PRODUCTO
         ];
@@ -156,6 +155,10 @@ function normalizeCategory($name) {
   </div>
 </div>
 
+        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
+      </article>
+    <?php endforeach; ?>
+  </div>
 </div>
 
 <!-- CARRITO LATERAL -->

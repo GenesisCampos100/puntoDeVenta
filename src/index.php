@@ -2,9 +2,15 @@
 ob_start();
 session_start();
 
-// ⚙️ Verificar sesión
+// Evitar caching de páginas protegidas para que el botón atrás requiera re-login
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+// Si no hay login, mándalo al login
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: pages/login.php");
+    header("Locati n: pages/login.php");
     exit;
 }
 
@@ -40,6 +46,8 @@ $views = [
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
     'editar_producto' => __DIR__ . "/pages/editar_producto.php",
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
+    
+
 ];
 
 // Si no existe vista → 404

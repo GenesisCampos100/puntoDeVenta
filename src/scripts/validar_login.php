@@ -3,8 +3,8 @@ session_start();
 include(__DIR__ . '/../config/db.php'); // conexión PDO
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
-    $password = $_POST['password'];
+    $usuario = isset($_POST['usuario']) ? trim($_POST['usuario']) : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
 
     // Buscar usuario con su imagen
     $stmt = $pdo->prepare("SELECT 

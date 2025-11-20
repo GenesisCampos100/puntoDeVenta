@@ -28,9 +28,13 @@
 >
   <?php
     // Aquí se cargará el contenido de cada vista
-    if (isset($contenido)) {
-        include $contenido;
-    }
+   if (defined('NO_LAYOUT') && NO_LAYOUT === true) {
+    // No renderizar layout — solo incluir contenido
+    include $contenido;
+    exit;
+}
+
+    include $contenido;
   ?>
 </main>
 
