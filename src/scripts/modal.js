@@ -1,13 +1,32 @@
+// modal.js - manejo de modales (descuento, cliente, pago, detalle de venta)
 (() => {
-  // ======================
-  // ELEMENTOS DEL DOM
-  // ======================
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ===========================
+       DESCUENTO GLOBAL
+  ============================ */
   const discountModal = document.getElementById("discount-modal");
   const discountType = document.getElementById("discount-type");
   const discountInput = document.getElementById("discount-input");
   const discountApply = document.getElementById("apply-discount");
   const discountClose = document.getElementById("close-discount");
 
+  document.getElementById("discount-btn")?.addEventListener("click", () => {
+    discountModal?.classList.remove("hidden");
+  });
+  discountClose?.addEventListener("click", () => discountModal?.classList.add("hidden"));
+  discountApply?.addEventListener("click", () => {
+    const value = parseFloat(discountInput.value) || 0;
+    const type = discountType.value || 'percent';
+    localStorage.setItem("globalDiscount", String(value));
+    localStorage.setItem("discountType", type);
+    discountModal?.classList.add("hidden");
+    document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
+  });
+
+  /* ===========================
+       DESCUENTO INDIVIDUAL
+  ============================ */
   const productDiscountModal = document.getElementById("product-discount-modal");
   const productDiscountType = document.getElementById("product-discount-type");
   const productDiscountInput = document.getElementById("product-discount-input");
@@ -15,182 +34,193 @@
   const productDiscountClose = document.getElementById("product-discount-close");
 
   let currentItemIndex = null;
-
-  // ======================
-  // MODAL GLOBAL
-  // ======================
-  document.getElementById("discount-btn")?.addEventListener("click", () => {
-    discountModal.classList.remove("hidden");
-    discountModal.classList.add("flex");
-  });
-
-  discountClose?.addEventListener("click", () => {
-    discountModal.classList.add("hidden");
-  });
-
-  discountApply?.addEventListener("click", () => {
-    const value = parseFloat(discountInput.value) || 0;
-    const type = discountType.value; // "percent" o "amount"
-    discountModal.classList.add("hidden");
-    document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
-  });
-
-  // ======================
-  // MODAL INDIVIDUAL
-  // ======================
-  window.openProductDiscountModal = function (index, currentDiscount = 0) {
+  window.openProductDiscountModal = function(index, currentDiscount = 0) {
     currentItemIndex = index;
-    productDiscountInput.value = currentDiscount;
-    productDiscountModal.classList.remove("hidden");
-    productDiscountModal.classList.add("flex");
+    productDiscountInput.value = currentDiscount || 0;
+    productDiscountModal?.classList.remove("hidden");
   };
-
   productDiscountClose?.addEventListener("click", () => {
-    productDiscountModal.classList.add("hidden");
+    productDiscountModal?.classList.add("hidden");
     currentItemIndex = null;
   });
-
   productDiscountApply?.addEventListener("click", () => {
     if (currentItemIndex !== null) {
       const value = parseFloat(productDiscountInput.value) || 0;
-      const type = productDiscountType.value; // "percent" o "amount"
-      productDiscountModal.classList.add("hidden");
+      const type = productDiscountType.value || 'percent';
+      productDiscountModal?.classList.add("hidden");
       document.dispatchEvent(new CustomEvent("applyProductDiscount", { detail: { index: currentItemIndex, value, type } }));
       currentItemIndex = null;
     }
   });
 
+  /* ===========================
+       MODAL CLIENTE
+  ============================ */
+  const clientBtn = document.getElementById('client-btn');
+  const modalClientes = document.getElementById('modalClientes');
+  const cerrarModalClienteBtn = document.getElementById('cerrar-modal-cliente');
+  const buscarClienteInput = document.getElementById('buscarCliente');
+  const tablaClientes = document.getElementById('tablaClientes');
 
-// ======================
-// MODAL DE PAGO
-// ======================
+  clientBtn?.addEventListener('click', () => modalClientes?.classList.remove("hidden"));
+  cerrarModalClienteBtn?.addEventListener('click', () => modalClientes?.classList.add("hidden"));
+  modalClientes?.addEventListener('click', e => { if (e.target === modalClientes) modalClientes.classList.add("hidden"); });
 
-const payBtn = document.getElementById('pay-btn');
-const paymentModal = document.getElementById('payment-modal');
-const cancelPayment = document.getElementById('cancel-payment');
-const paymentForm = document.getElementById('payment-form');
-
-// Mostrar modal al presionar "Pagar"
-payBtn?.addEventListener('click', () => {
-  const cart = localStorage.getItem('cart');
-  
-  if (!cart) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-
-  try {
-    const parsedCart = JSON.parse(cart);
-    if (!Array.isArray(parsedCart) || parsedCart.length === 0) {
-      alert("Tu carrito está vacío.");
-      return;
+  document.addEventListener('click', e => {
+    if (e.target?.classList.contains('seleccionarCliente')) {
+      const id = e.target.dataset.id;
+      const nombre = e.target.dataset.nombre;
+      localStorage.setItem('selectedClient', JSON.stringify({ id: String(id), nombre }));
+      const clienteInput = document.getElementById('cliente-input');
+      const id_cliente = document.getElementById('id_cliente');
+      const clienteNombreEl = document.getElementById('cliente_nombre');
+      if (clienteInput) clienteInput.value = id;
+      if (id_cliente) id_cliente.value = id;
+      if (clienteNombreEl) clienteNombreEl.textContent = nombre;
+      modalClientes?.classList.add("hidden");
     }
+  });
 
-    // Guardamos el carrito en el campo oculto del modal
-    document.getElementById('cart-data-input').value = JSON.stringify(parsedCart);
-    paymentModal.classList.remove('hidden'); // Mostrar modal
-  } catch (e) {
-    console.error("Error al procesar el carrito:", e);
-    alert("Error al leer los datos del carrito.");
-  }
-});
-
-// Cancelar pago
-cancelPayment?.addEventListener('click', () => {
-  paymentModal.classList.add('hidden');
-});
-
-// Enviar formulario (confirmar pago)
-paymentForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = new FormData(paymentForm);
-
-  try {
-    const res = await fetch(paymentForm.action, { method: 'POST', body: formData });
-    const text = await res.text();
-
-    console.log("Respuesta del servidor:", text);
-
-    // Limpiar carrito y cerrar modal
-    localStorage.removeItem('cart');
-    paymentModal.classList.add('hidden');
-
-    alert("✅ Venta realizada correctamente.");
-    window.location.href = 'index.php?view=nueva_venta';
-  } catch (err) {
-    console.error("Error al procesar el pago:", err);
-    alert("❌ Hubo un error al procesar la venta.");
-  }
-});
-
-
-
-
-
-
-
-
-    // ======================
-    // MODAL DETALLE DE VENTA
-    // ======================
-    window.verDetalleVenta = function(idVenta) {
-    console.log("ID de venta recibido:", idVenta);
-    fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`)
-    .then(res => res.json())
-    
-    .then(data => {
-        const contenedor = document.getElementById('venta-detalles');
-        contenedor.innerHTML = '';
-
-        if (!data || !data.productos || data.productos.length === 0) {
-            contenedor.innerHTML = '<p class="text-center text-gray-500">No hay detalles para esta venta.</p>';
-            return;
-        }
-
-        // 🧍 Cliente
-        const clienteHTML = `
-            <div class="mb-3">
-                <p class="font-semibold">Cliente: 
-                    <span class="font-normal">${data.cliente}</span>
-                </p>
-            </div>
-        `;
-
-        // 🧾 Productos
-        const productosHTML = data.productos.map(item => `
-            <div class="border-b py-2">
-                <strong>${item.nombre}</strong><br>
-                Cantidad: ${item.cantidad} | Precio: $${parseFloat(item.precio_unitario).toFixed(2)}
-            </div>
-        `).join('');
-
-        // 💰 Total
-        const totalHTML = `
-            <div class="mt-3 font-bold text-right text-lg">
-                Total: $${parseFloat(data.total).toFixed(2)}
-            </div>
-        `;
-
-        contenedor.innerHTML = clienteHTML + productosHTML + totalHTML;
-
-        // Mostrar modal
-        document.getElementById('venta-modal').classList.remove('hidden');
-    })
-    .catch(err => {
-        console.error(err);
-        alert("❌ Error al obtener los detalles de la venta");
+  buscarClienteInput?.addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!tablaClientes) return;
+    [...tablaClientes.querySelectorAll('tr')].forEach(row => {
+      if (row.querySelectorAll('th').length) { row.style.display = ''; return; }
+      const text = row.textContent.toLowerCase();
+      row.style.display = q === '' || text.includes(q) ? '' : 'none';
     });
-};
+  });
 
-// 🧩 Cerrar modal (solo definir si aún no existe)
-if (typeof window._ventaModalListenerAttached === 'undefined') {
-    const closeVentaModalBtn = document.getElementById('close-venta-modal');
-    if (closeVentaModalBtn) {
-        closeVentaModalBtn.addEventListener('click', () => {
-            document.getElementById('venta-modal').classList.add('hidden');
-        });
+  /* ===========================
+       MODAL PAGO
+  ============================ */
+  const payBtn = document.getElementById('pay-btn');
+  const paymentModal = document.getElementById('payment-modal');
+  const cancelPayment = document.getElementById('cancel-payment');
+  const paymentForm = document.getElementById('payment-form');
+
+  payBtn?.addEventListener('click', () => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const client = JSON.parse(localStorage.getItem("selectedClient")) || null;
+    const globalDiscount = localStorage.getItem("globalDiscount") || 0;
+    const discountTypeVal = localStorage.getItem("discountType") || "percent";
+    document.getElementById("cart-data-input")?.setAttribute("value", JSON.stringify(cart));
+    document.getElementById("cliente-input")?.setAttribute("value", client?.id ?? "");
+    document.getElementById("descuento-general-input")?.setAttribute("value", globalDiscount);
+    document.getElementById("descuento-general-type")?.setAttribute("value", discountTypeVal);
+    paymentModal?.classList.remove("hidden");
+  });
+
+  paymentForm?.addEventListener("submit", async e => {
+    e.preventDefault();
+    const confirmBtn = document.getElementById("confirm-payment");
+    if (!confirmBtn) return alert("Botón de confirmar no encontrado");
+    confirmBtn.disabled = true;
+
+    const formData = new FormData(paymentForm);
+    try {
+      const res = await fetch("scripts/procesar_venta.php", { method: "POST", body: formData, credentials: 'same-origin' });
+      const text = await res.text();
+      let json; try { json = JSON.parse(text); } catch { alert("Respuesta inválida del servidor"); confirmBtn.disabled = false; return; }
+
+      if (json.success) {
+        localStorage.removeItem("cart");
+        paymentModal?.classList.add("hidden");
+        document.dispatchEvent(new CustomEvent("ventaExitosa", { detail: json }));
+        alert("✅ Venta procesada. ID: " + json.id_venta);
+      } else {
+        alert("❌ " + (json.message || "Error al procesar la venta"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error de red al procesar la venta");
+    } finally {
+      confirmBtn.disabled = false;
     }
-    window._ventaModalListenerAttached = true;
-}
+  });
 
+  cancelPayment?.addEventListener('click', () => paymentModal?.classList.add("hidden"));
+  paymentModal?.addEventListener('click', e => { if (e.target === paymentModal) paymentModal.classList.add("hidden"); });
+
+  document.querySelectorAll(".payment-method").forEach(radio => {
+    radio.addEventListener("change", () => {
+      const metodo = radio.value;
+      const efectivo = document.getElementById("efectivo-section");
+      const tarjeta = document.getElementById("tarjeta-section");
+      const mixto = document.getElementById("mixto-section");
+      efectivo?.classList.add("hidden");
+      tarjeta?.classList.add("hidden");
+      mixto?.classList.add("hidden");
+      if (metodo === "EFECTIVO") efectivo?.classList.remove("hidden");
+      if (metodo === "TARJETA") tarjeta?.classList.remove("hidden");
+      if (metodo === "MIXTO") mixto?.classList.remove("hidden");
+    });
+  });
+
+  /* ===========================
+       DETALLE DE VENTA
+  ============================ */
+  const ventaModal = document.getElementById('venta-modal');
+  const ventaDetalles = document.getElementById('venta-detalles');
+  const closeVentaModal = document.getElementById('close-venta-modal');
+
+  document.addEventListener('click', async (e) => {
+  if (e.target && e.target.classList.contains('ver-detalle-btn')) {
+    const idVenta = e.target.dataset.id;
+    if (!idVenta) return alert('❌ No se encontró ID de venta');
+
+    try {
+      const res = await fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        console.error(data);
+        return alert('❌ Error al obtener detalle de venta');
+      }
+
+      // renderizar detalle en el modal
+      ventaDetalles.innerHTML = '';
+      data.productos.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between p-2 border-b';
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${item.nombre}</p>
+          </div>
+          <div class="text-right">
+            <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
+          </div>
+        `;
+        ventaDetalles.appendChild(div);
+      });
+
+      // mostrar cliente y total opcional
+      if (data.cliente) {
+        const clienteDiv = document.createElement('p');
+        clienteDiv.className = 'font-medium mt-2';
+        clienteDiv.textContent = `Cliente: ${data.cliente}`;
+        ventaDetalles.appendChild(clienteDiv);
+      }
+
+      if (data.total !== undefined) {
+        const totalDiv = document.createElement('p');
+        totalDiv.className = 'font-bold mt-1';
+        totalDiv.textContent = `Total: $${parseFloat(data.total).toFixed(2)}`;
+        ventaDetalles.appendChild(totalDiv);
+      }
+
+      ventaModal.classList.remove('hidden');
+
+    } catch (err) {
+      console.error(err);
+      alert('❌ Error al cargar el detalle de venta');
+    }
+  }
+});
+
+
+  closeVentaModal?.addEventListener('click', () => ventaModal?.classList.add("hidden"));
+  ventaModal?.addEventListener('click', e => { if (e.target === ventaModal) ventaModal.classList.add("hidden"); });
+
+});
 })();

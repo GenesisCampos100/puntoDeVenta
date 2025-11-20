@@ -1,16 +1,19 @@
 <?php
+require_once __DIR__ . '/../config/db.php';
 
-require_once __DIR__ . "/../config/db.php";
-
-$sql = "SELECT v.id_venta, v.fecha, v.tipo_pago, v.pago_total,
-               CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_empleado
-        FROM ventas v
-        LEFT JOIN empleados e ON v.id_empleado = e.id_empleado
-        ORDER BY v.fecha DESC";
-
+// Consulta de ventas (ya no usamos tipo_pago ni pago_total directamente)
+$sql = "
+    SELECT 
+        v.id_venta,
+        v.fecha,
+        v.total AS pago_total,
+        CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_empleado
+    FROM ventas v
+    LEFT JOIN empleados e ON v.id_empleado = e.id_empleado
+    ORDER BY v.fecha DESC
+";
 $stmt = $pdo->query($sql);
 $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -20,52 +23,49 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ventas Realizadas</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 <body class="bg-gray-100 p-6">
 
 <h1 class="text-2xl font-bold mb-6">Ventas Realizadas</h1>
 
 <div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-    <thead>
+<table class="w-full text-left border-collapse bg-white shadow rounded-lg">
+    <thead class="bg-gray-200">
         <tr>
-            <th>ID Venta</th>
-            <th>Empleado</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Acciones</th>
+            <th class="px-4 py-2 border">ID Venta</th>
+            <th class="px-4 py-2 border">Empleado</th>
+            <th class="px-4 py-2 border">Fecha</th>
+            <th class="px-4 py-2 border">Total</th>
+            <th class="px-4 py-2 border">Acciones</th>
         </tr>
     </thead>
     <tbody>
         <?php foreach($ventas as $v): ?>
-        <tr>
-            <td><?= $v['id_venta'] ?></td>
-            <td><?= htmlspecialchars($v['nombre_empleado']) ?></td>
-            <td><?= $v['fecha'] ?></td>
-            <td>$<?= number_format($v['pago_total'],2) ?></td>
-            <td>
-            <button onclick="window.verDetalleVenta(<?= $v['id_venta'] ?>)" 
-        class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
-    Ver Detalle
-</button>
+        <tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-2"><?= $v['id_venta'] ?></td>
+            <td class="px-4 py-2"><?= htmlspecialchars($v['nombre_empleado']) ?></td>
+            <td class="px-4 py-2"><?= $v['fecha'] ?></td>
+            <td class="px-4 py-2">$<?= number_format($v['pago_total'],2) ?></td>
+            <td class="px-4 py-2 space-x-2">
+                <!-- Ver Detalle -->
+                <button class="ver-detalle-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        data-id="<?= $v['id_venta'] ?>">
+                    Ver Detalle
+                </button>
 
-
-
-<form style="display:inline;" method="POST" action="scripts/eliminar_venta.php">
-    <input type="hidden" name="id_venta" value="<?= $v['id_venta'] ?>">
-    <button type="button" class="delete-sale-btn px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-        data-id="<?= $v['id_venta'] ?>">
-        Eliminar
-    </button>
-</form>
-
+                <!-- Eliminar -->
+                <form style="display:inline;" method="POST" action="scripts/eliminar_venta.php">
+                    <input type="hidden" name="id_venta" value="<?= $v['id_venta'] ?>">
+                    <button type="button" class="delete-sale-btn px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        data-id="<?= $v['id_venta'] ?>">
+                        Eliminar
+                    </button>
+                </form>
             </td>
         </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
-
 </div>
 
 <!-- Modal detalle de venta -->
@@ -78,43 +78,6 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
-
-
-
-<script>
-document.querySelectorAll('.delete-sale-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const idVenta = btn.dataset.id;
-        if (!idVenta) {
-            alert("❌ No se pudo obtener el ID de la venta.");
-            return;
-        }
-        if (!confirm("¿Seguro que deseas eliminar esta venta?")) return;
-
-        console.log("ID a eliminar:", idVenta);
-
-        fetch('scripts/eliminar_venta.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id_venta: idVenta})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("✅ Venta eliminada correctamente");
-                location.reload();
-            } else {
-                alert("❌ Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("❌ Error al eliminar la venta");
-        });
-    });
-});
-
-</script>
 
 <script src="../src/scripts/modal.js"></script>
 </body>

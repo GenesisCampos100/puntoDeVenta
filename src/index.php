@@ -46,6 +46,8 @@ $views = [
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
     'editar_producto' => __DIR__ . "/pages/editar_producto.php",
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
+    
+
 ];
 
 // Si no existe vista → 404
