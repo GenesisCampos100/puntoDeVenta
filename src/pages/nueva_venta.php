@@ -156,6 +156,8 @@ function normalizeCategory($name) {
   </div>
 </div>
 
+</div>
+
 <!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
   <div class="flex justify-between items-center mb-4">

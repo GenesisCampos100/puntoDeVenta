@@ -53,6 +53,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empleados</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* --- ESTILOS BASE Y GENERALES --- */
         body {
@@ -342,7 +345,7 @@
                             <td><?= htmlspecialchars($emp['fecha']) ?></td>
                             <td>
                                 <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
-                                <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este empleado?')">🗑︎</a>
+                                <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" data-id="<?= htmlspecialchars($emp['numero']) ?>">🗑︎</a>
                             </td>
                         </tr>
                         <?php $isFirst = false; ?>
@@ -391,6 +394,40 @@
                 });
             }
         }
+
+        // Añadir confirmación con SweetAlert2 para eliminar empleado
+        (function(){
+            function attachDeleteHandlers() {
+                document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        Swal.fire({
+                            title: '¿Estás seguro?',
+                            html: '¿Realmente deseas eliminar este empleado?<br>Esta acción no se puede deshacer.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Redirigir a la URL que ejecuta la eliminación en el servidor
+                                window.location.href = href;
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Adjuntar cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
+            } else {
+                attachDeleteHandlers();
+            }
+        })();
     </script>
 </body>
 </html>

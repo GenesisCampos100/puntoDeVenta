@@ -32,20 +32,61 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 </script>
 
 <!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-10 right-0 z-40 shadow h-18 ">
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
-  <img src="../public/img/logo.jpeg" alt="logo" class="h-12 ml-6">
+  <img src="../public/img/logo2.png" alt="logo" class="h-12 ml-6">
+<!-- 🔘 BOTONES DE TEMA E IDIOMA -->
+<div style="display:flex; align-items:center; gap:14px; position:absolute; right:20px; top:50%; transform:translateY(-50%);">
 
+  <!-- 🌙 Botón de tema -->
+  <div id="themeToggle"
+       style="width:36px; height:36px; 
+              display:flex; align-items:center; justify-content:center;
+              border-radius:50%; background:#0A2342; 
+              cursor:pointer; transition:all 0.3s ease; 
+              box-shadow:0 2px 6px rgba(0,0,0,0.2);"
+       onmouseover="this.style.transform='scale(1.1)';"
+       onmouseout="this.style.transform='scale(1)';">
+    <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
+  </div>
 
-  <!-- Sidebar -->
-<nav id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between mx-auto max-w-4xl">  <!-- mx-auto max-w-4xl HACE QUE EL CONTENIDO SE RECORRA A LA IZQUIERDA -->
-  <div>
-    <!-- Logo y botón -->
-    <div class="flex items-center justify-center p-4 border-b border-white">
-      <button id="sidebar-menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
-      <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
+  <!-- 🌐 Botón de idioma -->
+  <div style="display:flex; align-items:center; gap:6px;">
+    <div id="languageToggle"
+         style="width:36px; height:36px; 
+                display:flex; align-items:center; justify-content:center;
+                border-radius:50%; background:#0A2342; 
+                cursor:pointer; transition:all 0.3s ease; 
+                box-shadow:0 2px 6px rgba(0,0,0,0.2);"
+         onclick="toggleLanguage()"
+         onmouseover="this.style.transform='scale(1.1)';"
+         onmouseout="this.style.transform='scale(1)';">
+      <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
     </div>
+    <span id="languageCode"  font-weight:600; font-size:14px;">ES</span>
+  </div>
+
+</div>
+
+
+</header>
+
+<!-- Sidebar -->
+<nav id="sidebar" 
+     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
+  <div>
+   <!-- Logo y botón en el mismo div -->
+<div class="flex items-center border-b border-white" style="gap: 15px; padding: 1rem 0 1rem 1rem;">
+  <button id="sidebar-menu-btn" 
+          class="text-2xl focus:outline-none hover:text-pink-400 transition" 
+          style="width: 40px; text-align: left; display: flex; align-items: center; justify-content: flex-start; padding-left: 1rem;">
+    &#9776;
+  </button>
+  <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
+</div>
+
+
+
     <?php
     // Íconos SVG según módulo
     $iconos = [
@@ -61,7 +102,21 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-  <ul class="mt-4 space-y-2 pl-4">
+  <ul class="mt-4 space-y-2">
+  <style>
+    #sidebar ul li a {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* izquierda */
+      padding-left: 1rem; /* ajusta 1rem = 16px */
+    }
+    /* Para mover más hacia el centro */
+    #sidebar ul li a svg {
+      margin-center: 6px; /* ajusta según lo que necesites */
+    }
+    
+  </style>
+
     <?php 
       // Detectar la vista actual
       $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
@@ -86,151 +141,66 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 
 
   <!-- Bloque de usuario --> 
-<div class="w-full mt-auto px-4 pb-6 flex justify-center">
-    <div id="userBlock"
-         class="flex items-center gap-3 w-full max-w-[220px] bg-[#0A2342] px-4 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-[1.02] cursor-pointer transition-all duration-200 select-none">
-      <img id="sidebarFoto" src="<?= htmlspecialchars($fotoUsuario) ?>" alt="Foto usuario"
+<div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
+  <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
+       style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
+    <img id="sidebarFoto" src="<?= htmlspecialchars($fotoUsuario) ?>" alt="Foto usuario"
          style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-      <div class="flex flex-col justify-center leading-tight">
-        <span class="text-[#32CD32] font-semibold text-sm truncate">
-          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
-        </span>
-        <span class="text-slate-300 text-xs tracking-wide">
-          <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
-        </span>
-      </div>
+    <div class="flex flex-col leading-tight">
+      <span style="color:#32CD32; font-weight:600; font-size:14px;">
+        <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+      </span>
+      <span style="color:#cbd5e1; font-size:12px;">
+        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
+      </span>
     </div>
-  </div>
-</nav>
+  </div>
+</div>
 
 </nav>
-</header>
+
+
 
 <style>
-/* ------------------------------------------------------------------- */
-/* 1. Estilos Base (Mobile First - Pantallas pequeñas < 768px) */
-/* ------------------------------------------------------------------- */
-
-/* Escondemos el menú lateral por defecto en móviles (el botón del header lo mostrará) */
-#sidebar {
-    width: 256px; /* Ancho estándar del sidebar */
-    transform: translateX(-100%); /* Ocultar el sidebar completamente fuera de la pantalla */
-    transition: transform 0.3s ease, width 0.3s ease;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Sombra para visibilidad */
+  /* Sidebar compacto (solo íconos) */
+.sidebar-cerrado {
+  width: 80px !important;
+  transition: width 0.3s ease;
 }
 
-/* El botón del header debe ser visible en móviles */
-#menu-btn {
-    display: block; 
+.sidebar-cerrado ul li a {
+  justify-content: center;
+  padding: 1rem;
 }
 
-/* Ocultar el botón de la barra lateral en la vista móvil, ya que el header tiene el principal */
-#sidebar-menu-btn {
-    display: none;
+.sidebar-cerrado svg {
+  margin: 0 auto;
 }
 
-/* Estado 'open' del menú lateral en móviles: Lo volvemos a mostrar */
-.menu-open #sidebar {
-    transform: translateX(0);
+/* Usuario reducido a círculo */
+.user-mini {
+  justify-content: center !important;
+  width: 60px !important;
+  height: 60px !important;
+  padding: 0 !important;
+  
+  
 }
 
-/* La transición del contenido principal: para que el body empuje el contenido */
-.menu-open + .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
-    padding-left: 256px;
-    transition: padding-left 0.3s ease;
+.user-mini img {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50%;
 }
 
-/* Ocultar el bloque de usuario en la vista móvil del sidebar, no hay espacio. */
-#sidebar #userBlock {
-    display: none;
+.user-mini div {
+  display: none;
 }
 
-/* El header siempre tiene el 100% de ancho */
-header {
-    width: 100%;
-}
-
-/* ------------------------------------------------------------------- */
-/* 2. Media Query (Tablets y Desktop: Pantallas >= 768px) */
-/* ------------------------------------------------------------------- */
-@media screen and (min-width: 768px) {
-    /* Mostramos el menú por defecto en pantallas grandes (Desktop-First) */
-    #sidebar {
-        transform: translateX(0); /* Siempre visible por defecto en desktop */
-        position: fixed; /* Asegura que no se mueva con el scroll */
-    }
-
-    /* Ocultamos el botón de menú del header, ya que la barra lateral está siempre visible */
-    header #menu-btn {
-        display: none;
-    }
-
-    /* Mostramos el botón de la barra lateral para permitir el estado cerrado/compacto */
-    #sidebar #sidebar-menu-btn {
-        display: block;
-    }
-
-    /* El contenido principal debe dejar espacio para el sidebar */
-    .main-content { /* Asumiendo que tu contenido principal tiene la clase .main-content */
-        padding-left: 256px;
-        transition: padding-left 0.3s ease;
-    }
-    
-    /* El header debe considerar el ancho del sidebar para su contenido (padding a la izquierda) */
-    header {
-        padding-left: 272px; /* 256px de sidebar + 16px de padding del header */
-    }
-
-    /* Estado de menú cerrado (Sidebar Compacto) */
-    .menu-closed #sidebar {
-        width: 80px;
-    }
-
-    .menu-closed .main-content {
-        padding-left: 80px;
-    }
-    
-    .menu-closed header {
-        padding-left: 96px; /* 80px de sidebar + 16px de padding del header */
-    }
-
-    /* Usuario vuelve a ser visible en desktop */
-    #sidebar #userBlock {
-        display: flex;
-    }
-
-    /* Tus estilos para la versión compacta (user-mini y sidebar-cerrado) se aplican ahora con la clase en <html> */
-    .menu-closed #sidebar .user-mini {
-        justify-content: center !important;
-        width: 60px !important;
-        height: 60px !important;
-        padding: 0 !important;
-        border-radius: 50% !important;
-        background-color: #0A2342 !important;
-    }
-    
-    .menu-closed #sidebar .user-mini div {
-        display: none;
-    }
-    
-    .menu-closed #sidebar .sidebar-cerrado ul li a {
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .menu-closed #sidebar .sidebar-cerrado svg {
-        margin: 0 auto;
-    }
-
-}
-/* ------------------------------------------------------------------- */
-/* 3. Estilos de Transición (Mantenemos los tuyos) */
-/* ------------------------------------------------------------------- */
-
+/* Transiciones suaves */
 #sidebar,
-#userBlock,
-.main-content,
-header {
+#userBlock {
   transition: all 0.3s ease;
 }
+
 </style>
