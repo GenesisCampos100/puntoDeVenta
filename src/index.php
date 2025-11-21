@@ -46,12 +46,26 @@ $views = [
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
     'editar_producto' => __DIR__ . "/pages/editar_producto.php",
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
-    
-
 ];
 
-// Si no existe vista → 404
-$contenido = $views[$view] ?? __DIR__ . "/pages/404.php";
+// 🔐 Si la vista no existe, mostrar 404
+$contenido = array_key_exists($view, $views) 
+    ? $views[$view] 
+    : _DIR_ . "/pages/404.php";
+    
+// Si es una petición AJAX (XMLHttpRequest) y viene por POST, incluir
+// directamente la vista para que los endpoints que devuelven JSON
+// no sean envueltos por el layout (evita HTML antes del JSON)
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    if (file_exists($contenido)) {
+        include $contenido;
+        exit;
+    }
+}
 
 // Cargar layout normal
 include __DIR__ . "/layout.php";

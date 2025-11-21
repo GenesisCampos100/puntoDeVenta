@@ -1,22 +1,22 @@
 <?php
 
-
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php"); // mismo nivel que este archivo
+    header("Location: login.php");
     exit;
 }
 
 // Incluir permisos
-require_once __DIR__ . "/../config/permisos.php";
+require_once (__DIR__ . "/../config/permisos.php");
 
 $rol = $_SESSION['rol'];
 
 // Seguridad extra: si el rol no tiene permisos, redirigir
 if (!isset($permisos[$rol])) {
-    header("Location: login.php"); // igual, mismo nivel
+    header("Location: login.php");
     exit;
 }
+
 // Foto del usuario
 $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
 ?>
@@ -33,61 +33,184 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
   })();
 </script>
 
-<!-- Header -->
-<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow h-18">
-  <button id="menu-btn" class="text-2xl focus:outline-none mr-4">&#9776;</button>
+<style>
+  :root {
+    --primary: #b4c24d;
+    --primary-dark: #9fb03d;
+    --secondary: #2d4353;
+    --accent: #e15871;
+    --bg-gray: #eeeeee;
+  }
+  
+  /* Header Premium */
+  header {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Sidebar Premium */
+  #sidebar {
+    background: linear-gradient(180deg, var(--secondary) 0%, #1e3244 100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Animaciones para items del sidebar */
+  #sidebar ul li {
+    animation: slideInLeft 0.3s ease-out;
+    animation-fill-mode: both;
+  }
+  
+  #sidebar ul li:nth-child(1) { animation-delay: 0.05s; }
+  #sidebar ul li:nth-child(2) { animation-delay: 0.1s; }
+  #sidebar ul li:nth-child(3) { animation-delay: 0.15s; }
+  #sidebar ul li:nth-child(4) { animation-delay: 0.2s; }
+  #sidebar ul li:nth-child(5) { animation-delay: 0.25s; }
+  #sidebar ul li:nth-child(6) { animation-delay: 0.3s; }
+  #sidebar ul li:nth-child(7) { animation-delay: 0.35s; }
+  #sidebar ul li:nth-child(8) { animation-delay: 0.4s; }
+  
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  #sidebar ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  #sidebar ul li a:hover {
+    transform: translateX(4px);
+  }
+  
+  #sidebar ul li a.bg-red-600 {
+    background: linear-gradient(135deg, var(--accent) 0%, #dc2f4b 100%);
+    box-shadow: 0 4px 12px rgba(225, 88, 113, 0.3);
+  }
+  
+  #sidebar ul li a svg {
+    transition: transform 0.3s ease;
+  }
+  
+  #sidebar ul li a:hover svg {
+    transform: scale(1.1);
+  }
+  
+  /* User Block Premium */
+  #userBlock {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  #userBlock:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  /* Theme Toggle Premium */
+  #themeToggle, #languageToggle {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  #themeToggle:hover, #languageToggle:hover {
+    box-shadow: 0 4px 16px rgba(10, 35, 66, 0.4) !important;
+  }
+  
+  /* Sidebar compacto (solo íconos) */
+  .sidebar-cerrado {
+    width: 80px !important;
+    transition: width 0.3s ease;
+  }
+
+  .sidebar-cerrado ul li a {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .sidebar-cerrado svg {
+    margin: 0 auto;
+  }
+
+  /* Usuario reducido a círculo */
+  .user-mini {
+    justify-content: center !important;
+    width: 60px !important;
+    height: 60px !important;
+    padding: 0 !important;
+  }
+
+  .user-mini img {
+    width: 45px !important;
+    height: 45px !important;
+    border-radius: 50%;
+  }
+
+  .user-mini div {
+    display: none;
+  }
+
+  /* Transiciones suaves */
+  #sidebar,
+  #userBlock {
+    transition: all 0.3s ease;
+  }
+</style>
+
+<!-- Header Premium -->
+<header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow-lg h-18">
+  <button id="menu-btn" class="text-2xl focus:outline-none mr-4 transition-all hover:scale-110">&#9776;</button>
   <img src="../public/img/logo2.png" alt="logo" class="h-12 ml-6">
-<!-- 🔘 BOTONES DE TEMA E IDIOMA -->
-<div style="display:flex; align-items:center; gap:14px; position:absolute; right:20px; top:50%; transform:translateY(-50%);">
-
-  <!-- 🌙 Botón de tema -->
-  <div id="themeToggle"
-       style="width:36px; height:36px; 
-              display:flex; align-items:center; justify-content:center;
-              border-radius:50%; background:#0A2342; 
-              cursor:pointer; transition:all 0.3s ease; 
-              box-shadow:0 2px 6px rgba(0,0,0,0.2);"
-       onmouseover="this.style.transform='scale(1.1)';"
-       onmouseout="this.style.transform='scale(1)';">
-    <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
-  </div>
-
-  <!-- 🌐 Botón de idioma -->
-  <div style="display:flex; align-items:center; gap:6px;">
-    <div id="languageToggle"
-         style="width:36px; height:36px; 
+  
+  <!-- Botones de Tema e Idioma Premium -->
+  <div style="display:flex; align-items:center; gap:14px; position:absolute; right:20px; top:50%; transform:translateY(-50%);">
+    
+    <!-- Botón de tema -->
+    <div id="themeToggle"
+         style="width:38px; height:38px; 
                 display:flex; align-items:center; justify-content:center;
                 border-radius:50%; background:#0A2342; 
                 cursor:pointer; transition:all 0.3s ease; 
-                box-shadow:0 2px 6px rgba(0,0,0,0.2);"
-         onclick="toggleLanguage()"
-         onmouseover="this.style.transform='scale(1.1)';"
-         onmouseout="this.style.transform='scale(1)';">
-      <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
+                box-shadow:0 4px 12px rgba(0,0,0,0.2);"
+         onmouseover="this.style.transform='scale(1.15) rotate(15deg)';"
+         onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+      <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
     </div>
-    <span id="languageCode"  font-weight:600; font-size:14px;">ES</span>
+
+    <!-- Botón de idioma -->
+    <div style="display:flex; align-items:center; gap:6px;">
+      <div id="languageToggle"
+           style="width:38px; height:38px; 
+                  display:flex; align-items:center; justify-content:center;
+                  border-radius:50%; background:#0A2342; 
+                  cursor:pointer; transition:all 0.3s ease; 
+                  box-shadow:0 4px 12px rgba(0,0,0,0.2);"
+           onclick="toggleLanguage()"
+           onmouseover="this.style.transform='scale(1.15)';"
+           onmouseout="this.style.transform='scale(1)';">
+        <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
+      </div>
+      <span id="languageCode" style="font-weight:600; font-size:14px; color:#0A2342;">ES</span>
+    </div>
   </div>
-
-</div>
-
-
 </header>
 
-<!-- Sidebar -->
+<!-- Sidebar Premium -->
 <nav id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white transition-transform duration-300 z-40 flex flex-col justify-between">
+     class="fixed top-0 left-0 h-full w-64 text-white transition-all duration-300 z-40 flex flex-col justify-between">
   <div>
-   <!-- Logo y botón en el mismo div -->
-<div class="flex items-center border-b border-white" style="gap: 15px; padding: 1rem 0 1rem 1rem;">
-  <button id="sidebar-menu-btn" 
-          class="text-2xl focus:outline-none hover:text-pink-400 transition" 
-          style="width: 40px; text-align: left; display: flex; align-items: center; justify-content: flex-start; padding-left: 1rem;">
-    &#9776;
-  </button>
-  <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12">
-</div>
-
-
+    <!-- Logo y botón premium -->
+    <div class="flex items-center border-b border-white/20" style="gap: 15px; padding: 1.25rem 0 1.25rem 1.25rem; background: rgba(0, 0, 0, 0.1);">
+      <button id="sidebar-menu-btn" 
+              class="text-2xl focus:outline-none hover:text-pink-400 transition-all" 
+              style="width: 40px; text-align: left; display: flex; align-items: center; justify-content: flex-start; padding-left: 1rem;">
+        &#9776;
+      </button>
+      <img src="../public/img/Logo_prisma_claro.png" alt="Logo" class="h-12 transition-all">
+    </div>
 
     <?php
     // Íconos SVG según módulo
@@ -104,105 +227,50 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     ?>
 
     <?php if (!empty($permisos[$rol])): ?>
-  <ul class="mt-4 space-y-2">
-  <style>
-    #sidebar ul li a {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start; /* izquierda */
-      padding-left: 1rem; /* ajusta 1rem = 16px */
-    }
-    /* Para mover más hacia el centro */
-    #sidebar ul li a svg {
-      margin-center: 6px; /* ajusta según lo que necesites */
-    }
-    
-  </style>
+      <ul class="mt-5 space-y-2 px-3">
+        <?php 
+          // Detectar la vista actual
+          $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
+        ?>
 
-    <?php 
-      // Detectar la vista actual
-      $vista_actual = isset($_GET['view']) ? $_GET['view'] : '';
-    ?>
+        <?php foreach ($permisos[$rol] as $modulo): ?>
+          <?php 
+            $modulo_url = str_replace(' ', '_', $modulo); 
+            // Comprobar si esta vista es la actual
+            $activo = ($vista_actual === $modulo_url) ? 'bg-red-600 text-white' : 'hover:bg-red-500';
+          ?>
+          <li>
+            <a href="index.php?view=<?= $modulo_url ?>" 
+               class="flex items-center gap-3 p-3.5 rounded-xl transition-all <?= $activo ?>">
+              <?= $iconos[$modulo] ?? '' ?>
+              <span class="font-medium"><?= ucfirst($modulo) ?></span>
+            </a>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+  </div>
 
-    <?php foreach ($permisos[$rol] as $modulo): ?>
-      <?php 
-        $modulo_url = str_replace(' ', '_', $modulo); 
-        // Comprobar si esta vista es la actual
-        $activo = ($vista_actual === $modulo_url) ? 'bg-red-600 text-white' : 'hover:bg-red-500';
-      ?>
-      <li>
-        <a href="index.php?view=<?= $modulo_url ?>" 
-           class="flex items-center gap-3 p-4 rounded-md transition-colors <?= $activo ?>">
-          <?= $iconos[$modulo] ?? '' ?>
-          <span><?= ucfirst($modulo) ?></span>
-        </a>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-<?php endif; ?>
-
-
-  <!-- Bloque de usuario --> 
-<div class="w-full mt-auto mb-4 px-4 flex justify-center relative" style="position: relative;">
-  <div id="userBlock" class="flex items-center gap-3 shadow-lg px-4 py-2 cursor-pointer select-none"
-       style="background-color:#0A2342; border-radius:50px; transition:0.2s;">
-    <img id="sidebarFoto" src="<?= htmlspecialchars($fotoUsuario) ?>" alt="Foto usuario"
-         style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
-    <div class="flex flex-col leading-tight">
-      <span style="color:#32CD32; font-weight:600; font-size:14px;">
-        <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
-      </span>
-      <span style="color:#cbd5e1; font-size:12px;">
-        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
-      </span>
+  <!-- Bloque de usuario premium -->
+  <div class="w-full mt-auto mb-5 px-4 flex justify-center relative">
+    <div id="userBlock" 
+         class="flex items-center gap-3 shadow-lg px-4 py-3 cursor-pointer select-none"
+         style="background:linear-gradient(135deg, #0A2342 0%, #04172e 100%); 
+                border-radius:50px; transition:all 0.3s ease;">
+      <div style="padding:2px; border-radius:50%; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
+        <img id="sidebarFoto" 
+             src="<?= htmlspecialchars($fotoUsuario) ?>" 
+             alt="Foto usuario"
+             style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid white;">
+      </div>
+      <div class="flex flex-col leading-tight">
+        <span style="color:#b4c24d; font-weight:700; font-size:14px; letter-spacing:-0.02em;">
+          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+        </span>
+        <span style="color:#cbd5e1; font-size:12px; font-weight:500;">
+          <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
+        </span>
+      </div>
     </div>
   </div>
-</div>
-
 </nav>
-
-
-
-<style>
-  /* Sidebar compacto (solo íconos) */
-.sidebar-cerrado {
-  width: 80px !important;
-  transition: width 0.3s ease;
-}
-
-.sidebar-cerrado ul li a {
-  justify-content: center;
-  padding: 1rem;
-}
-
-.sidebar-cerrado svg {
-  margin: 0 auto;
-}
-
-/* Usuario reducido a círculo */
-.user-mini {
-  justify-content: center !important;
-  width: 60px !important;
-  height: 60px !important;
-  padding: 0 !important;
-  
-  
-}
-
-.user-mini img {
-  width: 45px !important;
-  height: 45px !important;
-  border-radius: 50%;
-}
-
-.user-mini div {
-  display: none;
-}
-
-/* Transiciones suaves */
-#sidebar,
-#userBlock {
-  transition: all 0.3s ease;
-}
-
-</style>
