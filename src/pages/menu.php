@@ -164,7 +164,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
         <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
       </span>
       <span style="color:#cbd5e1; font-size:12px;">
-        <?= __(ucfirst($_SESSION['rol'] ?? '')) ?>
+        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
       </span>
     </div>
   </div>

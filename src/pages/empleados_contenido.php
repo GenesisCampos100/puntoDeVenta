@@ -5,21 +5,32 @@
     $busqueda = $_GET['busqueda'] ?? '';
     $puesto = $_GET['puesto'] ?? '';
     $orden = $_GET['orden'] ?? 'e.nombre ASC';
+    $allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
+    if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
+    $vista_actual = $_GET['view'] ?? 'empleados_contenido';
 
-    // Obtener puestos para el filtro
-    $stmt_puestos = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
-    $puestos = $stmt_puestos->fetchAll();
-
-    // Construcción de la consulta
-    $sql = "SELECT 
-                e.id_empleado as numero,
-                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
-                u.correo,
-                e.estatus,
-                DATE_FORMAT(e.fecha, '%d/%m/%Y') as fecha
-            FROM empleados e
-            LEFT JOIN usuarios u ON e.id_empleado = u.id_empleado
+    $sql = "SELECT
+                e.id_empleado AS numero,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
+                u.correo AS correo,
+                e.estatus AS estatus,
+                e.fecha AS fecha
+            FROM usuarios u 
+            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+            LEFT JOIN roles r ON e.id_rol = r.id_rol
             WHERE 1=1";
+
+    if(!empty($busqueda)) $sql .= " AND (
+                                e.id_empleado LIKE :busqueda
+                                OR e.nombre LIKE :busqueda
+                                OR e.apellido_paterno LIKE :busqueda
+                                OR e.apellido_materno LIKE :busqueda
+                                OR u.correo LIKE :busqueda)";
+    if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
+
+    $sql .= " ORDER BY $orden";
+
+    $stmt = $pdo->prepare($sql);
 
     $params = [];
 
@@ -43,7 +54,9 @@
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    $empleados = $stmt->fetchAll();
+    $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
+    $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
@@ -52,8 +65,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= __('employees_title') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -72,8 +86,63 @@
             grid-template-columns: 1fr 1fr 1fr; 
             gap: 1rem; /* Espacio entre elementos */
             align-items: center;
-            padding: 1rem;
-            background-color: #ffffff;
+            margin: 20px auto 30px;
+            width: 90%;
+            max-width: 1000px; 
+            gap: 10px; 
+        }
+
+        .toolbar form {
+            display: flex;
+            flex-grow: 1;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-container {
+            flex-grow: 1; 
+            max-width: 500px; 
+            position: relative;
+        }
+
+        .search-container input[type="text"] {
+            padding: 10px 15px 10px 40px; 
+            border: 1px solid #ddd;
+            border-radius: 8px; 
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
+        .search-container .search-icon { 
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af; 
+            cursor: pointer; /* HACEMOS EL ÍCONO CLICKABLE */
+            font-size: 18px;
+            z-index: 10;
+        }
+
+        .search-container .clear-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Botones de acción (Filtrar/Ordenar) */
+        .toolbar .btn-accion {
+            background: white; 
+            color: #374151; 
+            padding: 10px 18px;
+            border: 1px solid #d1d5db; 
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
@@ -328,14 +397,11 @@
             }
 
             // Adjuntar cuando el DOM esté listo
-            document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
-
-            // Si usas AJAX para cargar contenido, necesitas volver a adjuntar los manejadores
-            // Por ejemplo, si tienes una función que recarga la tabla:
-            // function recargarTabla() {
-            //     // ...código para recargar...
-            //     attachDeleteHandlers();
-            // }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
+            } else {
+                attachDeleteHandlers();
+            }
         })();
     </script>
 </body>

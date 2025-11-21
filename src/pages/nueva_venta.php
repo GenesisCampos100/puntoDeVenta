@@ -276,6 +276,27 @@ document.getElementById("pay-btn").addEventListener("click", () => {
 </script>
 
 <script>
+document.getElementById("pay-btn").addEventListener("click", () => {
+  const cart = localStorage.getItem("cart");
+  if (!cart || JSON.parse(cart).length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+
+  // Asignamos el carrito al campo oculto
+  document.getElementById("cart-data").value = cart;
+
+  // Enviamos el formulario
+  document.getElementById("submit-checkout").click();
+
+  // Limpia carrito al finalizar (opcional)
+  // localStorage.removeItem("cart");
+});
+</script>
+
+
+
+<script>
 // Filtrado de productos por categoría
 document.addEventListener('DOMContentLoaded', () => {
   const buttons = document.querySelectorAll('.category-btn');
