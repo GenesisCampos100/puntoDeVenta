@@ -1,13 +1,35 @@
-<?php 
+<?php
+// src/pages/productos_contenido.php
+// Versión corregida y funcional — Inventario (productos + variantes + filtros AJAX)
+
+
 require_once __DIR__ . "/../config/db.php";
 
+// 1. Mapeo para prevenir errores de SQL Injection y columna inválida
+$mapOrder = [
+    'nom_asc'    => 'p.nom_producto ASC',
+    'nom_desc'   => 'p.nom_producto DESC',
+    'precio_asc' => 'p.precio ASC',
+    'precio_desc' => 'p.precio DESC',
+    // Fallback si no viene nada o viene algo inválido
+    'p.nom_producto ASC' => 'p.nom_producto ASC'
+];
+
+// Obtener el valor del GET y mapearlo, o usar el default seguro
+$orden_get = $_GET['orden'] ?? 'nom_asc';
+$orden_sql = $mapOrder[$orden_get] ?? $mapOrder['nom_asc'];
+
+// --- Parámetros GET (fallback igual que tenías) ---
 $busqueda = $_GET['busqueda'] ?? '';
 $categoria = $_GET['categoria'] ?? '';
-$orden = $_GET['orden'] ?? 'p.nom_producto ASC'; 
-$vista_actual = $_GET['view'] ?? 'productos_contenido'; 
+$orden = $_GET['orden'] ?? 'p.nom_producto ASC';
+$vista_actual = $_GET['view'] ?? 'productos_contenido';
 
-// --- COMIENZA EL CÓDIGO PHP DE CONSULTA (SIN CAMBIOS) ---
-
+// -----------------------
+// CONSULTAS INICIALES (para renderizar la página inicialmente)
+// -----------------------
+// Estas consultas sirven solo para el render inicial (si deseas pre-cargar).
+// La carga dinámica de la tabla se hace vía AJAX a ../api/inventario_api.php?action=filtrar
 $sql = "SELECT 
             p.cod_barras AS id_producto,
             p.cod_barras AS producto_cod_barras,
@@ -21,10 +43,11 @@ $sql = "SELECT
             p.costo,
             p.precio AS precio_unitario,
             p.id_categoria,
-            (SELECT COUNT(*) FROM variantes v2 WHERE v2.cod_barras = p.cod_barras) AS tiene_variante
+            (SELECT COUNT(*) FROM variantes v2 WHERE v2.cod_barras = p.cod_barras) AS tiene_variante,
+            IFNULL(p.is_active,1) AS is_active
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-        WHERE 1=1"; 
+        WHERE 1=1";
 
 if (!empty($busqueda)) $sql .= " AND (p.nom_producto LIKE :busqueda OR p.cod_barras LIKE :busqueda)";
 if (!empty($categoria)) $sql .= " AND p.id_categoria = :categoria";
@@ -34,10 +57,11 @@ $sql .= " ORDER BY $orden";
 $stmt = $pdo->prepare($sql);
 $params = [];
 if (!empty($busqueda)) $params[':busqueda'] = "%$busqueda%";
-if (!empty($categoria)) $params[':categoria'] = $categoria; 
-$stmt->execute($params); 
+if (!empty($categoria)) $params[':categoria'] = $categoria;
+$stmt->execute($params);
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// variantes (pre-carga)
 $variantesStmt = $pdo->query("
     SELECT 
         v.cod_barras AS id_producto,
@@ -53,317 +77,333 @@ $variantesStmt = $pdo->query("
     FROM variantes v
 ");
 $variantesRaw = $variantesStmt->fetchAll(PDO::FETCH_ASSOC);
-
 $variantesPorProducto = [];
 foreach ($variantesRaw as $v) {
-    $variantesPorProducto[$v['id_producto']][] = $v; 
+    $variantesPorProducto[$v['id_producto']][] = $v;
 }
 
+// categorías (para filtro)
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
-
-// --- TERMINA EL CÓDIGO PHP DE CONSULTA ---
-
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Productos — Inventario</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            /* Eliminamos el padding fijo del body */
-        }
 
-        /* --- Estilos responsive específicos de la tabla --- */
-        /* Oculta la cabecera en móvil y convierte las filas en bloques */
-        @media screen and (max-width: 1023px) { 
-            .productos-container table {
-                border-spacing: 0 !important; /* Elimina el espaciado entre filas en móvil */
-            }
-            .productos-container thead {
-                display: none; /* Oculta la cabecera de la tabla */
-            }
-            .product-row, .fila-variantes {
-                display: block; /* La fila se convierte en un bloque */
-                margin-bottom: 20px; /* Espaciado entre productos/bloques */
-                padding-bottom: 5px; /* Pequeño ajuste visual */
-            }
-            .product-row td {
-                display: block; /* Las celdas se convierten en bloques para apilar */
-                text-align: right !important;
-                padding: 10px 15px; /* Ajusta el padding de celdas */
-            }
-            .product-row td:first-child {
-                display: none; /* Oculta el checkbox de selección en móvil */
-            }
-            .product-row td:nth-child(2) {
-                text-align: left !important; /* Mantiene la info de producto a la izquierda */
-            }
-            .product-row td:nth-child(2):before {
-                content: "Producto"; 
-                float: left; 
-                font-weight: 600; 
-                color: #555;
-            }
-            .product-row td:nth-child(3):before {
-                content: "Stock";
-                float: left;
-                font-weight: 600;
-                color: #555;
-            }
-            .product-row td:nth-child(4):before {
-                content: "Categoría";
-                float: left;
-                font-weight: 600;
-                color: #555;
-            }
-            .product-row td:nth-child(5):before {
-                content: "Precio";
-                float: left;
-                font-weight: 600;
-                color: #555;
-            }
-            .product-row td:nth-child(6) {
-                text-align: left !important;
-                padding-top: 15px;
-            }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@0.257.0/dist/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-            /* Estilos para las variantes apiladas en móvil */
-            .fila-variantes .w-full {
-                display: block;
-            }
-            .fila-variantes thead {
-                display: none;
-            }
-            .fila-variantes tbody tr {
-                display: block;
-                border-bottom: 1px dashed #ddd;
-            }
-            .fila-variantes tbody tr:last-child {
-                border-bottom: none;
-            }
-            .fila-variantes tbody td {
-                display: block;
-                text-align: right !important;
-                padding: 8px 15px;
-            }
-            .fila-variantes tbody td:nth-child(2) {
-                text-align: left !important;
-                font-weight: 600;
-                padding-left: 55px;
-            }
-            .fila-variantes tbody td:nth-child(2) img {
-                margin-left: -40px;
-            }
-            .fila-variantes tbody td:nth-child(3):before {
-                content: "Stock:";
-                float: left;
-                font-weight: 400;
-                color: #555;
-            }
-            .fila-variantes tbody td:nth-child(4):before {
-                content: "Precio:";
-                float: left;
-                font-weight: 400;
-                color: #555;
-            }
-            .fila-variantes tbody td:nth-child(1),
-            .fila-variantes tbody td:nth-child(5) {
-                display: none; /* Oculta columnas de checkbox y acciones */
-            }
-        }
-        
-        /* Clases necesarias para la manipulación JS de los selectores que Tailwind no maneja directamente */
-        .select-custom-dropdown {
-            padding: 10px 20px;
-            border: 1px solid #2d4353;
-            background-color: #ffffff;
-            border-radius: 10px;
-            cursor: pointer;
-            appearance: none;
-            color: #2d4353;
-            position: absolute; 
-            min-width: 220px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 20;
-            display: none;
-            top: calc(100% + 10px); 
-            left: 0;
-            right: auto;
-            text-align: left;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body class="bg-[#2d4353] pt-5 text-[#eeeeee] lg:ml-64">
 
-<div class="bg-white p-4 rounded-xl shadow-xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-center sticky top-5 z-50 mx-2 sm:mx-5 font-poppins gap-3 mx-auto max-w-4xl">
-    <form method="GET" id="toolbar-form" action="index.php" class="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-start sm:items-center w-full sm:w-auto"> 
-        <input type="hidden" name="view" value="productos"> 
-
-        <div class="relative w-full sm:w-auto">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer text-[#2d4353]" onclick="document.getElementById('toolbar-form').submit()">🔍</span> 
-            <input type="text" id="busqueda-input" name="busqueda" placeholder="Buscar producto..." 
-                    value="<?= htmlspecialchars($busqueda) ?>" 
-                    onkeydown="if(event.key === 'Enter') document.getElementById('toolbar-form').submit();"
-                    class="pl-11 pr-11 py-2.5 border border-[#eeeeee] bg-white rounded-full w-full sm:w-72 text-[#2d4353] focus:border-[#b4c24d] focus:ring-2 focus:ring-[#b4c24d]/40 transition outline-none">
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[#2d4353] text-sm" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();">✖</span>
-        </div>
-
-        <div class="flex gap-3 w-full sm:w-auto">
-            <div class="relative flex-1">
-                <button type="button" class="px-5 py-2 rounded-full cursor-pointer font-semibold flex items-center gap-2 transition bg-[#2d4353] text-white hover:bg-[#3b5a70] transform hover:-translate-y-px w-full justify-center" onclick="toggleSelect(event, 'categoria-select')">
-                    <span class="text-lg">⚙</span> Filtrar
-                </button>
-                <select name="categoria" id="categoria-select" onchange="document.getElementById('toolbar-form').submit()" class="select-custom-dropdown">
-                    <option value="">-- Todas las categorías --</option>
-                    <?php foreach ($categorias as $cat): ?>
-                        <option value="<?= $cat['id_categoria'] ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($cat['nombre']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            
-            <div class="relative flex-1">
-                <button type="button" class="px-5 py-2 rounded-full cursor-pointer font-semibold flex items-center gap-2 transition bg-[#2d4353] text-white hover:bg-[#3b5a70] transform hover:-translate-y-px w-full justify-center" onclick="toggleSelect(event, 'orden-select')">
-                    <span class="text-xl">⇅</span> Ordenar
-                </button>
-                <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()" class="select-custom-dropdown">
-                    <option value="p.nom_producto ASC"    <?= $orden=="p.nom_producto ASC" ? "selected" : "" ?>>Nombre (A-Z)</option>
-                    <option value="p.nom_producto DESC" <?= $orden=="p.nom_producto DESC" ? "selected" : "" ?>>Nombre (Z-A)</option>
-                    <option value="p.precio ASC"    <?= $orden=="p.precio ASC" ? "selected" : "" ?>>Precio ↑</option>
-                    <option value="p.precio DESC"  <?= $orden=="p.precio DESC" ? "selected" : "" ?>>Precio ↓</option>
-                </select>
-            </div>
-        </div>
-    </form>
+   <style>
+    /* Definición de la Paleta de Colores en CSS Variables */
+    :root {
+        --color-primary: #2d4353; /* Azul Oscuro */
+        --color-success: #b4c24d; /* Verde Oliva */
+        --color-alert: #e15871; /* Rosa/Rojo Suave */
+        --color-background-subtle: #eeeeee; /* Gris Claro */
+    }
     
-    <a href="index.php?view=agregar_producto" class="px-5 py-2 rounded-full cursor-pointer font-semibold flex items-center gap-2 transition bg-[#b4c24d] text-[#2d4353] hover:bg-[#9aa841] transform hover:-translate-y-px w-full sm:w-auto justify-center">
-        <span class="text-lg">➕</span> Agregar producto
-    </a>
-</div>
+    /* Clases de utilidad de color PERSONALIZADAS */
+    .bg-primary { background-color: var(--color-primary); }
+    .text-primary { color: var(--color-primary); }
+    .hover\:bg-primary-dark:hover { background-color: #243747; }
+    
+    .bg-success { background-color: var(--color-success); }
+    .text-success { color: var(--color-success); }
+    .bg-success\/20 { background-color: rgba(180, 194, 77, 0.2); } /* Nuevo: Para stock suficiente */
+    .hover\:bg-success\/90:hover { background-color: rgba(180, 194, 77, 0.9); }
+    
+    .text-alert { color: var(--color-alert); }
+    .bg-alert\/10 { background-color: rgba(225, 88, 113, 0.1); }
+    .hover\:bg-alert\/20:hover { background-color: rgba(225, 88, 113, 0.2); }
+    .bg-alert\/20 { background-color: rgba(225, 88, 113, 0.2); } /* Nuevo: Para stock agotado */
+    .border-alert\/50 { border-color: rgba(225, 88, 113, 0.5); }
 
-<div class="productos-container px-1 sm:px-5 mt-5 ">
-    <table class="w-full border-separate" style="border-spacing: 0 10px;">
-        <thead class="hidden lg:table-header-group"> 
-            <tr>
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 4.5%; border-top-left-radius: 10px;"></th> 
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 45%;">Producto</th>
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 15%;">Stock</th>
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 15%;">Categoría</th>
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 15%;">Precio</th>
-                <th class="bg-[#2d4353] p-4 text-left font-semibold text-white border-b-2 border-[#b4c24d] text-sm" style="width: 5%; border-top-right-radius: 10px;"></th> 
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (!empty($productos)): ?>
-                <?php $isFirstRow = true; ?>
-                <?php foreach ($productos as $producto): 
-                    // Asegurando la robustez con el operador ?? (asumiendo PHP 7.0+)
-                    $cantidad = (int)($producto['cantidad'] ?? 0);
-                    $cantidad_min = (int)($producto['cantidad_min'] ?? 0);
-                    $es_bajo_stock = $cantidad <= $cantidad_min;
-                    $stockClass = $es_bajo_stock ? 'bg-[#fbe2e7] text-[#e15871]' : 'bg-[#f0f4db] text-[#b4c24d]';
-                    $imagen = !empty($producto['producto_imagen']) ? "uploads/{$producto['producto_imagen']}" : "../uploads/sin-imagen.png";
-                ?>
-                <tr class="product-row bg-white shadow-md transition hover:shadow-xl hover:transform hover:-translate-y-0.5 rounded-xl" id="product-row-<?= htmlspecialchars($producto['id_producto']) ?>">
-                    <td class="p-4 text-[#2d4353] rounded-l-xl hidden lg:table-cell"><input type="checkbox"></td>
-                    
-                    <td class="p-4 text-[#2d4353]">
-                        <div class="flex items-center gap-4">
-                            <img src="<?= htmlspecialchars($imagen) ?>" alt="Producto" class="w-16 h-20 object-cover rounded-md border border-[#eeeeee]">
-                            <div>
-                                <strong class="text-[#2d4353] font-semibold"><?= htmlspecialchars($producto['producto_nombre']) ?></strong>
-                                <small class="block text-gray-500 text-xs mt-1 lg:hidden">Cód: <?= htmlspecialchars($producto['producto_cod_barras']) ?></small>
-                                <small class="block text-gray-500 text-xs mt-1 lg:hidden">Color: <?= htmlspecialchars($producto['color'] ?: 'N/A') ?></small>
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td class="p-4 text-[#2d4353]"><span class="px-3 py-1 rounded-full text-sm font-semibold <?= $stockClass ?>"><?= $cantidad ?> unidades</span></td>
-                    
-                    <td class="p-4 text-[#2d4353] hidden sm:table-cell"><?= htmlspecialchars($producto['categoria']) ?></td>
-                    
-                    <td class="p-4 text-[#2d4353] font-bold text-lg">$<?= number_format($producto['precio_unitario'], 2) ?></td>
-                    
-                    <td class="p-4 text-[#2d4353] text-center rounded-r-xl lg:text-right">
-                        <?php if ($producto['tiene_variante'] > 0): ?>
-                            <button class="w-9 h-9 rounded-full bg-[#e15871] text-white text-xl leading-none transition hover:bg-[#c64a61] hover:scale-105" id="btn-toggle-<?= htmlspecialchars($producto['id_producto']) ?>" 
-                                 onclick="toggleVariantes('<?= htmlspecialchars($producto['id_producto']) ?>')">+</button>
-                        <?php else: ?>
-                            <button class="w-9 h-9 rounded-full bg-[#e15871] text-white text-xl leading-none transition hover:bg-[#c64a61] hover:scale-105" onclick='openCustomModal(<?= json_encode($producto) ?>, "producto")'>+</button>
-                        <?php endif; ?>
-                    </td>
-                </tr>
 
-                <?php if ($isFirstRow): ?>
-                    <tr class="h-4 bg-transparent hidden lg:table-row"><td colspan="6"></td></tr>
-                    <?php $isFirstRow = false; ?>
-                <?php endif; ?>
+    /* Estilos globales y de estado */
+    body { font-family: 'Poppins', sans-serif; }
+    .product-inactive { opacity: 0.7; background-color: #fcfcfc; }
 
-                <?php if ($producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']])): ?>
-                <tr class="fila-variantes bg-[#f7f7f7] rounded-xl" style="display:none;" id="variantes-<?= htmlspecialchars($producto['id_producto']) ?>">
-                    <td colspan="6" class="p-0">
-                        <table class="w-full border-collapse">
-                            <thead class="hidden lg:table-header-group"> 
-                                <tr>
-                                    <th class="bg-[#eeeeee] p-2.5 text-left font-semibold text-[#2d4353] text-xs" style="width: 4.5%;"></th>
-                                    <th class="bg-[#eeeeee] p-2.5 text-left font-semibold text-[#2d4353] text-xs">Talla/Color</th>
-                                    <th class="bg-[#eeeeee] p-2.5 text-left font-semibold text-[#2d4353] text-xs">Stock</th>
-                                    <th class="bg-[#eeeeee] p-2.5 text-left font-semibold text-[#2d4353] text-xs">Precio</th>
-                                    <th class="bg-[#eeeeee] p-2.5 text-left font-semibold text-[#2d4353] text-xs" style="width: 5%;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var): 
-                                    $var['categoria'] = $producto['categoria'] ?? 'N/A';
-                                    $var['producto_nombre'] = ($producto['producto_nombre'] ?? 'Producto') . " (Var. " . ($var['talla'] ?? '—') . "/" . ($var['color'] ?? '—') . ")";
-                                    $cantidad_var = (int)($var['cantidad'] ?? 0);
-                                    $es_bajo_stock_var = $cantidad_var <= (int)($var['cantidad_min'] ?? 0);
-                                    $stockClass_var = $es_bajo_stock_var ? 'bg-[#fbe2e7] text-[#e15871]' : 'bg-[#f0f4db] text-[#b4c24d]';
-                                    $precio_var = $var['precio'] ?? 0;
-                                ?>
-                                <tr class="bg-[#f7f7f7]">
-                                    <td class="p-3 text-center hidden lg:table-cell" style="width: 4.5%;"></td>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-3 text-[#444444]">
-                                            <img src="<?= !empty($var['imagen']) ? 'uploads/'.$var['imagen'] : '../uploads/sin-imagen.png' ?>" class="w-10 h-14 object-cover rounded-sm">
-                                            <div>
-                                                <strong class="text-[#2d4353]">Talla: <?= htmlspecialchars($var['talla'] ?: '—') ?></strong><br>
-                                                <small class="text-xs">Color: <?= htmlspecialchars($var['color'] ?: '—') ?></small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-3"><span class="px-3 py-1 rounded-full text-xs font-semibold <?= $stockClass_var ?>"><?= (int)$var['cantidad'] ?></span></td>
-                                    <td class="p-3 font-semibold text-[#2d4353]">$<?= number_format($precio_var, 2) ?></td>
-                                    <td class="p-3 text-center lg:text-right" style="width: 5%;">
-                                        <button class="w-8 h-8 rounded-full bg-[#e15871] text-white text-lg leading-none transition hover:bg-[#c64a61] hover:scale-105" onclick='openCustomModal(<?= json_encode($var) ?>, "variante")'>+</button>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                <?php endif; ?>
+    /* Estilos de transición para la tabla */
+    .variant-group.hidden {
+        display: none !important;
+    }
+    
+    /* Nota: Se ELIMINÓ todo el código CSS que contenía Media Queries, table-layout: fixed, y anchos porcentuales. */
+</style>
 
+    <body class="bg-background-subtle text-[#0f172a]">
+    
+    <div class="max-w-7xl mx-auto p-4 lg:pt-8">
+    
+    <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col lg:flex-row gap-4 lg:items-center justify-between border-b border-gray-100 mb-6">
+        
+        <div class="flex items-center gap-3 w-full lg:w-3/5">
+            <div class="relative w-full">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input id="busqueda" type="text" placeholder="Buscar producto por nombre o SKU..." 
+                        value="<?= htmlspecialchars($busqueda) ?>"
+                        class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-success/50 focus:border-success/80 transition duration-150"/>
+                <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-alert hidden">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div id="tabs" class="ml-2 inline-flex bg-background-subtle rounded-full p-1 shadow-inner flex-shrink-0">
+                <button data-status="activo" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200 
+                    <?= ($status === 'activo' || empty($status)) ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
+                    Activos
+                </button>
+                <button data-status="descatalogado" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200
+                    <?= ($status === 'descatalogado') ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
+                    Descatalogados
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
+            <select id="categoria" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
+                <option value="">Todas las categorías</option>
+                <?php foreach ($categorias as $cat): ?>
+                    <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($cat['nombre']) ?>
+                    </option>
                 <?php endforeach; ?>
-            <?php else: ?>
-                <tr><td colspan="6" class="text-center p-8 bg-white rounded-xl text-[#2d4353] mx-2 sm:mx-0">No hay productos registrados.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+            </select>
+
+            <select id="orden" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
+                <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A → Z)</option>
+                <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z → A)</option>
+                <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio ↑</option>
+                <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio ↓</option>
+            </select>
+
+            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success text-white font-semibold transition duration-200 hover:bg-primary-dark shadow-md">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Agregar
+            </button>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl overflow-x-auto productos-container">
+    <div class="relative"> 
+        <table id="productos-table" class="w-full border-collapse min-w-max">
+            <thead class="bg-primary text-white sticky top-0 z-10">
+                <tr class="divide-x divide-primary/30">
+                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider w-auto min-w-[280px]">Producto</th>
+                    
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24 min-w-[96px]">Stock</th>
+                    
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-32 min-w-[128px] hidden sm:table-cell">Categoría</th>
+                    
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-28 min-w-[112px]">Precio</th>
+                    
+                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider w-44 min-w-[176px]">Acciones</th>
+                </tr>
+            </thead> 
+
+            <tbody id="tabla-productos" class="divide-y divide-gray-200">
+                <?php if (!empty($productos)): ?>
+                    <?php foreach ($productos as $producto):
+                        // Variables y preparación de datos
+                        $pid = htmlspecialchars($producto['id_producto']);
+                        $nombre = htmlspecialchars($producto['producto_nombre']);
+                        $sku = htmlspecialchars($producto['producto_cod_barras']);
+                        // ** Clave para la lógica: $tieneVariantes **
+                        $tieneVariantes = $producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']]);
+                        $cantidad = (int)($producto['cantidad'] ?? 0);
+                        $cantidad_min = (int)($producto['cantidad_min'] ?? 0);
+                        $is_active = (int)($producto['is_active'] ?? 1);
+                        
+                        // Lógica de Color Condicional para Stock
+                        if ($cantidad > $cantidad_min) {
+                            $stockClass = 'bg-success/20 text-success'; // Suficiente (Verde Oliva)
+                        } elseif ($cantidad > 0 && $cantidad <= $cantidad_min) {
+                            $stockClass = 'bg-orange-100 text-orange-700 font-bold border border-orange-300'; // Mínimo (Naranja)
+                        } else {
+                            $stockClass = 'bg-alert/20 text-alert font-bold border border-alert/50'; // Agotado/Bajo (Rosa/Rojo Suave)
+                        }
+                        
+                        $imagen = !empty($producto['producto_imagen']) ? "uploads/".htmlspecialchars($producto['producto_imagen']) : "../uploads/sin-imagen.png";
+                        $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
+                    ?>
+                    
+                    <tr class="producto-row hover:bg-gray-50/80 transition duration-200 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'product-inactive opacity-60'; ?>" 
+                        id="product-row-<?= $pid ?>"
+                        data-product-id="<?= $pid ?>"
+                        data-details="<?= $jsonProducto ?>">
+
+                        <td class="px-6 py-3 align-middle w-auto">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 shadow-sm">
+                                    <img src="<?= $imagen ?>" class="w-full h-full object-cover" alt="<?= $nombre ?>">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-gray-900 text-sm line-clamp-2"><?= $nombre ?></div>
+                                    <div class="text-xs text-gray-500 mt-0.5">SKU: <code class="bg-gray-100 px-1.5 py-0.5 rounded"><?= $sku ?></code></div>
+                                </div>
+                                
+                                <?php if ($tieneVariantes): ?>
+                                    <button class="toggle-variants flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-primary/10 text-primary transition duration-150 ml-2" 
+                                            data-target-id="variants-<?= $pid ?>" 
+                                            title="Ver variantes">
+                                        <i data-lucide="chevron-down" class="arrow-icon h-5 w-5"></i>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+
+                        <td class="px-4 py-3 align-middle text-center w-24">
+                            <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $stockClass ?>">
+                                <?= $cantidad ?> unid.
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-3 align-middle text-center text-sm text-gray-600 w-32 hidden sm:table-cell">
+                            <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                                <?= htmlspecialchars($producto['categoria']) ?>
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-3 align-middle text-center font-bold text-gray-900 text-sm w-28">
+                            $<?= number_format($producto['precio_unitario'], 2) ?>
+                        </td>
+                        
+                        <td class="px-6 py-3 align-middle text-center w-44">
+                            <div class="flex items-center justify-center gap-2">
+                                
+                                <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" data-details='<?= $jsonProducto ?>' title="Ver detalles">
+                                    <i data-lucide="eye" class="h-5 w-5"></i>
+                                </button>
+                                
+                                <?php if (!$tieneVariantes): ?>
+                                    <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
+                                        onclick="openMovimientoModal('<?= $pid ?>','producto','<?= addslashes($nombre) ?>', false)"
+                                        title="Ajustar stock">
+                                        <i data-lucide="settings" class="h-5 w-5"></i>
+                                    </button>
+                                <?php endif; ?>
+                                
+                                <button class="toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg <?= $is_active ? 'bg-alert/10 text-alert hover:bg-alert/20' : 'bg-success/10 text-success hover:bg-success/20' ?> transition duration-150 shadow-sm" 
+                                        data-id="<?= $pid ?>" 
+                                        data-type="producto" 
+                                        data-active="<?= $is_active ? 'true' : 'false' ?>"
+                                        title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>">
+                                    <?php if ($is_active): ?>
+                                        <i data-lucide="power" class="h-5 w-5"></i>
+                                    <?php else: ?>
+                                        <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                    <?php endif; ?>
+                                </button>
+                                
+                                <?php if ($tieneVariantes): ?>
+                                    <div class="w-9 h-9"></div> 
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <?php if ($tieneVariantes): ?>
+                        <tr id="variants-<?= $pid ?>" class="variant-group hidden transition-all duration-300">
+                            <td colspan="5" class="p-0">
+                                <div class="bg-gray-50 border-t-2 border-gray-200">
+                                    <table class="w-full min-w-max">
+                                        <tbody class="divide-y divide-gray-200">
+                                            <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var):
+                                                $vsku = htmlspecialchars($var['cod_barras']);
+                                                $vcant = (int)($var['cantidad'] ?? 0);
+                                                $vcant_min = (int)($var['cantidad_min'] ?? 0);
+                                                
+                                                // Lógica de Color Condicional para Stock de Variante
+                                                if ($vcant > $vcant_min) {
+                                                    $vstockClass = 'bg-success/20 text-success'; 
+                                                } elseif ($vcant > 0 && $vcant <= $vcant_min) {
+                                                    $vstockClass = 'bg-orange-100 text-orange-700 font-bold border border-orange-300';
+                                                } else {
+                                                    $vstockClass = 'bg-alert/20 text-alert font-bold border border-alert/50';
+                                                }
+
+                                                $jsonVar = htmlspecialchars(json_encode($var + ['producto_nombre' => $producto['producto_nombre'], 'categoria' => $producto['categoria'], 'id_producto' => $producto['id_producto']]), ENT_QUOTES, 'UTF-8');
+                                            ?>
+                                                <tr class="hover:bg-gray-100 transition duration-150">
+                                                    
+                                                    <td class="px-6 py-3 align-middle text-left w-auto">
+                                                        <div class="text-sm font-medium text-gray-900 ml-16">
+                                                            Talla: <span class="text-primary font-bold"><?= htmlspecialchars($var['talla'] ?: '—') ?></span> 
+                                                            | Color: <span class="text-primary font-bold"><?= htmlspecialchars($var['color'] ?: '—') ?></span>
+                                                        </div>
+                                                        <div class="text-xs text-gray-500 mt-0.5 ml-16">SKU: <code class="bg-white px-1.5 py-0.5 rounded"><?= $vsku ?></code></div>
+                                                    </td>
+
+                                                    <td class="px-4 py-3 align-middle text-center w-24">
+                                                        <span id="stock-<?= $vsku ?>" data-min="<?= $vcant_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $vstockClass ?>">
+                                                            <?= $vcant ?> unid.
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="px-4 py-3 align-middle text-center w-32 hidden sm:table-cell"></td>
+
+                                                    <td class="px-4 py-3 align-middle text-center font-bold text-gray-900 text-sm w-28">
+                                                        $<?= number_format($var['precio'] ?? 0, 2) ?>
+                                                    </td>
+
+                                                    <td class="px-6 py-3 align-middle text-center w-44">
+                                                        <div class="flex items-center justify-center gap-2">
+                                                            
+                                                            <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
+                                                                onclick="openMovimientoModal('<?= htmlspecialchars($vsku) ?>','variante','<?= addslashes($producto['producto_nombre'] . ' - ' . ($var['talla'] ?? '')) ?>', false)"
+                                                                title="Ajustar stock">
+                                                                <i data-lucide="settings" class="h-5 w-5"></i>
+                                                            </button>
+                                                            
+                                                            <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" 
+                                                                    data-details='<?= $jsonVar ?>'
+                                                                    title="Ver detalle">
+                                                                <i data-lucide="eye" class="h-5 w-5"></i>
+                                                            </button>
+                                                            
+                                                            <div class="w-9 h-9"></div> 
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="p-12 text-center">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-lucide="package-search" class="h-16 w-16 text-gray-300"></i>
+                                <p class="text-gray-500 font-medium">No se encontraron productos que coincidan con los filtros.</p>
+                                <button onclick="window.location.reload();" class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-150">Refrescar Búsqueda</button>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
+
+<!-- DETALLE MODAL -->
 <div id="modal" class="hidden fixed inset-0 flex items-center justify-center z-[1000] bg-[#2d4353]/80 p-4">
     <div class="bg-white p-6 sm:p-8 rounded-xl w-full max-w-2xl relative shadow-2xl text-[#2d4353]">
-        <button class="absolute top-2 right-3 sm:top-4 sm:right-5 text-[#2d4353] text-3xl font-bold cursor-pointer" onclick="cerrarModal()">✖</button> 
-        
+        <button class="absolute top-2 right-3 sm:top-4 sm:right-5 text-[#2d4353] text-3xl font-bold cursor-pointer" onclick="cerrarModal()">✖</button>
+
         <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 border-b border-[#eeeeee] pb-4 sm:pb-6 mb-4 sm:mb-6">
             <div class="w-32 h-44 sm:w-36 sm:h-52 bg-[#f7f7f7] rounded-lg overflow-hidden flex-shrink-0 border-2 border-[#eeeeee] mx-auto sm:mx-0">
                 <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover">
@@ -373,7 +413,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                 <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-[#2d4353]" id="modal-nombre"></h3>
                 <div class="text-gray-600 text-sm mb-1 sm:mb-2">Categoría <span id="modal-categoria"></span></div>
                 <div class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-5">Código de barras: <span id="modal-codigo"></span></div>
-                
+
                 <div class="bg-[#f0f4db] p-3 sm:p-4 rounded-lg border-l-4 border-[#b4c24d] text-left">
                     <span class="text-sm text-gray-600 block">Precio de Venta</span>
                     <span class="text-3xl sm:text-4xl font-bold text-[#2d4353]">$<span id="modal-precio"></span></span>
@@ -381,49 +421,63 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                 </div>
             </div>
         </div>
-        
+
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-5 mb-6">
              <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
                  <span class="text-sm text-gray-600 block">Costo unitario</span>
                  <span class="text-xl sm:text-2xl font-bold text-[#2d4353]">$<span id="modal-costo"></span></span>
                  <small class="text-xs text-gray-500 block">Precio sin margen</small>
              </div>
-             
+
              <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
                  <span class="text-sm text-gray-600 block">Existencias</span>
                  <span class="text-xl sm:text-2xl font-bold text-[#2d4353]"><span id="modal-stock"></span> unidades</span>
                  <small class="text-xs text-gray-500 block">Mínimo de stock: <span id="modal-stock-min"></span></small>
              </div>
         </div>
-        
+
         <div class="flex flex-col sm:flex-row justify-end gap-3">
-            <button 
-                id="modal-btn-eliminar" 
-                class="px-5 py-3 rounded-lg font-semibold cursor-pointer text-white transition bg-[#e15871] hover:bg-[#c64a61] w-full sm:w-auto" 
-                data-id="" 
-                data-type="" 
-                onclick="confirmarEliminar(this)">
+            <button id="modal-btn-eliminar" class="px-5 py-3 rounded-lg font-semibold text-white bg-[#e15871]" data-id="" data-type="" onclick="confirmarEliminar(this)">
                 🗑️ Eliminar
             </button>
-            <a id="modal-btn-editar" class="px-5 py-3 rounded-lg font-semibold cursor-pointer transition bg-[#b4c24d] text-[#2d4353] hover:bg-[#9aa841] text-center w-full sm:w-auto">✏️ Editar</a> 
+            <a id="modal-btn-editar" class="px-5 py-3 rounded-lg font-semibold bg-[#b4c24d] text-[#2d4353]">✏️ Editar</a>
         </div>
-        
+
     </div>
 </div>
 
+<!-- Confirm modal eliminar -->
 <div id="confirmModal" class="hidden fixed inset-0 flex items-center justify-center z-[9999] bg-[#2d4353]/80 p-4">
-      <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full text-[#2d4353]">
-        <h3 class="text-lg font-semibold mb-4 text-[#2d4353]">Confirmar eliminación</h3>
-        <p class="text-gray-600 mb-6" id="confirmMessage"></p>
-        <div class="flex justify-center gap-4">
-          <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-[#eeeeee] text-[#2d4353] hover:bg-[#dddddd] transition w-full">Cancelar</button>
-          <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-[#e15871] text-white hover:bg-[#c64a61] transition w-full">Eliminar</button>
-        </div>
-      </div>
+  <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full text-[#2d4353]">
+    <h3 class="text-lg font-semibold mb-4 text-[#2d4353]">Confirmar eliminación</h3>
+    <p class="text-gray-600 mb-6" id="confirmMessage">¿Seguro que deseas eliminar?</p>
+    <div class="flex justify-center gap-4">
+      <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-[#eeeeee] text-[#2d4353] hover:bg-[#dddddd] w-1/2">Cancelar</button>
+      <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-[#e15871] text-white w-1/2">Eliminar</button>
     </div>
+  </div>
+</div>
 
+<script>
+/* ==========================
+   CONFIGURACIÓN
+   ========================== */
+const API_URL = '/puntoDeVenta/src/api/inventario_api.php';
+const $tablaCuerpo = $("#tabla-productos");
+const $barraBusqueda = $("#busqueda");
+const $selectCategoria = $("#categoria");
+const $selectOrden = $("#orden");
+const $tabsButtons = $("#tabs .tab-btn");
+const $clearSearchBtn = $("#clear-search");
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script>
+// Helper debounce
+function debounce(fn, wait=300){
+    let t;
+    return function(...args){
+        clearTimeout(t);
+        t = setTimeout(()=> fn.apply(this, args), wait);
+    };
+}
 
 function toggleSelect(event, selectId) {
     event.stopPropagation();
@@ -436,98 +490,216 @@ function toggleSelect(event, selectId) {
             s.style.display = 'none';
         }
     });
-
-    const isHidden = select.style.display === 'none' || select.style.display === '';
-    select.style.display = isHidden ? 'block' : 'none';
-
-    if (isHidden) {
-        // Listener para cerrar al hacer clic fuera
-        const closeSelect = (e) => {
-            const clickedInsideSelect = select.contains(e.target);
-            const clickedButton = e.target === button;
-            if (!clickedInsideSelect && !clickedButton) {
-                select.style.display = 'none';
-                document.removeEventListener('click', closeSelect);
-            }
-        };
-        setTimeout(() => document.addEventListener('click', closeSelect), 50);
-    }
 }
 
+/* ==========================
+   Eventos: búsqueda, filtros y tabs
+   ========================== */
+$barraBusqueda.on("input", debounce(function(){
+    const val = $(this).val().trim();
+    if (val.length) $clearSearchBtn.show(); else $clearSearchBtn.hide();
+    cargarProductos();
+}, 350));
 
-function openCustomModal(data, type) {
-    const isVariant = type === 'variante';
+$clearSearchBtn.on("click", function(){
+    $barraBusqueda.val('');
+    $(this).hide();
+    cargarProductos();
+});
+
+$selectCategoria.on("change", cargarProductos);
+$selectOrden.on("change", cargarProductos);
+
+// Tabs
+$tabsButtons.on("click", function(){
+    $tabsButtons.removeClass("tab-activa bg-blue-500 text-white");
+    $(this).addClass("tab-activa bg-blue-500 text-white");
+    cargarProductos();
+});
+
+/* ==========================
+   Botón agregar producto
+   ========================== */
+$("#btnAgregarProducto").on("click", function(){
+    // Si quieres abrir página de agregar:
+    window.location.href = "index.php?view=agregar_producto";
+});
+
+/* ==========================
+   Delegación de eventos para filas renderizadas por AJAX
+   ========================== */
+
+// 1. Ver detalles (Botón: .btn-detalle)
+// Llama al API para obtener detalles completos y historial, luego abre el modal.
+$(document).on("click", ".btn-detalle", function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const id = $btn.data('id');
+    const tipo = $btn.data('tipo'); // 'producto' o 'variante'
+    const nombre = $btn.data('nombre');
     
-    const productName = data.producto_nombre || data.nom_producto || 'Sin nombre'; 
-    document.getElementById('modal-nombre').textContent = isVariant 
-        ? `${productName}` 
-        : productName;
-        
-    document.getElementById('modal-categoria').textContent = data.categoria || 'Sin categoría';
-    document.getElementById('modal-codigo').textContent = data.cod_barras || data.producto_cod_barras || 'N/A';
+    // Llama a la nueva función que hace el AJAX y luego abre el modal.
+    fetchDetalle(id, tipo, nombre);
+});
+
+// 2. Ajuste de stock (Botón: .btn-ajuste)
+$(document).on("click", ".btn-ajuste", function(){
+    const $btn = $(this);
+    const id = $btn.data("id");
+    const nombre = $btn.data("nombre");
+    const tipo = $btn.data("tipo"); // 'producto' o 'variante'
+    const isVar = tipo === 'variante';
+
+    // openMovimientoModal(cod_entidad, type, nombre, hasVariantes)
+    openMovimientoModal(id, tipo, nombre, isVar);
+});
+
+// 3. Toggle activo/inactivo (Botón: .btn-toggle)
+// CRÍTICO: Se cambia el selector de .toggle-active a .btn-toggle 
+// y el atributo de data-active a data-estado.
+$(document).on("click", ".btn-toggle", function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const id = $btn.data("id");
+    // Usamos 'data-estado' que generaste en el PHP (0 o 1)
+    const currentStatus = parseInt($btn.data("estado"), 10);
+    const newStatus = currentStatus === 1 ? 0 : 1;
+    const nombre = $btn.data("nombre");
+
+    const accion = newStatus === 1 ? 'activar' : 'descatalogar';
+
+    Swal.fire({
+        title: `¿Confirmar ${accion} "${nombre}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+    }).then(result => {
+        if (!result.isConfirmed) return;
+        $.post(API_URL, { action: "toggle_activo", id: id, status: newStatus }, function(res){
+            if (res.success) {
+                Swal.fire('Hecho', res.message || 'Estado cambiado', 'success');
+                cargarProductos(); // Recargar para actualizar la tabla
+            } else {
+                Swal.fire('Error', res.message || 'No se pudo cambiar', 'error');
+            }
+        }, "json").fail(() => {
+            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
+        });
+    });
+});
+
+
+/* ==========================
+   Modal: abrir con data-details (robusto)
+   ========================== */
+function openCustomModalFromJSON(obj) {
+    if (!obj) return;
+    const isVariant = !!(obj.id_variante || obj.sku && (obj.talla !== undefined || obj.color !== undefined));
 
     // 2. Imagen
     const imageKey = isVariant ? 'imagen' : 'producto_imagen';
     document.getElementById('modal-img').src = data[imageKey] ? "uploads/" + data[imageKey] : "../uploads/sin-imagen.png";
 
-    const precioKey = isVariant ? 'precio' : 'precio_unitario'; 
-    const precio = (typeof data[precioKey] !== 'undefined' && data[precioKey] !== null) ? parseFloat(data[precioKey]).toFixed(2) : '—';
-    const costo = (typeof data.costo !== 'undefined' && data.costo !== null) ? parseFloat(data.costo).toFixed(2) : '—';
-    const stock = (typeof data.cantidad !== 'undefined') ? data.cantidad : '—';
-    const stockMin = (typeof data.cantidad_min !== 'undefined') ? data.cantidad_min : '—';
+    const imageKey = obj.imagen || obj.producto_imagen || null;
+    $("#modal-img").attr('src', imageKey ? ("uploads/" + imageKey) : "../uploads/sin-imagen.png");
 
-    document.getElementById('modal-precio').textContent = precio;
-    document.getElementById('modal-costo').textContent = costo;
-    document.getElementById('modal-stock').textContent = stock;
-    document.getElementById('modal-stock-min').textContent = stockMin; 
-    
-    const btnEliminar = document.getElementById('modal-btn-eliminar');
-    const btnEditar = document.getElementById('modal-btn-editar');
-    let id;
-    
+    const precio = (typeof obj.precio !== 'undefined' && obj.precio !== null) ? parseFloat(obj.precio).toFixed(2)
+                 : (typeof obj.precio_unitario !== 'undefined' ? parseFloat(obj.precio_unitario).toFixed(2) : '—');
+    const costo = (typeof obj.costo !== 'undefined' && obj.costo !== null) ? parseFloat(obj.costo).toFixed(2) : '—';
+    const stock = (typeof obj.cantidad !== 'undefined') ? obj.cantidad : '—';
+    const stockMin = (typeof obj.cantidad_min !== 'undefined') ? obj.cantidad_min : '—';
+
+    $("#modal-precio").text(precio);
+    $("#modal-costo").text(costo);
+    $("#modal-stock").text(stock);
+    $("#modal-stock-min").text(stockMin);
+
+    const $btnEliminar = $("#modal-btn-eliminar");
+    const $btnEditar = $("#modal-btn-editar");
+
     if (isVariant) {
-        id = data.id; 
-        btnEditar.href = `index.php?view=editar_variante&id=${id}&prod_cod_barras=${data.id_producto}`; 
+        const idVar = obj.id_variante ?? obj.sku;
+        $btnEditar.attr('href', `index.php?view=editar_variante&id=${encodeURIComponent(idVar)}&prod_cod_barras=${encodeURIComponent(obj.id_producto ?? obj.cod_barras)}`);
+        $btnEliminar.attr('data-id', idVar).attr('data-type','variante');
     } else {
-        id = data.id_producto; 
-        btnEditar.href = `index.php?view=editar_producto&id=${id}`; 
-    } 
-    btnEliminar.setAttribute('data-id', id);
-    btnEliminar.setAttribute('data-type', type);
+        const idProd = obj.id_producto ?? obj.producto_cod_barras ?? obj.cod_barras;
+        $btnEditar.attr('href', `index.php?view=editar_producto&id=${encodeURIComponent(idProd)}`);
+        $btnEliminar.attr('data-id', idProd).attr('data-type','producto');
+    }
 
-    document.getElementById('modal').style.display = 'flex';
+    $("#modal").fadeIn(120).removeClass('hidden').css('display','flex');
 }
 
+function cerrarModal(){
+    $("#modal").fadeOut(120, function(){ $(this).addClass('hidden'); });
+}
+
+
+/**
+ * Llama al API para obtener detalles completos (incluyendo historial).
+ * Una vez obtenidos, usa openCustomModalFromJSON(obj) para mostrarlo.
+ */
+function fetchDetalle(id, tipo, nombre) {
+    // Puedes mostrar un spinner o mensaje de carga aquí
+    
+    $.ajax({
+        url: API_URL,
+        method: 'GET',
+        // Asegúrate de que tu inventario_api.php tiene el 'case fetch_historial'
+        data: { action: 'fetch_historial', id: id, type: tipo }, 
+        dataType: 'json',
+        success: function(res) {
+            if (res.success && res.data) {
+                // Combina los datos de respuesta con un fallback para el nombre
+                const fullObj = { 
+                    ...res.data, 
+                    historial: res.historial,
+                    // Asegura que la función modal tenga el nombre si el API falla en devolverlo
+                    nom_producto: res.data.nom_producto || nombre,
+                    producto_nombre: res.data.producto_nombre || nombre,
+                };
+                
+                // Abre el modal utilizando tu función existente
+                openCustomModalFromJSON(fullObj);
+
+                // NOTA: Si tu modal requiere que el historial se renderice por separado, 
+                // aquí deberás llamar a esa función (ej: renderizarHistorial(res.historial))
+                
+            } else {
+                Swal.fire('Error', res.message || `No se encontraron detalles para ${nombre}.`, 'error');
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Falla de comunicación al obtener los detalles.', 'error');
+        }
+    });
+}
+
+/* ==========================
+   Confirmación eliminación
+   ========================== */
 let deleteId = null;
 let deleteType = null;
 
 function confirmarEliminar(element) {
-  deleteId = element.getAttribute('data-id');
-  deleteType = element.getAttribute('data-type');
+    deleteId = $(element).attr('data-id');
+    deleteType = $(element).attr('data-type');
 
-  if (!deleteId || !deleteType) {
-    console.error("Falta el ID o el tipo de producto/variante.");
-    return;
-  }
+    if (!deleteId || !deleteType) return console.error("Falta id o tipo.");
 
-  const confirmModal = document.getElementById("confirmModal");
-  confirmModal.classList.remove("hidden");
-  confirmModal.style.display = 'flex'; 
-  
-  document.getElementById("confirmMessage").textContent =
-    `¿Estás seguro de que quieres eliminar? Esta acción no se puede deshacer.`;
+    $("#confirmMessage").text('¿Estás seguro de que quieres eliminar? Esta acción no se puede deshacer.');
+    $("#confirmModal").removeClass('hidden').fadeIn(120).css('display','flex');
 }
 
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  const confirmModal = document.getElementById("confirmModal");
-  confirmModal.classList.add("hidden");
-  confirmModal.style.display = 'none'; 
+$("#cancelBtn").on("click", function(){
+    $("#confirmModal").fadeOut(120, function(){ $(this).addClass('hidden'); });
 });
 
-document.getElementById("confirmBtn").addEventListener("click", () => {
-  if (deleteId && deleteType) {
-    window.location.href = `pages/productos_eliminar.php?type=${deleteType}&id=${deleteId}`;
-  }
+$("#confirmBtn").on("click", function(){
+    if (!deleteId || !deleteType) return;
+    // Redirige a tu script de eliminación (si tienes uno)
+    window.location.href = `pages/productos_eliminar.php?type=${encodeURIComponent(deleteType)}&id=${encodeURIComponent(deleteId)}`;
 });
 
 
@@ -560,47 +732,55 @@ window.addEventListener('resize', () => {
             // Mantiene la visualización correcta según el tamaño de la pantalla
             fila.style.display = window.innerWidth >= 1024 ? 'table-row' : 'block';
         }
-    });
-});
+    }).then(res => {
+        if (!res.isConfirmed) return;
+        const cantidad = parseInt(res.value,10);
+        const fd = new FormData();
+        fd.append('cod_entidad', cod_entidad);
+        fd.append('cantidad', cantidad);
+        fd.append('ajusteEsVariante', (type === 'variante') ? 'true' : 'false');
 
-function cerrarModal() {
-    document.getElementById('modal').style.display = 'none';
+        fetch(API_URL + '?action=ajustar_stock', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Hecho', data.message || 'Ajuste registrado', 'success');
+                    if (typeof data.nuevo_stock !== 'undefined') {
+                        const target = document.getElementById('stock-' + cod_entidad);
+                        if (target) {
+                            target.textContent = data.nuevo_stock + ' unid.';
+                            const min = parseInt(target.dataset.min || -1,10);
+                            if (min >= 0 && data.nuevo_stock <= min) {
+                                target.classList.remove('bg-green-50','text-green-800');
+                                target.classList.add('bg-red-100','text-red-600');
+                            } else {
+                                target.classList.remove('bg-red-100','text-red-600');
+                                target.classList.add('bg-green-50','text-green-800');
+                            }
+                        }
+                    }
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo registrar', 'error');
+                }
+            }).catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Falla de conexión', 'error');
+            });
+    });
 }
 
-// CAMBIO CLAVE 2: Bloque para mostrar SweetAlert desde la sesión (Flash Message)
-window.onload = function() {
-    // El PHP imprime el JSON de la sesión si existe
-    const alertJson = '<?php 
-        if (isset($_SESSION["sweet_alert"])) {
-            echo json_encode($_SESSION["sweet_alert"]);
-            // Una vez impreso, lo eliminamos de la sesión para que no se muestre de nuevo
-            unset($_SESSION["sweet_alert"]); 
-        } else {
-            echo ""; // Si no existe, no imprimimos nada
-        }
-    ?>';
+/* ==========================
+   Inicialización al cargar la página
+   ========================== */
+$(document).ready(function(){
+    // mostrar icono clear si hay texto inicial
+    if ($barraBusqueda.val().trim().length > 0) $clearSearchBtn.show();
+    // carga inicial por AJAX (garantiza que los filtros funcionen siempre)
+    cargarProductos();
 
-    if (alertJson) {
-        try {
-            const data = JSON.parse(alertJson);
-            let confirmColor = '#b4c24d'; // Color de éxito
-            if (!data.success) {
-                confirmColor = '#e15871'; // Color de error
-            }
-
-            Swal.fire({
-                title: data.title,
-                html: data.text,
-                icon: data.icon,
-                confirmButtonColor: confirmColor
-            });
-
-        } catch (e) {
-            console.error("Error al parsear JSON de SweetAlert en productos_contenido: ", e);
-        }
-    }
-};
-
+    // Inicializar lucide para los iconos estáticos del servidor
+    try { if (window.lucide) lucide.createIcons(); } catch(e){}
+});
 </script>
 
 </body>
