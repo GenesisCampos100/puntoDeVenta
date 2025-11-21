@@ -18,45 +18,11 @@ require_once __DIR__ . '/../config/translation.php';
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../styles/login.css">
-    <style>
-        /* Estilos para el selector de idioma */
-        .language-selector {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 5px;
-            border-radius: 8px;
-            display: flex;
-            gap: 5px;
-        }
-        .language-selector a {
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        .language-selector a.active {
-            border-color: #FFC107; /* Borde amarillo */
-            box-shadow: 0 0 10px rgba(255, 193, 7, 0.7); /* Sombra iluminada */
-            background-color: rgba(255, 193, 7, 0.2);
-        }
-        .language-selector a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-    </style>
 </head>
 
 <body class="fondo_login">
 
-    <!-- Selector de Idioma -->
-    <div class="language-selector">
-        <a href="?lang=es" class="<?php echo ($lang === 'es') ? 'active' : ''; ?>">ES</a>
-        <a href="?lang=en" class="<?php echo ($lang === 'en') ? 'active' : ''; ?>">EN</a>
-    </div>
+    <?php require_once __DIR__ . '/../includes/language_switcher.php'; ?>
 
     <?php
     // Mostrar error de sesión si existe
@@ -142,7 +108,7 @@ require_once __DIR__ . '/../config/translation.php';
                 </form>
 
                 <div class="login-navegacion"> <!--Inicio de navegación-->
-                <a href="recuperar_contrasena.html"><?php echo __('login_forgot_password'); ?></a>
+                <a href="recuperar_contrasena.php"><?php echo $translations['login_forgot_password']; ?></a>
 
                 </div> <!--Final de navegación-->
 

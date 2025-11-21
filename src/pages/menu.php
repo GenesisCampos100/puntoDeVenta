@@ -5,6 +5,9 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+// Incluir el sistema de traducción
+require_once __DIR__ . '/../config/translation.php';
+
 // Incluir permisos
 require_once __DIR__ . "/../config/permisos.php";
 
@@ -50,21 +53,31 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
   </div>
 
-  <!-- 🌐 Botón de idioma -->
-  <div style="display:flex; align-items:center; gap:6px;">
+  <!-- 🌐 Botón de idioma MEJORADO -->
+  <?php
+    // Lógica para construir la URL del cambio de idioma
+    $current_lang = isset($_GET['lang']) && $_GET['lang'] == 'en' ? 'en' : 'es';
+    $new_lang = $current_lang == 'es' ? 'en' : 'es';
+    
+    $query_params = $_GET;
+    $query_params['lang'] = $new_lang;
+    $url = 'index.php?' . http_build_query($query_params);
+  ?>
+  <a href="<?= $url ?>" 
+     title="<?= __('change_language') ?>"
+     style="display:flex; align-items:center; gap:6px; text-decoration:none; color:inherit;">
     <div id="languageToggle"
          style="width:36px; height:36px; 
                 display:flex; align-items:center; justify-content:center;
                 border-radius:50%; background:#0A2342; 
                 cursor:pointer; transition:all 0.3s ease; 
                 box-shadow:0 2px 6px rgba(0,0,0,0.2);"
-         onclick="toggleLanguage()"
          onmouseover="this.style.transform='scale(1.1)';"
          onmouseout="this.style.transform='scale(1)';">
-      <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
+      <img src="../public/img/idiomaIcon.png" alt="<?= __('language_icon_alt') ?>" style="width:18px; height:18px; filter:invert(1);">
     </div>
-    <span id="languageCode"  font-weight:600; font-size:14px;">ES</span>
-  </div>
+    <span id="languageCode" style="font-weight:600; font-size:14px;"><?= strtoupper($current_lang) ?></span>
+  </a>
 
 </div>
 
@@ -112,7 +125,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     }
     /* Para mover más hacia el centro */
     #sidebar ul li a svg {
-      margin-center: 6px; /* ajusta según lo que necesites */
+      margin-right: 6px; /* ajusta según lo que necesites */
     }
     
   </style>
@@ -132,7 +145,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
         <a href="index.php?view=<?= $modulo_url ?>" 
            class="flex items-center gap-3 p-4 rounded-md transition-colors <?= $activo ?>">
           <?= $iconos[$modulo] ?? '' ?>
-          <span><?= ucfirst($modulo) ?></span>
+          <span><?= __($modulo_url) ?></span>
         </a>
       </li>
     <?php endforeach; ?>
@@ -151,7 +164,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
         <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
       </span>
       <span style="color:#cbd5e1; font-size:12px;">
-        <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>
+        <?= __(ucfirst($_SESSION['rol'] ?? '')) ?>
       </span>
     </div>
   </div>

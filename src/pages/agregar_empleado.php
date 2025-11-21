@@ -1,5 +1,6 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/translation.php";
 
     // Calcular un id_empleado por defecto
     $id_empleado = '';
@@ -193,11 +194,11 @@
     }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Empleados</title>
+    <title><?= __('add_employee_title') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -297,10 +298,10 @@
                                 });
                             }
                         } catch (e) {
-                            console.error("<?= "Error al procesar JSON" ?>: ", e, response);
+                            console.error("<?= __('json_processing_error') ?>: ", e, response);
                             Swal.fire({
-                                title: '<?= "Error" ?>',
-                                text: '<?= "Ocurrio un error al procesar la respuesta" ?>',
+                                title: '<?= __('error_title') ?>',
+                                text: '<?= __('error_processing_response') ?>',
                                 icon: 'error',
                                 showConfirmButton: true
                             });
@@ -309,8 +310,8 @@
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         Swal.fire({
-                            title: '<?= "Error de conexión" ?>',
-                            text: '<?= "No se pudo conectar con el servidor" ?>',
+                            title: '<?= __('connection_error_title') ?>',
+                            text: '<?= __('connection_error_text') ?>',
                             icon: 'error',
                             showConfirmButton: true
                         })
@@ -322,12 +323,12 @@
 </head>
 <body>
     <div>
-        <h2>Registro de Empleados</h2>
+        <h2><?= __('add_employee_title') ?></h2>
     </div>
     
     <div>
         <div>
-            <span>Datos Básicos</span>
+            <span><?= __('basic_data') ?></span>
             <span id="btnClose">&#10005;</span>
         </div>
         
@@ -335,65 +336,65 @@
             <div>
                 <div>
                     <div>
-                        <label>Apellido Paterno: *</label>
+                        <label><?= __('last_name_p') ?>: *</label>
                         <input type="text" name="apellido_p" maxlength="50">
                     </div>
                     <div>
-                        <label>Apellido Materno: </label>
+                        <label><?= __('last_name_m') ?>: </label>
                         <input type="text" name="apellido_m" maxlength="50">
                     </div>
                 </div>
                 
-                <label>Nombre(s): *</label>
+                <label><?= __('names') ?>: *</label>
                 <input type="text" name="nombres" maxlength = "50">
 
-                <label>Correo: *</label>
+                <label><?= __('email') ?>: *</label>
                 <input type="text" name="correo" maxlength="100">
 
                 <div>
                     <div>
-                        <label>Contraseña: *</label>
+                        <label><?= __('password') ?>: *</label>
                         <input type="password" name="contra" maxlength="255">
                     </div>
                     <div>
-                        <label>Teléfono: *</label>
+                        <label><?= __('phone') ?>: *</label>
                         <input type="text" name="telefono" maxlength="20">
                     </div>
                 </div>
 
                 <div>
                     <div>
-                        <label>Calle: *</label>
+                        <label><?= __('street') ?>: *</label>
                         <input type="text" name="calle" maxlength="100">
                     </div>
                     <div>
-                        <label>No. Ext: *</label>
+                        <label><?= __('ext_num') ?>: *</label>
                         <input type="text" name="num_ext" maxlength="10">
                     </div>
                     <div>
-                        <label>No. Int: </label>
+                        <label><?= __('int_num') ?>: </label>
                         <input type="text" name="num_int" maxlength="10">
                     </div>
                 </div>
 
                 <div>
                     <div>
-                        <label>Colonia: *</label>
+                        <label><?= __('colony') ?>: *</label>
                         <input type="text" name="colonia" maxlength="100">
                     </div>
                     <div>
-                        <label>Código Postal: </label>
+                        <label><?= __('zip_code') ?>: </label>
                         <input type="text" name="cp" maxlength="10">
                     </div>
                 </div>
 
                 <div>
                     <div>
-                        <label>Estado: *</label>
+                        <label><?= __('state') ?>: *</label>
                         <input type="text" name="estado" maxlength="100">
                     </div>
                     <div>
-                        <label>Estatus: *</label>
+                        <label><?= __('status') ?>: *</label>
                         <label class="switch">
                             <input type="hidden" name="estatus" value="0">
                             <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
@@ -404,9 +405,9 @@
 
                 <div>
                     <div>
-                        <label>Puesto: *</label><br>
+                        <label><?= __('position') ?>: *</label><br>
                         <select id="id_rol" name="id_rol">
-                            <option value="0">Seleccionar el puesto</option>
+                            <option value="0"><?= __('select_position') ?></option>
                             <?php foreach ($roles as $rol): ?>
                                 <option value="<?= $rol['id_rol'] ?>">
                                     <?= htmlspecialchars($rol['nombre_rol']) ?>
@@ -415,15 +416,15 @@
                         </select>
                     </div>
                     <div>
-                        <label>Numero de empleado: *</label>
+                        <label><?= __('employee_num') ?>: *</label>
                         <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" readonly>
                     </div>
                 </div>
                 
             </div>
             <div>
-                <button type="submit">Guardar</button>
-                <button type="button" id="btnCancelar">Cancelar</button>
+                <button type="submit"><?= __('save') ?></button>
+                <button type="button" id="btnCancelar"><?= __('cancel') ?></button>
             </div>
         </form>
     </div>
@@ -461,19 +462,19 @@
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
                 Swal.fire({
-                    title: "¿Descartar cambios?",
-                    text: "Se eliminarán los datos ingresados para este empleado. ¿Desea continuar?",
+                    title: "<?= __('discard_changes_title') ?>",
+                    text: "<?= __('discard_changes_text') ?>",
                     icon: "info",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: "Sí, descartar",
-                    cancelButtonText: "Cancelar"
+                    confirmButtonText: "<?= __('yes_discard') ?>",
+                    cancelButtonText: "<?= __('cancel') ?>"
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Swal.fire({
-                            title: "Descartado",
-                            text: "Los datos fueron descartados.",
+                            title: "<?= __('discarded_title') ?>",
+                            text: "<?= __('discarded_text') ?>",
                             icon: "success",
                             timer: 900,
                             showConfirmButton: false

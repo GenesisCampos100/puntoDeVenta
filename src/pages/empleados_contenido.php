@@ -1,278 +1,201 @@
 <?php 
     require_once __DIR__ . '/../config/db.php';
+    require_once __DIR__ . '/../config/translation.php';
 
     $busqueda = $_GET['busqueda'] ?? '';
     $puesto = $_GET['puesto'] ?? '';
     $orden = $_GET['orden'] ?? 'e.nombre ASC';
-    $allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
-    if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
-    $vista_actual = $_GET['view'] ?? 'empleados_contenido';
 
-    $sql = "SELECT
-                e.id_empleado AS numero,
-                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
-                u.correo AS correo,
-                e.estatus AS estatus,
-                e.fecha AS fecha
-            FROM usuarios u 
-            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
-            LEFT JOIN roles r ON e.id_rol = r.id_rol
+    // Obtener puestos para el filtro
+    $stmt_puestos = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
+    $puestos = $stmt_puestos->fetchAll();
+
+    // Construcción de la consulta
+    $sql = "SELECT 
+                e.id_empleado as numero,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
+                u.correo,
+                e.estatus,
+                DATE_FORMAT(e.fecha, '%d/%m/%Y') as fecha
+            FROM empleados e
+            LEFT JOIN usuarios u ON e.id_empleado = u.id_empleado
             WHERE 1=1";
-
-    if(!empty($busqueda)) $sql .= " AND (
-                                e.id_empleado LIKE :busqueda
-                                OR e.nombre LIKE :busqueda
-                                OR e.apellido_paterno LIKE :busqueda
-                                OR e.apellido_materno LIKE :busqueda
-                                OR u.correo LIKE :busqueda)";
-    if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
-
-    $sql .= " ORDER BY $orden";
-
-    $stmt = $pdo->prepare($sql);
 
     $params = [];
 
-    if(!empty($busqueda)) {
+    if (!empty($busqueda)) {
+        $sql .= " AND (e.nombre LIKE :busqueda OR e.apellido_paterno LIKE :busqueda OR e.apellido_materno LIKE :busqueda OR u.correo LIKE :busqueda)";
         $params[':busqueda'] = "%$busqueda%";
     }
 
-    if(!empty($puesto)) {
+    if (!empty($puesto)) {
+        $sql .= " AND e.id_rol = :puesto";
         $params[':puesto'] = $puesto;
     }
 
+    // Validar que el orden sea uno de los permitidos para evitar inyección SQL
+    $ordenes_permitidos = ['e.nombre ASC', 'e.nombre DESC', 'e.id_empleado ASC', 'e.id_empleado DESC'];
+    if (in_array($orden, $ordenes_permitidos)) {
+        $sql .= " ORDER BY $orden";
+    } else {
+        $sql .= " ORDER BY e.nombre ASC"; // Orden por defecto
+    }
+
+    $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
-    $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
+    $empleados = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empleados</title>
+    <title><?= __('employees_title') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- ESTILOS BASE Y GENERALES --- */
         body {
-            background: #f9fafb; 
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif; 
-            color: #374151; 
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
         }
-
-        /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
         h2 {
             text-align: center;
-            color: #f43f5e; 
-            margin: 40px auto 25px; 
-            font-weight: 700; 
-            font-size: 28px; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase;
+            color: #333;
+            font-weight: 600;
         }
-
-        /* --- BARRA DE HERRAMIENTAS (TOOLBAR) --- */
+        /* 1. Contenedor Principal */
         .toolbar {
-            display: flex;
-            justify-content: center; 
+            display: grid;
+            /* Tres columnas iguales para: Filter | Sort | Add Employee */
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 1rem; /* Espacio entre elementos */
             align-items: center;
-            margin: 20px auto 30px;
-            width: 90%;
-            max-width: 1000px; 
-            gap: 10px; 
-        }
-
-        .toolbar form {
-            display: flex;
-            flex-grow: 1;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .search-container {
-            flex-grow: 1; 
-            max-width: 500px; 
-            position: relative;
-        }
-
-        .search-container input[type="text"] {
-            padding: 10px 15px 10px 40px; 
-            border: 1px solid #ddd;
-            border-radius: 8px; 
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
-        .search-container .search-icon { 
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af; 
-            cursor: pointer; /* HACEMOS EL ÍCONO CLICKABLE */
-            font-size: 18px;
-            z-index: 10;
-        }
-
-        .search-container .clear-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        /* Botones de acción (Filtrar/Ordenar) */
-        .toolbar .btn-accion {
-            background: white; 
-            color: #374151; 
-            padding: 10px 18px;
-            border: 1px solid #d1d5db; 
+            padding: 1rem;
+            background-color: #ffffff;
             border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: background-color 0.2s;
-        }
-
-        .toolbar .btn-accion:hover {
-            background-color: #f3f4f6;
-        }
-
-        /* Botón "Agregar producto" */
-        .btn-agregar {
-            background: #f43f5e; 
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
+            margin-bottom: 1rem;
         }
 
-        .btn-agregar:hover {
-            background-color: #e11d48;
+        /* 2. LA CLAVE: Hacer el form "invisible" al grid */
+        #toolbar-form {
+            display: contents;
         }
 
-        /* Ocultar/Mostrar los selects nativos */
-        .toolbar form select {
-            display: none; /* Oculto por defecto */
-            position: absolute;
-            z-index: 50;
-            margin-top: 5px; 
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 180px;
-        }
-        .toolbar form button[type="submit"] {
-            display: none;
-        }
-        .select-visible {
-            display: block !important;
-        }
-
-        /* --- CONTENEDOR DE PRODUCTOS (LA TABLA) --- */
-        .productos-container {
-            width: 90%; 
-            max-width: 1000px; 
-            margin: 0 auto 40px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            overflow: hidden;
-            border: 1px solid #e5e7eb; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-
-        /* Cabecera de la tabla */
-        thead { 
-            background: #2f455c; 
-            color: white; 
-        }
-        thead th {
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 14px 16px; 
-        }
-
-        th, td { 
-            padding: 16px; 
-            text-align: left; 
-            border-bottom: none; 
-        }
-
-        tr {
-            border-bottom: 1px solid #eee;
-        }
-        tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .btn-editar, .btn-eliminar {
-            display: inline-flex;
+        /* 3. El Buscador y sus iconos */
+        .search-container {
+            /* Que ocupe toda la primera fila (las 3 columnas) */
+            grid-column: 1 / -1; 
+            
+            /* Centrado */
+            position: relative; /* Vital para que los iconos se queden aquí */
+            width: 50%; /* Ancho de la barra */
+            min-width: 300px;
+            margin: 0 auto 1rem auto; /* Centrar el bloque horizontalmente */
+            display: flex;
             align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            border: none;
-            color: white;
+        }
+
+        .search-container input {
+            width: 100%; /* Que llene el contenedor gris definido arriba */
+            padding: 0.6rem 2.5rem; /* Espacio para los iconos */
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            box-sizing: border-box; /* Para que el padding no rompa el ancho */
+        }
+
+        /* Iconos dentro del buscador */
+        .search-icon, .clear-icon {
+            position: absolute;
             cursor: pointer;
+            color: #777;
+            /* Centrado vertical perfecto */
+            top: 50%;
+            transform: translateY(-50%);
         }
 
-        .btn-editar {
-            background: #f43f5e;
+        .search-icon { left: 15px; }
+        .clear-icon { right: 15px; }
+
+        /* 4. Los Botones (Filter, Sort) */
+        .emp_boton {
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
-        .btn-editar:hover {
-            background: #e11d48;
+        /* 5. El Botón Agregar (Add Employee) */
+        .btn-agregar {
+            /* No necesita grid-column explícito, caerá naturalmente en la 3ra posición */
+            justify-self: center; /* Se centra en su celda */
+            text-decoration: none;
+            /* Mismos estilos visuales que tus otros botones */
+            width: 90%; 
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            background-color: #000000ff;
+            color: white;
+            border-radius: 20px;
+            gap: 0.5rem;
         }
 
-        .btn-eliminar {
-            background: #b6c649;
+        /* Estilos compartidos para botones dentro del form */
+        .btn-accion {
+            width: 90%;
+            padding: 0.6rem 1.2rem;
+            background-color: #B6C649;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .btn-eliminar:hover {
-            background: #b4c24d;
+        /* Ajuste de iconos en botones */
+        .btn-agregar .icon, .btn-accion .icon { font-size: 1.2em; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-
-        .btn-editar {
-            margin-right: 8px;
-            margin-bottom: 3px;
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        tr:hover { background-color: #f1f1f1; }
+        .btn-editar, .btn-eliminar {
+            color: #333;
+            text-decoration: none;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        .btn-eliminar { color: #dc3545; }
+        select {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
     </style>
 </head>
 <body>
-    <h2>EMPLEADOS</h2>
+    <h2><?= __('employees_h2') ?></h2>
 
     <div class="toolbar">
         <form method="GET" id="toolbar-form" action="index.php">
@@ -280,19 +203,19 @@
 
             <div class="search-container">
                 <span class="search-icon" onclick="document.getElementById('toolbar-form').submit()">🔍</span>
-                <input type="text" id="busqueda-input" name="busqueda" placeholder="Buscar empleados..."
+                <input type="text" id="busqueda-input" name="busqueda" placeholder="<?= __('search_employees_placeholder') ?>"
                        value="<?= htmlspecialchars($busqueda) ?>"
                        onkeydown="if(event.key === 'Enter') document.getElementById('toolbar-form').submit();">
                 <span class="clear-icon" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();">✖</span>
             </div>
 
-            <div style="position: relative;">
+            <div class="emp_boton">
                 <button type="button" class="btn-accion" onclick="toggleSelect(event, 'puesto-select')">
-                    <span class="icon">⚙</span> Filtrar
+                    <span class="icon">⚙</span> <?= __('filter') ?>
                 </button>
 
                 <select name="puesto" id="puesto-select" onchange="document.getElementById('toolbar-form').submit()">
-                    <option value="">-- Todos los puestos --</option>
+                    <option value=""><?= __('all_positions') ?></option>
                     <?php foreach ($puestos as $pu): ?>
                         <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($pu['nombre_rol']) ?>
@@ -301,21 +224,21 @@
                 </select>
             </div>
 
-            <div style="position: relative;">
+            <div class="emp_boton">
                 <button type="button" class="btn-accion" onclick="toggleSelect(event, 'orden-select')">
-                    <span class="icon">⇅</span> Ordenar
+                    <span class="icon">⇅</span> <?= __('sort') ?>
                 </button>
                 <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()">
-                    <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                    <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                    <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
-                    <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
+                    <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>><?= __('name_az') ?></option>
+                    <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>><?= __('name_za') ?></option>
+                    <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>><?= __('employee_no_asc') ?></option>
+                    <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>><?= __('employee_no_desc') ?></option>
                 </select>
             </div>
         </form>
 
         <a href="index.php?view=agregar_empleado" class="btn-agregar">
-            <span class="icon">➕</span> Agregar empleado
+            <span class="icon">➕</span> <?= __('add_employee') ?>
         </a>
     </div>
 
@@ -323,11 +246,11 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 10%;">No.</th>
-                    <th style="width: 45%">Nombre Completo</th>
-                    <th style="width: 20%">Correo</th>
-                    <th style="width: 30%">Estado</th>
-                    <th style="width: 30%">Fecha de Ingreso</th>
+                    <th style="width: 10%;"><?= __('employee_no_col') ?></th>
+                    <th style="width: 45%"><?= __('full_name_col') ?></th>
+                    <th style="width: 20%"><?= __('email_col') ?></th>
+                    <th style="width: 30%"><?= __('status_col') ?></th>
+                    <th style="width: 30%"><?= __('hire_date_col') ?></th>
                     <th style="width: 10%"></th>
                 </tr>
             </thead>
@@ -340,7 +263,7 @@
                             <td><?= htmlspecialchars($emp['nombre_completo']) ?></td>
                             <td><?= htmlspecialchars($emp['correo']) ?></td>
                             <td>
-                                <span style="color: <?= $emp['estatus'] == 1 ? 'green' : 'red' ?>;"><?= $emp['estatus'] == 1 ? 'Activo' : 'Inactivo' ?></span>
+                                <span style="color: <?= $emp['estatus'] == 1 ? 'green' : 'red' ?>;"><?= $emp['estatus'] == 1 ? __('active') : __('inactive') ?></span>
                             </td>
                             <td><?= htmlspecialchars($emp['fecha']) ?></td>
                             <td>
@@ -353,7 +276,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px;">No se encontraron empleados.</td>
+                        <td colspan="6" style="text-align: center; padding: 20px;"><?= __('no_employees_found') ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -363,39 +286,22 @@
     <script>
         function toggleSelect(event, selectId) {
             event.stopPropagation();
-            const select = document.getElementById(selectId);
-            const button = event.currentTarget;
+            var select = document.getElementById(selectId);
+            var isVisible = select.style.display === 'block';
             
-            // Ocultar todos los demás selects
-            document.querySelectorAll('.toolbar form select').forEach(s => {
-                if (s.id !== selectId) {
-                    s.classList.remove('select-visible');
-                    s.style.display = 'none';
-                }
-            });
-
-            // Toggle del select actual
-            if (select.classList.contains('select-visible')) {
-                select.classList.remove('select-visible');
-                select.style.display = 'none';
-            } else {
-                select.classList.add('select-visible');
-                select.style.top = `${button.offsetHeight + 5}px`;
-                select.style.left = '0';
+            // Ocultar todos los selects primero
+            document.querySelectorAll('select').forEach(s => s.style.display = 'none');
+            
+            // Mostrar el select actual si estaba oculto
+            if (!isVisible) {
                 select.style.display = 'block';
-
-                // Listener para cerrar al hacer clic fuera
-                document.addEventListener('click', function closeSelect(e) {
-                    if (!select.contains(e.target) && e.target !== button) {
-                        select.classList.remove('select-visible');
-                        select.style.display = 'none';
-                        document.removeEventListener('click', closeSelect);
-                    }
-                });
             }
         }
 
-        // Añadir confirmación con SweetAlert2 para eliminar empleado
+        document.addEventListener('click', function() {
+            document.querySelectorAll('select').forEach(s => s.style.display = 'none');
+        });
+
         (function(){
             function attachDeleteHandlers() {
                 document.querySelectorAll('.btn-eliminar').forEach(btn => {
@@ -403,14 +309,14 @@
                         e.preventDefault();
                         const href = this.getAttribute('href');
                         Swal.fire({
-                            title: '¿Estás seguro?',
-                            html: '¿Realmente deseas eliminar este empleado?<br>Esta acción no se puede deshacer.',
+                            title: '<?= __('are_you_sure') ?>',
+                            html: '<?= __('confirm_delete_employee_text') ?>',
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: '#3085d6',
                             cancelButtonColor: '#d33',
-                            confirmButtonText: 'Sí, eliminar',
-                            cancelButtonText: 'Cancelar'
+                            confirmButtonText: '<?= __('yes_delete') ?>',
+                            cancelButtonText: '<?= __('cancel') ?>'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 // Redirigir a la URL que ejecuta la eliminación en el servidor
@@ -422,11 +328,14 @@
             }
 
             // Adjuntar cuando el DOM esté listo
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
-            } else {
-                attachDeleteHandlers();
-            }
+            document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
+
+            // Si usas AJAX para cargar contenido, necesitas volver a adjuntar los manejadores
+            // Por ejemplo, si tienes una función que recarga la tabla:
+            // function recargarTabla() {
+            //     // ...código para recargar...
+            //     attachDeleteHandlers();
+            // }
         })();
     </script>
 </body>

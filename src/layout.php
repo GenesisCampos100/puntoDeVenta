@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -19,7 +18,10 @@
     }
   </style>
 
-  <?php include __DIR__ . "/pages/menu.php"; ?>
+  <?php 
+    require_once __DIR__ . "/config/translation.php";
+    include __DIR__ . "/pages/menu.php"; 
+  ?>
   
 
   <main 
@@ -87,8 +89,8 @@
 </div>
 
     <!-- Nombre -->
-    <h3 style="margin-top:12px; font-size:14 font-weight:100; color:#000;">
-      <span style="color:#DC143C;">¡Hola!</span>
+    <h3 style="margin-top:12px; font-size:14px; font-weight:100; color:#000;">
+      <span style="color:#DC143C;"><?= __('hello') ?></span>
       <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
     </h3>
     <!-- Correo -->
@@ -100,32 +102,31 @@
     <div style="margin-top:20px; background:#fff; border-radius:16px; padding:15px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
      
 
-
       <!-- Cerrar sesión -->
       <div id="logoutOption" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:#e63946; font-weight:600;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
           <img src="../public/img/logout.png" alt="Cerrar sesión" style="width:16px; height:16px;">
-          Cerrar sesión
+          <?= __('logout') ?>
         </span>
         <span></span>
       </div>
 
     <!-- Confirmación de logout -->
     <div id="confirmLogout" style="display:none; margin-top:20px; background:#0A2342; color:white; padding:15px; border-radius:12px;">
-      <p>¿Seguro que deseas cerrar sesión?</p>
+      <p><?= __('confirm_logout_text') ?></p>
       <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
         <button id="btnConfirmLogout" 
-                style="background:#e63946; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">Sí</button>
+                style="background:#e63946; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;"><?= __('yes') ?></button>
         <button id="btnCancelLogout" 
-                style="background:#475569; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">No</button>
+                style="background:#475569; border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;"><?= __('no') ?></button>
       </div>
     </div>
 
     <!-- Enlaces -->
     <div style="margin-top:20px; font-size:12px;">
-      <a href="../public/docs/privacidad.pdf" target="_blank" style="color:#555; text-decoration:none;">Política de Privacidad</a>
+      <a href="../public/docs/privacidad.pdf" target="_blank" style="color:#555; text-decoration:none;"><?= __('privacy_policy') ?></a>
       <span style="margin:0 8px;">|</span>
-      <a href="../public/docs/terminos.pdf" target="_blank" style="color:#555; text-decoration:none;">Términos del Servicio</a>
+      <a href="../public/docs/terminos.pdf" target="_blank" style="color:#555; text-decoration:none;"><?= __('terms_of_service') ?></a>
     </div>
   </div>
 </div>
@@ -146,7 +147,7 @@
         <polyline points="15 18 9 12 15 6" />
       </svg>
     </button>          
-    <h2 style="font-size:20px; margin-bottom:20px;">Agregar una foto de perfil</h2>
+    <h2 style="font-size:20px; margin-bottom:20px;"><?= __('add_profile_photo') ?></h2>
 
     <form id="formFoto" enctype="multipart/form-data" method="POST" action="../src/scripts/guardar_foto.php">
       <div style="background:#f0f8ff; border-radius:20px; padding:25px;">
@@ -159,7 +160,7 @@
        style="width:120px; height:120px; border-radius:50%; object-fit:cover; cursor:pointer;">
 
         </div>
-        <p style="font-weight:500; margin-bottom:15px;">Seleccione una foto</p>
+        <p style="font-weight:500; margin-bottom:15px;"><?= __('select_photo') ?></p>
         <!-- contenido seleccion de imagen -->
         <div style="display:flex; justify-content:center; gap:10px;">
           <label for="inputArchivo"
@@ -167,7 +168,7 @@
                         border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
            <span style="display:inline-flex; align-items:center; gap:4px;">
           <img src="../public/img/icono_laptop.png" alt="computadora-icono" style="width:16px; height:16px;">
-          Subir desde mi computadora
+          <?= __('upload_from_computer') ?>
         </span>
           </label>
           <input type="file" id="inputArchivo" name="foto" accept="image/*" style="display:none;">
@@ -176,7 +177,7 @@
         <button type="submit"
                 style="margin-top:20px; background:#0A2342; color:#fff; border:none;
                        padding:5px 10px; border-radius:10px; cursor:pointer;">
-          Guardar cambios
+          <?= __('save_changes') ?>
         </button>
       </div>
     </form>
@@ -295,57 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const fotoPerfil = document.querySelector("#userModal img"); // la imagen actual
-  const changePhotoModal = document.getElementById("changePhotoModal");
-  const inputArchivo = document.getElementById("inputArchivo");
-  const previewFoto = document.getElementById("previewFoto");
-  const formFoto = document.getElementById("formFoto");
+<script src="../src/scripts/menu.js"></script>
 
-  // 🖱️ Abrir modal al hacer clic en la imagen
-  fotoPerfil.addEventListener("click", () => {
-    changePhotoModal.style.display = "flex";
-  });
-
-  // 📷 Previsualizar imagen antes de subir
-  inputArchivo.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) previewFoto.src = URL.createObjectURL(file);
-  });
-
-  // 🚪 Cerrar modal si haces clic fuera
-  changePhotoModal.addEventListener("click", (e) => {
-    if (e.target === changePhotoModal) {
-      changePhotoModal.style.display = "none";
-    }
-  });
-
-  // ✅ Al guardar, recargar imagen en el modal principal
-  formFoto.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const formData = new FormData(formFoto);
-    fetch("../src/scripts/guardar_foto.php", {
-      method: "POST",
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        fotoPerfil.src = data.newPhoto;
-        changePhotoModal.style.display = "none";
-      } else {
-        alert("Error al guardar la foto: " + data.error);
-      }
-    });
-  });
-});
-</script>
-
- 
-    <script src="../src/scripts/menu.js"></script>
-
-    <?php if (!empty($_SESSION['mensaje'])): ?>
+<?php if (!empty($_SESSION['mensaje'])): ?>
   <div id="toast" class="toast <?= $_SESSION['mensaje_tipo'] ?? 'info' ?>">
     <?= htmlspecialchars($_SESSION['mensaje']) ?>
   </div>

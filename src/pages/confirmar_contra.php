@@ -1,10 +1,13 @@
+<?php
+require_once __DIR__ . '/../config/translation.php';
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo $lang === 'es' ? 'es' : 'en'; ?>">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmar nueva contraseña</title>
+    <title><?php echo $translations['confirm_new_password_title']; ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
@@ -17,6 +20,7 @@
 </head>
 
 <body class="fondo_login">
+    <?php require_once __DIR__ . '/../includes/language_switcher.php'; ?>
 
     <main class="contenedor">
 
@@ -29,16 +33,16 @@
                 <div class="login-logo">
                     <img src="../../public/img/logo2.png">
                 </div>
-                <H1 class="">Tu punto de venta favorito</H1>
+                <H1 class=""><?php echo $translations['favorite_pos']; ?></H1>
 
-                <h2>Ingrese su nueva contraseña:</h2>
+                <h2><?php echo $translations['enter_new_password']; ?></h2>
 
                 <form action="../scripts/process_reset.php" method="POST" id="reset-form">
                     <div class="contenedor-campos">
                         <input type="hidden" name="token" id="token">
 
                         <div class="campo">
-                            <label for="password">Nueva Contraseña:</label>
+                            <label for="password"><?php echo $translations['new_password']; ?></label>
                              <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                 fill="currentColor" class="size-6">
                                 <path fill-rule="evenodd"
@@ -60,7 +64,7 @@
                         </div>
 
                         <div class="campo">
-                            <label for="confirm_password">Confirmar Contraseña:</label>
+                            <label for="confirm_password"><?php echo $translations['confirm_password']; ?></label>
                              <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                 fill="currentColor" class="size-6">
                                 <path fill-rule="evenodd"
@@ -81,12 +85,12 @@
                             </div>
                         </div>
 
-                        <button class="boton" type="submit">Cambiar Contraseña</button>
+                        <button class="boton" type="submit"><?php echo $translations['change_password_button']; ?></button>
                     </div>
                 </form>
 
                 <div class="login-navegacion_registrate">
-                    <a href="login.php">Volver al inicio de sesión</a>
+                    <a href="login.php"><?php echo $translations['back_to_login']; ?></a>
                 </div>
             </div>
         </section>
@@ -96,7 +100,7 @@
     <div id="successModal" class="modal-overlay">
         <div class="modal-content">
             <img src="../imagenesDev/logo2.png" alt="Logo" class="modal-logo">
-            <p id="successMessage" class="modal-message">¡Cambio de contraseña exitoso!</p>
+            <p id="successMessage" class="modal-message"><?php echo $translations['password_change_success']; ?></p>
         </div>
     </div>
 
@@ -105,7 +109,7 @@
         <div class="modal-content">
             <img src="../imagenesDev/logo2.png" alt="Logo" class="modal-logo">
             <p id="errorMessage" class="modal-message"></p>
-            <button id="closeErrorModal" class="boton" style="margin-top: 20px;">Cerrar</button>
+            <button id="closeErrorModal" class="boton" style="margin-top: 20px;"><?php echo $translations['close_button']; ?></button>
         </div>
     </div>
 

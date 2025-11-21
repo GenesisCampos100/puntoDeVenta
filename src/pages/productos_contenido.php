@@ -2,7 +2,7 @@
 // src/pages/productos_contenido.php
 // Versión corregida y funcional — Inventario (productos + variantes + filtros AJAX)
 
-
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . "/../config/db.php";
 
 
@@ -80,7 +80,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Productos — Inventario</title>
+    <title><?= __('products_title') ?></title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -137,7 +137,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
         <div class="flex items-center gap-3 w-full lg:w-3/5">
             <div class="relative w-full">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="busqueda" type="text" placeholder="Buscar producto por nombre o SKU..." 
+                <input id="busqueda" type="text" placeholder="<?= __('search_product_placeholder') ?>" 
                         value="<?= htmlspecialchars($busqueda) ?>"
                         class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-success/50 focus:border-success/80 transition duration-150"/>
                 <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-alert hidden">
@@ -148,18 +148,18 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
             <div id="tabs" class="ml-2 inline-flex bg-background-subtle rounded-full p-1 shadow-inner flex-shrink-0">
                 <button data-status="activo" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200 
                     <?= ($status === 'activo' || empty($status)) ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
-                    Activos
+                    <?= __('active') ?>
                 </button>
                 <button data-status="descatalogado" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200
                     <?= ($status === 'descatalogado') ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
-                    Descatalogados
+                    <?= __('discontinued') ?>
                 </button>
             </div>
         </div>
 
         <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
             <select id="categoria" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
-                <option value="">Todas las categorías</option>
+                <option value=""><?= __('all_categories') ?></option>
                 <?php foreach ($categorias as $cat): ?>
                     <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($cat['nombre']) ?>
@@ -168,15 +168,15 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
             </select>
 
             <select id="orden" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
-                <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A → Z)</option>
-                <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z → A)</option>
-                <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio ↑</option>
-                <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio ↓</option>
+                <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>><?= __('name_az') ?></option>
+                <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>><?= __('name_za') ?></option>
+                <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>><?= __('price_asc') ?></option>
+                <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>><?= __('price_desc') ?></option>
             </select>
 
             <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success text-white font-semibold transition duration-200 hover:bg-primary-dark shadow-md">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Agregar
+                <?= __('add') ?>
             </button>
         </div>
     </div>
@@ -186,15 +186,15 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
         <table id="productos-table" class="w-full border-collapse min-w-max">
             <thead class="bg-primary text-white sticky top-0 z-10">
                 <tr class="divide-x divide-primary/30">
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider w-auto min-w-[280px]">Producto</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider w-auto min-w-[280px]"><?= __('product') ?></th>
                     
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24 min-w-[96px]">Stock</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24 min-w-[96px]"><?= __('stock') ?></th>
                     
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-32 min-w-[128px] hidden sm:table-cell">Categoría</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-32 min-w-[128px] hidden sm:table-cell"><?= __('category') ?></th>
                     
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-28 min-w-[112px]">Precio</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-28 min-w-[112px]"><?= __('price') ?></th>
                     
-                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider w-44 min-w-[176px]">Acciones</th>
+                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider w-44 min-w-[176px]"><?= __('actions') ?></th>
                 </tr>
             </thead> 
 
@@ -236,13 +236,13 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="font-semibold text-gray-900 text-sm line-clamp-2"><?= $nombre ?></div>
-                                    <div class="text-xs text-gray-500 mt-0.5">SKU: <code class="bg-gray-100 px-1.5 py-0.5 rounded"><?= $sku ?></code></div>
+                                    <div class="text-xs text-gray-500 mt-0.5"><?= __('sku') ?>: <code class="bg-gray-100 px-1.5 py-0.5 rounded"><?= $sku ?></code></div>
                                 </div>
                                 
                                 <?php if ($tieneVariantes): ?>
                                     <button class="toggle-variants flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-primary/10 text-primary transition duration-150 ml-2" 
                                             data-target-id="variants-<?= $pid ?>" 
-                                            title="Ver variantes">
+                                            title="<?= __('view_variants') ?>">
                                         <i data-lucide="chevron-down" class="arrow-icon h-5 w-5"></i>
                                     </button>
                                 <?php endif; ?>
@@ -251,7 +251,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
                         <td class="px-4 py-3 align-middle text-center w-24">
                             <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $stockClass ?>">
-                                <?= $cantidad ?> unid.
+                                <?= $cantidad ?> <?= __('units') ?>
                             </span>
                         </td>
 
@@ -268,14 +268,14 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                         <td class="px-6 py-3 align-middle text-center w-44">
                             <div class="flex items-center justify-center gap-2">
                                 
-                                <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" data-details='<?= $jsonProducto ?>' title="Ver detalles">
+                                <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" data-details='<?= $jsonProducto ?>' title="<?= __('view_details') ?>">
                                     <i data-lucide="eye" class="h-5 w-5"></i>
                                 </button>
                                 
                                 <?php if (!$tieneVariantes): ?>
                                     <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
                                         onclick="openMovimientoModal('<?= $pid ?>','producto','<?= addslashes($nombre) ?>', false)"
-                                        title="Ajustar stock">
+                                        title="<?= __('adjust_stock') ?>">
                                         <i data-lucide="settings" class="h-5 w-5"></i>
                                     </button>
                                 <?php endif; ?>
@@ -284,7 +284,7 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                                         data-id="<?= $pid ?>" 
                                         data-type="producto" 
                                         data-active="<?= $is_active ? 'true' : 'false' ?>"
-                                        title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>">
+                                        title="<?= $is_active ? __('deactivate') : __('activate') ?>">
                                     <?php if ($is_active): ?>
                                         <i data-lucide="power" class="h-5 w-5"></i>
                                     <?php else: ?>
@@ -325,15 +325,15 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                                                     
                                                     <td class="px-6 py-3 align-middle text-left w-auto">
                                                         <div class="text-sm font-medium text-gray-900 ml-16">
-                                                            Talla: <span class="text-primary font-bold"><?= htmlspecialchars($var['talla'] ?: '—') ?></span> 
-                                                            | Color: <span class="text-primary font-bold"><?= htmlspecialchars($var['color'] ?: '—') ?></span>
+                                                            <?= __('size') ?>: <span class="text-primary font-bold"><?= htmlspecialchars($var['talla'] ?: '—') ?></span> 
+                                                            | <?= __('color') ?>: <span class="text-primary font-bold"><?= htmlspecialchars($var['color'] ?: '—') ?></span>
                                                         </div>
-                                                        <div class="text-xs text-gray-500 mt-0.5 ml-16">SKU: <code class="bg-white px-1.5 py-0.5 rounded"><?= $vsku ?></code></div>
+                                                        <div class="text-xs text-gray-500 mt-0.5 ml-16"><?= __('sku') ?>: <code class="bg-white px-1.5 py-0.5 rounded"><?= $vsku ?></code></div>
                                                     </td>
 
                                                     <td class="px-4 py-3 align-middle text-center w-24">
                                                         <span id="stock-<?= $vsku ?>" data-min="<?= $vcant_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $vstockClass ?>">
-                                                            <?= $vcant ?> unid.
+                                                            <?= $vcant ?> <?= __('units') ?>
                                                         </span>
                                                     </td>
 
@@ -348,13 +348,13 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                                                             
                                                             <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
                                                                 onclick="openMovimientoModal('<?= htmlspecialchars($vsku) ?>','variante','<?= addslashes($producto['producto_nombre'] . ' - ' . ($var['talla'] ?? '')) ?>', false)"
-                                                                title="Ajustar stock">
+                                                                title="<?= __('adjust_stock') ?>">
                                                                 <i data-lucide="settings" class="h-5 w-5"></i>
                                                             </button>
                                                             
                                                             <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" 
                                                                     data-details='<?= $jsonVar ?>'
-                                                                    title="Ver detalle">
+                                                                    title="<?= __('view_details') ?>">
                                                                 <i data-lucide="eye" class="h-5 w-5"></i>
                                                             </button>
                                                             
@@ -376,8 +376,8 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
                         <td colspan="5" class="p-12 text-center">
                             <div class="flex flex-col items-center gap-2">
                                 <i data-lucide="package-search" class="h-16 w-16 text-gray-300"></i>
-                                <p class="text-gray-500 font-medium">No se encontraron productos que coincidan con los filtros.</p>
-                                <button onclick="window.location.reload();" class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-150">Refrescar Búsqueda</button>
+                                <p class="text-gray-500 font-medium"><?= __('no_products_found') ?></p>
+                                <button onclick="window.location.reload();" class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-150"><?= __('refresh_search') ?></button>
                             </div>
                         </td>
                     </tr>
@@ -400,36 +400,36 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 
             <div class="flex-grow text-center sm:text-left">
                 <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-[#2d4353]" id="modal-nombre"></h3>
-                <div class="text-gray-600 text-sm mb-1 sm:mb-2">Categoría <span id="modal-categoria"></span></div>
-                <div class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-5">Código de barras: <span id="modal-codigo"></span></div>
+                <div class="text-gray-600 text-sm mb-1 sm:mb-2"><?= __('category') ?> <span id="modal-categoria"></span></div>
+                <div class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-5"><?= __('barcode') ?>: <span id="modal-codigo"></span></div>
 
                 <div class="bg-[#f0f4db] p-3 sm:p-4 rounded-lg border-l-4 border-[#b4c24d] text-left">
-                    <span class="text-sm text-gray-600 block">Precio de Venta</span>
+                    <span class="text-sm text-gray-600 block"><?= __('sale_price') ?></span>
                     <span class="text-3xl sm:text-4xl font-bold text-[#2d4353]">$<span id="modal-precio"></span></span>
-                    <small class="text-xs text-gray-500 block">IVA %16 incluido</small>
+                    <small class="text-xs text-gray-500 block"><?= __('vat_included') ?></small>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-5 mb-6">
              <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
-                 <span class="text-sm text-gray-600 block">Costo unitario</span>
+                 <span class="text-sm text-gray-600 block"><?= __('unit_cost') ?></span>
                  <span class="text-xl sm:text-2xl font-bold text-[#2d4353]">$<span id="modal-costo"></span></span>
-                 <small class="text-xs text-gray-500 block">Precio sin margen</small>
+                 <small class="text-xs text-gray-500 block"><?= __('price_without_margin') ?></small>
              </div>
 
              <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
-                 <span class="text-sm text-gray-600 block">Existencias</span>
-                 <span class="text-xl sm:text-2xl font-bold text-[#2d4353]"><span id="modal-stock"></span> unidades</span>
-                 <small class="text-xs text-gray-500 block">Mínimo de stock: <span id="modal-stock-min"></span></small>
+                 <span class="text-sm text-gray-600 block"><?= __('stock_exists') ?></span>
+                 <span class="text-xl sm:text-2xl font-bold text-[#2d4353]"><span id="modal-stock"></span> <?= __('units') ?></span>
+                 <small class="text-xs text-gray-500 block"><?= __('minimum_stock') ?>: <span id="modal-stock-min"></span></small>
              </div>
         </div>
 
         <div class="flex flex-col sm:flex-row justify-end gap-3">
             <button id="modal-btn-eliminar" class="px-5 py-3 rounded-lg font-semibold text-white bg-[#e15871]" data-id="" data-type="" onclick="confirmarEliminar(this)">
-                🗑️ Eliminar
+                🗑️ <?= __('delete') ?>
             </button>
-            <a id="modal-btn-editar" class="px-5 py-3 rounded-lg font-semibold bg-[#b4c24d] text-[#2d4353]">✏️ Editar</a>
+            <a id="modal-btn-editar" class="px-5 py-3 rounded-lg font-semibold bg-[#b4c24d] text-[#2d4353]">✏️ <?= __('edit') ?></a>
         </div>
 
     </div>
@@ -438,11 +438,11 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 <!-- Confirm modal eliminar -->
 <div id="confirmModal" class="hidden fixed inset-0 flex items-center justify-center z-[9999] bg-[#2d4353]/80 p-4">
   <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full text-[#2d4353]">
-    <h3 class="text-lg font-semibold mb-4 text-[#2d4353]">Confirmar eliminación</h3>
-    <p class="text-gray-600 mb-6" id="confirmMessage">¿Seguro que deseas eliminar?</p>
+    <h3 class="text-lg font-semibold mb-4 text-[#2d4353]"><?= __('confirm_deletion') ?></h3>
+    <p class="text-gray-600 mb-6" id="confirmMessage"><?= __('are_you_sure_delete') ?></p>
     <div class="flex justify-center gap-4">
-      <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-[#eeeeee] text-[#2d4353] hover:bg-[#dddddd] w-1/2">Cancelar</button>
-      <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-[#e15871] text-white w-1/2">Eliminar</button>
+      <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-[#eeeeee] text-[#2d4353] hover:bg-[#dddddd] w-1/2"><?= __('cancel') ?></button>
+      <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-[#e15871] text-white w-1/2"><?= __('delete') ?></button>
     </div>
   </div>
 </div>
@@ -486,11 +486,11 @@ function cargarProductos() {
         method: "GET",
         data: params,
         beforeSend: function() {
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500">Cargando productos...</td></tr>`);
+            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500"><?= __('loading_products') ?></td></tr>`);
         },
         success: function(res) {
             if (!res) {
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Respuesta vacía del servidor.</td></tr>`);
+                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500"><?= __('empty_server_response') ?></td></tr>`);
                 return;
             }
             if (res.success) {
@@ -503,7 +503,7 @@ function cargarProductos() {
         },
         error: function(xhr, status, err) {
             console.error("AJAX error:", status, err);
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error al cargar los productos.</td></tr>`);
+            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500"><?= __('error_loading_products') ?></td></tr>`);
         }
     });
 }
@@ -554,7 +554,7 @@ $(document).on("click", ".open-modal-btn", function(){
         obj = JSON.parse(details);
     } catch(e) {
         console.error("Error parseando data-details:", e);
-        Swal.fire('Error','No se pudo leer la información del producto','error');
+        Swal.fire('Error','<?= __('cannot_read_product_info') ?>','error');
         return;
     }
     openCustomModalFromJSON(obj);
@@ -575,22 +575,22 @@ $(document).on("click", ".toggle-active", function(){
     const newStatus = currentActive ? 0 : 1;
 
     Swal.fire({
-        title: `¿Confirmar ${newStatus === 1 ? 'activar' : 'descatalogar'}?`,
+        title: `¿<?= __('confirm_action') ?> ${newStatus === 1 ? '<?= __('activate') ?>' : '<?= __('deactivate') ?>'}?`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Sí, continuar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: '<?= __('yes_continue') ?>',
+        cancelButtonText: '<?= __('cancel') ?>'
     }).then(result => {
         if (!result.isConfirmed) return;
         $.post(API_URL, { action: "toggle_activo", id: id, status: newStatus }, function(res){
             if (res.success) {
-                Swal.fire('Hecho', res.message || 'Estado cambiado', 'success');
+                Swal.fire('<?= __('done') ?>', res.message || '<?= __('status_changed') ?>', 'success');
                 cargarProductos();
             } else {
-                Swal.fire('Error', res.message || 'No se pudo cambiar', 'error');
+                Swal.fire('<?= __('error') ?>', res.message || '<?= __('could_not_change_status') ?>', 'error');
             }
         }, "json").fail(() => {
-            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
+            Swal.fire('<?= __('error') ?>', '<?= __('could_not_connect_server') ?>', 'error');
         });
     });
 });
@@ -653,7 +653,7 @@ function confirmarEliminar(element) {
 
     if (!deleteId || !deleteType) return console.error("Falta id o tipo.");
 
-    $("#confirmMessage").text('¿Estás seguro de que quieres eliminar? Esta acción no se puede deshacer.');
+    $("#confirmMessage").text('<?= __('are_you_sure_delete_undone') ?>');
     $("#confirmModal").removeClass('hidden').fadeIn(120).css('display','flex');
 }
 
@@ -672,14 +672,14 @@ $("#confirmBtn").on("click", function(){
    ========================== */
 function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
     Swal.fire({
-        title: `Ajuste: ${nombre}`,
+        title: `<?= __('adjust_stock_for') ?>: ${nombre}`,
         input: 'number',
-        inputLabel: 'Cantidad (positivo para entrada, negativo para salida)',
-        inputPlaceholder: 'Ej. 10 o -5',
+        inputLabel: '<?= __('quantity_pos_neg') ?>',
+        inputPlaceholder: '<?= __('quantity_placeholder') ?>',
         showCancelButton: true,
         preConfirm: (value) => {
             if (value === '' || value === null || isNaN(value)) {
-                Swal.showValidationMessage('Ingresa una cantidad válida');
+                Swal.showValidationMessage('<?= __('enter_valid_quantity') ?>');
             } else return parseInt(value,10);
         }
     }).then(res => {
@@ -694,11 +694,11 @@ function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire('Hecho', data.message || 'Ajuste registrado', 'success');
+                    Swal.fire('<?= __('done') ?>', data.message || '<?= __('adjustment_registered') ?>', 'success');
                     if (typeof data.nuevo_stock !== 'undefined') {
                         const target = document.getElementById('stock-' + cod_entidad);
                         if (target) {
-                            target.textContent = data.nuevo_stock + ' unid.';
+                            target.textContent = data.nuevo_stock + ' <?= __('units') ?>';
                             const min = parseInt(target.dataset.min || -1,10);
                             if (min >= 0 && data.nuevo_stock <= min) {
                                 target.classList.remove('bg-green-50','text-green-800');
@@ -710,11 +710,11 @@ function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
                         }
                     }
                 } else {
-                    Swal.fire('Error', data.message || 'No se pudo registrar', 'error');
+                    Swal.fire('<?= __('error') ?>', data.message || '<?= __('could_not_register_adjustment') ?>', 'error');
                 }
             }).catch(err => {
                 console.error(err);
-                Swal.fire('Error', 'Falla de conexión', 'error');
+                Swal.fire('<?= __('error') ?>', '<?= __('connection_failed') ?>', 'error');
             });
     });
 }
