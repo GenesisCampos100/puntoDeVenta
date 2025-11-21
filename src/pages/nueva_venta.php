@@ -100,7 +100,6 @@ function normalizeCategory($name) {
     </button>
   <?php endforeach; ?>
 </div>
-
 <!-- GRID PRODUCTOS -->
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
   <!-- GRID PRODUCTOS -->
@@ -160,7 +159,7 @@ function normalizeCategory($name) {
 </div>
 
 <!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
+<aside id="cart" class="fixed top-[81px] right-0 w-80 h-[calc(100%-81px)] bg-white shadow-lg flex flex-col p-4 z-50">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-lg font-bold"><?= __('order_title') ?></h2>
     <div class="flex gap-2">
@@ -328,6 +327,17 @@ document.querySelectorAll('.producto').forEach(prod => {
 });
 </script>
 
+<script>
+  const translations = {
+    cart_empty_title: "<?= __('cart_empty_title') ?>",
+    cart_empty_subtitle: "<?= __('cart_empty_subtitle') ?>",
+    discount_btn: "<?= __('discount_btn') ?>",
+    remove_btn: "<?= __('remove_btn') ?>",
+    size_label: "<?= __('size_label') ?>",
+    color_label: "<?= __('color_label') ?>",
+    added_to_cart: "<?= __('added_to_cart') ?>",
+  };
+</script>
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 </body>

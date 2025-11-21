@@ -36,8 +36,8 @@ function updateCart() {
   if (!cart.length) {
     cartContainer.innerHTML = `
       <div class="text-center text-gray-500 py-10">
-        <p class="text-lg font-medium">🛒 Tu carrito está vacío</p>
-        <p class="text-sm mt-2">Agrega productos desde el catálogo.</p>
+        <p class="text-lg font-medium">${translations.cart_empty_title}</p>
+        <p class="text-sm mt-2">${translations.cart_empty_subtitle}</p>
       </div>`;
     subtotalEl.textContent = "$0.00";
     discountEl.textContent = "-$0.00";
@@ -46,11 +46,11 @@ function updateCart() {
   }
 
   cart.forEach((item, index) => {
-  const itemDiscount = getItemDiscountAmount(item);
-  const itemTotal = item.price * item.quantity - itemDiscount;
+    const itemDiscount = getItemDiscountAmount(item);
+    const itemTotal = item.price * item.quantity - itemDiscount;
 
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = `
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `
     <div class="relative flex items-center justify-between bg-white shadow-md rounded-2xl p-3 mb-3 w-full">
       
       <!-- ETIQUETA DE DESCUENTO -->
@@ -62,8 +62,8 @@ function updateCart() {
           <div class="flex justify-between items-center">
             <p class="font-semibold truncate text-gray-800">${item.name}</p>
             <div class="flex gap-2">
-              <button class="discount-btn text-blue-600 hover:underline text-sm">Descuento</button>
-              <button class="remove-btn text-red-600 hover:underline text-sm">Eliminar</button>
+              <button class="discount-btn text-blue-600 hover:underline text-sm">${translations.discount_btn}</button>
+              <button class="remove-btn text-red-600 hover:underline text-sm">${translations.remove_btn}</button>
             </div>
           </div>
 
@@ -71,13 +71,13 @@ function updateCart() {
           ${(item.sizes && item.sizes.length > 0 ? `
           <div class="flex gap-2 mt-1">
             <select class="size-select border rounded-lg text-sm font-medium text-center p-2 w-24 focus:ring-1 focus:ring-blue-400">
-              ${item.sizes.map(s => `<option value="${s}" ${s===item.size?'selected':''}>${s}</option>`).join('')}
+              ${item.sizes.map(s => `<option value="${s}" ${s === item.size ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
             <select class="color-select border rounded-lg text-sm font-medium text-center p-2 w-24 focus:ring-1 focus:ring-blue-400">
-              ${item.colors.map(c => `<option value="${c}" ${c===item.color?'selected':''}>${c}</option>`).join('')}
+              ${item.colors.map(c => `<option value="${c}" ${c === item.color ? 'selected' : ''}>${c}</option>`).join('')}
             </select>
           </div>` : `
-          <p class="text-sm text-gray-500 mt-1">Talla: ${item.size}, Color: ${item.color}</p>
+          <p class="text-sm text-gray-500 mt-1">${translations.size_label}: ${item.size}, ${translations.color_label}: ${item.color}</p>
           `)}
 
           <div class="flex w-full mt-2">
@@ -94,79 +94,79 @@ function updateCart() {
       </div>
     </div>`;
 
-  const card = wrapper.firstElementChild;
+    const card = wrapper.firstElementChild;
 
-  // --- CANTIDAD ---
-  card.querySelector(".increase-btn").addEventListener("click", () => { item.quantity++; saveCart(); });
-  card.querySelector(".decrease-btn").addEventListener("click", () => { if(item.quantity>1)item.quantity--; saveCart(); });
+    // --- CANTIDAD ---
+    card.querySelector(".increase-btn").addEventListener("click", () => { item.quantity++; saveCart(); });
+    card.querySelector(".decrease-btn").addEventListener("click", () => { if (item.quantity > 1) item.quantity--; saveCart(); });
 
-  // --- DESCUENTO INDIVIDUAL ---
-  card.querySelector(".discount-btn").addEventListener("click", () => {
-    window.openProductDiscountModal(index, item.discount || 0);
-  });
-
-  // --- ELIMINAR ---
-  card.querySelector(".remove-btn").addEventListener("click", () => { cart.splice(index,1); saveCart(); });
-
-  // --- VARIANTES ---
-  const sizeSelect = card.querySelector(".size-select");
-  const colorSelect = card.querySelector(".color-select");
-
-  if(sizeSelect && colorSelect && item.variants && item.variants.length){
-    const colorMap = {};
-    item.variants.forEach(v => {
-      if (!colorMap[v.size]) colorMap[v.size] = [];
-      if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
+    // --- DESCUENTO INDIVIDUAL ---
+    card.querySelector(".discount-btn").addEventListener("click", () => {
+      window.openProductDiscountModal(index, item.discount || 0);
     });
 
-    const updateColors = () => {
-      const validColors = colorMap[sizeSelect.value] || [];
-      colorSelect.innerHTML = "";
-      validColors.forEach(color => {
-        const opt = document.createElement("option");
-        opt.value = color;
-        opt.textContent = color;
-        colorSelect.appendChild(opt);
+    // --- ELIMINAR ---
+    card.querySelector(".remove-btn").addEventListener("click", () => { cart.splice(index, 1); saveCart(); });
+
+    // --- VARIANTES ---
+    const sizeSelect = card.querySelector(".size-select");
+    const colorSelect = card.querySelector(".color-select");
+
+    if (sizeSelect && colorSelect && item.variants && item.variants.length) {
+      const colorMap = {};
+      item.variants.forEach(v => {
+        if (!colorMap[v.size]) colorMap[v.size] = [];
+        if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
       });
-      if (!validColors.includes(item.color)) item.color = validColors[0] || "Sin color";
-      colorSelect.value = item.color;
-      updateVariant();
-    };
 
-    const updateVariant = () => {
-      const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
-      if (v) {
-        item.price = parseFloat(v.price);
-        if (v.image) item.img = `uploads/${v.image}`;
-      }
-      const newDiscount = getItemDiscountAmount(item);
-      card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - newDiscount).toFixed(2)}`;
+      const updateColors = () => {
+        const validColors = colorMap[sizeSelect.value] || [];
+        colorSelect.innerHTML = "";
+        validColors.forEach(color => {
+          const opt = document.createElement("option");
+          opt.value = color;
+          opt.textContent = color;
+          colorSelect.appendChild(opt);
+        });
+        if (!validColors.includes(item.color)) item.color = validColors[0] || "Sin color";
+        colorSelect.value = item.color;
+        updateVariant();
+      };
 
-      // Actualizar etiqueta de descuento
-      let discountLabel = card.querySelector(".absolute");
-      if (newDiscount > 0) {
-        if (!discountLabel) {
-          discountLabel = document.createElement("span");
-          discountLabel.className = "absolute top-2 left-2 bg-pink-600 text-white text-xs px-2 py-1 rounded-full";
-          card.prepend(discountLabel);
+      const updateVariant = () => {
+        const v = item.variants.find(vv => vv.size === sizeSelect.value && vv.color === colorSelect.value);
+        if (v) {
+          item.price = parseFloat(v.price);
+          if (v.image) item.img = `uploads/${v.image}`;
         }
-        discountLabel.textContent = `-$${newDiscount.toFixed(2)}`;
-      } else if(discountLabel) {
-        discountLabel.remove();
-      }
+        const newDiscount = getItemDiscountAmount(item);
+        card.querySelector("p.font-semibold.text-lg").textContent = `$${(item.price * item.quantity - newDiscount).toFixed(2)}`;
 
-      card.querySelector("img").src = item.img;
-      recalcTotals();
-    };
+        // Actualizar etiqueta de descuento
+        let discountLabel = card.querySelector(".absolute");
+        if (newDiscount > 0) {
+          if (!discountLabel) {
+            discountLabel = document.createElement("span");
+            discountLabel.className = "absolute top-2 left-2 bg-pink-600 text-white text-xs px-2 py-1 rounded-full";
+            card.prepend(discountLabel);
+          }
+          discountLabel.textContent = `-$${newDiscount.toFixed(2)}`;
+        } else if (discountLabel) {
+          discountLabel.remove();
+        }
 
-    sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; updateColors(); });
-    colorSelect.addEventListener("change", () => { item.color = colorSelect.value; updateVariant(); });
+        card.querySelector("img").src = item.img;
+        recalcTotals();
+      };
 
-    updateColors();
-  }
+      sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; updateColors(); });
+      colorSelect.addEventListener("change", () => { item.color = colorSelect.value; updateVariant(); });
 
-  cartContainer.appendChild(card);
-});
+      updateColors();
+    }
+
+    cartContainer.appendChild(card);
+  });
 
 
   recalcTotals();
@@ -175,9 +175,9 @@ function updateCart() {
 // ======================
 // GUARDAR Y RECALCULAR
 // ======================
-function saveCart() { 
-  localStorage.setItem("cart", JSON.stringify(cart)); 
-  updateCart(); 
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCart();
 }
 
 function recalcTotals() {
@@ -201,6 +201,16 @@ function recalcTotals() {
   subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
   discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
   totalEl.textContent = `$${total.toFixed(2)}`;
+}
+
+function addToCart(product) {
+  const existing = cart.find(p => p.code === product.code && p.size === product.size && p.color === product.color);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push(product);
+  }
+  saveCart();
 }
 
 // ======================
@@ -247,7 +257,7 @@ document.querySelectorAll(".add-to-cart").forEach((btn) => {
 
     // Notificación visual
     Toastify({
-      text: `${name} agregado al carrito`,
+      text: `${name} ${translations.added_to_cart}`,
       duration: 2000,
       gravity: "top",
       position: "right",

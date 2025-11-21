@@ -253,4 +253,11 @@ return [
     'apply' => 'Apply',
     'product_discount_title' => 'Product Discount',
     'cart_empty_alert' => 'Your cart is empty.',
+    'cart_empty_title' => '🛒 Your cart is empty',
+    'cart_empty_subtitle' => 'Add products from the catalog.',
+    'discount_btn' => 'Discount',
+    'remove_btn' => 'Remove',
+    'size_label' => 'Size',
+    'color_label' => 'Color',
+    'added_to_cart' => 'added to cart',
 ];

@@ -246,4 +246,11 @@ return [
     'apply' => 'Aplicar',
     'product_discount_title' => 'Descuento del Producto',
     'cart_empty_alert' => 'Tu carrito está vacío.',
+    'cart_empty_title' => '🛒 Tu carrito está vacío',
+    'cart_empty_subtitle' => 'Agrega productos desde el catálogo.',
+    'discount_btn' => 'Descuento',
+    'remove_btn' => 'Eliminar',
+    'size_label' => 'Talla',
+    'color_label' => 'Color',
+    'added_to_cart' => 'agregado al carrito',
 ];
