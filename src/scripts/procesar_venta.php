@@ -134,11 +134,14 @@ try {
     header("Location: ../ventas/ticket.php?id_venta=" . $id_venta);
     exit;
 
-    echo "<script>
-    localStorage.removeItem('cart');
-    alert('✅ Venta registrada con éxito. Total: $" . number_format($total,2) . "');
-    window.location.href = '../index.php?view=ventas';
-    </script>";
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Venta registrada correctamente.',
+        'id_venta' => $id_venta,
+        'subtotal' => number_format($subtotal,2),
+        'descuento_general' => number_format($descuento_general_final,2),
+        'total' => number_format($total,2)
+    ]);
 
     echo json_encode([
         'status' => 'success',

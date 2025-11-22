@@ -26,7 +26,25 @@ session_start();
     <!-- <link rel="stylesheet" href="../styles/login.css"> -->
     
 </head>
+
 <body class="fondo_login">
+
+    <?php
+    // Mostrar error de sesión si existe
+    // session_start() ya se llamó al inicio del archivo; no llamarlo de nuevo para evitar warning
+    if (!empty($_SESSION['error'])) {
+        echo '<div class="alert alert-error">' . htmlspecialchars($_SESSION['error']) . '</div>';
+        unset($_SESSION['error']);
+    }
+    if (!empty($_SESSION['registro_success'])) {
+        echo '<div class="alert alert-success">' . htmlspecialchars($_SESSION['registro_success']) . '</div>';
+        unset($_SESSION['registro_success']);
+    }
+    if (!empty($_SESSION['info'])) {
+        echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['info']) . '</div>';
+        unset($_SESSION['info']);
+    }
+    ?>
 
     <main class="contenedor">
 
@@ -104,86 +122,34 @@ session_start();
                 </form>
 
                 <div class="login-navegacion"> <!--Inicio de navegación-->
-                    <a href="/src/pages/recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
+                <a href="recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
 
-                    
                 </div> <!--Final de navegación-->
 
             </div> <!--Fin formulario-->
 
         </section> <!--Fin de login-->
 
+        <script src="../scripts/show_password.js"></script>
+        <script src="../scripts/alertaslogin_y_mostrarcontra.js"></script>
     </main>
 
-    <script>
-        //! MOSTRAR CONTRASEÑA
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Selecciona TODOS los botones de toggle (todos los elementos con esa clase)
-    const toggleButtons = document.querySelectorAll('.js-password-toggle');
+    <!-- Modal de Éxito -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content">
+            <img src="../imagenesDev/logo2.png" alt="Logo" class="modal-logo">
+            <p class="modal-message">Inicio exitoso</p>
+        </div>
+    </div>
 
-    // 2. Itera sobre cada botón encontrado para asignarle el evento click
-    toggleButtons.forEach(toggleButton => {
-        
-        // En cada botón, encontramos su contenedor padre (.campo)
-        const campoDiv = toggleButton.closest('.campo');
-        
-        // Dentro de ese contenedor, buscamos el input
-        // Usamos querySelector('input') porque sabemos que solo hay un input dentro de cada .campo
-        const passwordInput = campoDiv.querySelector('input[type="password"], input[type="text"]');
+    <!-- Modal de Error -->
+    <div id="errorModal" class="modal-overlay">
+        <div class="modal-content">
+            <img src="../imagenesDev/logo2.png" alt="Logo" class="modal-logo">
+            <p id="errorMessage" class="modal-message"></p>
+            <button id="closeErrorModal" class="boton" style="margin-top: 20px;">Cerrar</button>
+        </div>
+    </div>
 
-        if (passwordInput) {
-            toggleButton.addEventListener('click', () => {
-                
-                // A. Alternar el tipo de input del campo actual
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-
-                // B. Alternar la clase 'show-password' en el div.campo del campo actual
-                campoDiv.classList.toggle('show-password');
-            });
-        }
-    });
-});
-
-//! ALERTAS LOGIN
-document.addEventListener('DOMContentLoaded', () => {
-    // Seleccionar el formulario completo por su nuevo ID
-    const form = document.getElementById('loginFormulario');
-
-    if (form) {
-        // Escuchar el evento de envío (submit) del formulario
-        form.addEventListener('submit', function(event) {
-            
-            let camposVacios = false;
-            
-            // Seleccionar todos los campos que tienen el atributo 'required' dentro del formulario
-            const requiredInputs = form.querySelectorAll('[required]');
-
-            // Iterar sobre los campos requeridos
-            requiredInputs.forEach(input => {
-                // Si el valor del campo, sin espacios iniciales/finales, está vacío
-                if (input.value.trim() === '') {
-                    camposVacios = true; 
-                    // Enfocar en el primer campo vacío encontrado (opcional, pero útil)
-                    input.focus(); 
-                    return; // Salir del bucle una vez que se encuentra el primer error
-                }
-            });
-
-            // Si se encontró algún campo vacío
-            if (camposVacios) {
-                // Detener el envío del formulario
-                event.preventDefault(); 
-                
-                // Mostrar la alerta al usuario
-                alert('¡Faltan datos! Por favor, complete todos los campos obligatorios para iniciar sesión.');
-            } else {
-                // Si no hay campos vacíos, el formulario se envía al servidor
-                console.log('Formulario válido. Iniciando sesión...');
-            }
-        });
-    }
-});
-    </script>    
 </body>
 </html>

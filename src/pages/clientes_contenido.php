@@ -1,84 +1,54 @@
 <?php
-// clientes_contenido.php
-require_once __DIR__ . '/../config/db.php'; // <<--- ajusta ruta si es necesario
+// clientes_contenido_v5.php - Premium Modern Design (FINAL)
+require_once __DIR__ . '/../config/db.php';
 
-// Si viene acción AJAX → devolver JSON
+// AJAX: obtener cliente por id
 if (isset($_GET['action']) && $_GET['action'] === "getCliente") {
     header("Content-Type: application/json; charset=utf-8");
-
     $id = intval($_GET['id'] ?? 0);
-
     if ($id <= 0) {
         echo json_encode(["success" => false, "error" => "ID inválido"]);
         exit;
     }
-
     $stmt = $pdo->prepare("SELECT * FROM clientes WHERE id_cliente = ?");
     $stmt->execute([$id]);
     $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
-
     if ($cliente) {
         echo json_encode(["success" => true, "cliente" => $cliente]);
     } else {
         echo json_encode(["success" => false, "error" => "Cliente no encontrado"]);
     }
-    exit; // 🚀 EVITA QUE SE IMPRIMA HTML
+    exit;
 }
 
-// ----------------------
-// Helper: intentar obtener ventas por cliente probando nombres comunes de tabla
-// ----------------------
-function getVentasByClienteTryTables($pdo, $clienteId) {
-    $tables = ['ventad','venta','ventas','venta_d']; // priorizamos 'ventad' si es tu tabla
-    foreach ($tables as $t) {
-        try {
-            $sql = "SELECT id_venta, fecha, tipo_pago, pago_total, id_empleado FROM `$t` WHERE id_cliente = :id ORDER BY fecha DESC";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([':id' => $clienteId]);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return ['table' => $t, 'rows' => $rows];
-        } catch (Exception $e) {
-            continue;
-        }
-    }
-    return ['error' => 'No se encontró la tabla de ventas (verifica: ventad / venta / ventas).'];
-}
-
-
-
-
-// ----------------------
-// Handler: Búsqueda en tiempo real -> JSON (GET ?action=search&q=... or &name=...&email=...)
-// ----------------------
+// AJAX: búsqueda en tiempo real
 if (isset($_GET['action']) && $_GET['action'] === 'search') {
     header('Content-Type: application/json; charset=utf-8');
     $q = isset($_GET['q']) ? trim($_GET['q']) : '';
-    $nameFilter = isset($_GET['name']) ? trim($_GET['name']) : '';
-    $emailFilter = isset($_GET['email']) ? trim($_GET['email']) : '';
+    $letter = isset($_GET['letter']) ? trim($_GET['letter']) : '';
+    
     $whereParts = [];
     $params = [];
-
+    
     if ($q !== '') {
         $whereParts[] = "(nombre LIKE :q OR apellido_paterno LIKE :q OR apellido_materno LIKE :q OR correo LIKE :q OR celular LIKE :q)";
         $params[':q'] = "%$q%";
     }
-    if ($nameFilter !== '') {
-        $whereParts[] = "(nombre LIKE :name OR apellido_paterno LIKE :name OR apellido_materno LIKE :name OR CONCAT(nombre,' ',apellido_paterno) LIKE :name)";
-        $params[':name'] = "%$nameFilter%";
+    
+    if ($letter !== '' && $letter !== 'ALL') {
+        $whereParts[] = "(nombre LIKE :letter OR apellido_paterno LIKE :letter)";
+        $params[':letter'] = "$letter%";
     }
-    if ($emailFilter !== '') {
-        $whereParts[] = "correo LIKE :email";
-        $params[':email'] = "%$emailFilter%";
-    }
-
+    
     $sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes";
     if (!empty($whereParts)) $sql .= " WHERE " . implode(' AND ', $whereParts);
-    $sql .= " ORDER BY id_cliente DESC LIMIT 100";
+    $sql .= " ORDER BY nombre ASC, apellido_paterno ASC LIMIT 200";
+    
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // Enviar una versión "display" para cada fila (compact)
+        
         $data = array_map(function($r){
             $displayName = trim($r['nombre'].' '.$r['apellido_paterno'].' '.$r['apellido_materno']);
             $direccion = trim(($r['calle'] ?? '') . ' ' . ($r['num_ext'] ?? '') . ' ' . ($r['num_int'] ?? '') . ' ' . ($r['colonia'] ?? '') . ' ' . ($r['cp'] ?? '') . ' ' . ($r['estado'] ?? ''));
@@ -87,7 +57,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
                 'nombre' => $displayName,
                 'celular' => $r['celular'] ?? '',
                 'correo' => $r['correo'] ?? '',
-                'direccion' => $direccion
+                'direccion' => $direccion,
+                'estado' => $r['estado'] ?? '',
+                'inicial' => strtoupper(substr($r['nombre'], 0, 1))
             ];
         }, $rows);
         echo json_encode(['success'=>true,'clientes'=>$data]);
@@ -97,28 +69,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
     exit;
 }
 
-// ----------------------
-// Handler: Obtener ventas (GET ?action=getVentas&id=...)
-// ----------------------
-if (isset($_GET['action']) && $_GET['action'] === 'getVentas' && isset($_GET['id'])) {
-    header('Content-Type: application/json; charset=utf-8');
-    $id = (int)$_GET['id'];
-    if ($id <= 0) {
-        echo json_encode(['success' => false, 'error' => 'ID de cliente inválido.']);
-        exit;
-    }
-    $res = getVentasByClienteTryTables($pdo, $id);
-    if (isset($res['error'])) {
-        echo json_encode(['success' => false, 'error' => $res['error']]);
-        exit;
-    }
-    echo json_encode(['success' => true, 'table' => $res['table'], 'ventas' => $res['rows']]);
-    exit;
-}
-
-// ----------------------
-// Eliminar via POST JSON a este archivo (fetch) => action=delete
-// ----------------------
+// AJAX: eliminar cliente
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'delete') {
     header('Content-Type: application/json; charset=utf-8');
     $raw = file_get_contents('php://input');
@@ -128,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         echo json_encode(['success'=>false,'error'=>'ID inválido']);
         exit;
     }
+    
     try {
         $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente = :id");
         $stmt->execute([':id'=>$id]);
@@ -138,39 +90,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     exit;
 }
 
-// ----------------------
-// Mostrar HTML (server-rendered initial table + fallback)
-// ----------------------
-// Flash
-$flash = $_SESSION['flash'] ?? null;
-unset($_SESSION['flash']);
-
-// initial server-side filters (for noscript or initial load)
-$q = isset($_GET['q']) ? trim($_GET['q']) : '';
-$nameFilter = isset($_GET['name']) ? trim($_GET['name']) : '';
-$emailFilter = isset($_GET['email']) ? trim($_GET['email']) : '';
-$estadoFilter = isset($_GET['estado']) ? trim($_GET['estado']) : '';
-
-$whereParts = [];
-$params = [];
-if ($q !== '') {
-    $whereParts[] = "(nombre LIKE :q OR apellido_paterno LIKE :q OR apellido_materno LIKE :q OR correo LIKE :q OR celular LIKE :q)";
-    $params[':q'] = "%$q%";
-}
-if ($nameFilter !== '') {
-    $whereParts[] = "(nombre LIKE :name OR apellido_paterno LIKE :name OR apellido_materno LIKE :name OR CONCAT(nombre,' ',apellido_paterno) LIKE :name)";
-    $params[':name'] = "%$nameFilter%";
-}
-if ($emailFilter !== '') {
-    $whereParts[] = "correo LIKE :email";
-    $params[':email'] = "%$emailFilter%";
+// AJAX: eliminar múltiples clientes
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'deleteMultiple') {
+    header('Content-Type: application/json; charset=utf-8');
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw, true);
+    $ids = isset($data['ids']) ? $data['ids'] : [];
+    
+    if (empty($ids)) {
+        echo json_encode(['success'=>false,'error'=>'No se seleccionaron clientes']);
+        exit;
+    }
+    
+    try {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente IN ($placeholders)");
+        $stmt->execute($ids);
+        echo json_encode(['success'=>true, 'count' => count($ids)]);
+    } catch (Exception $e) {
+        echo json_encode(['success'=>false,'error'=>$e->getMessage()]);
+    }
+    exit;
 }
 
-$sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes";
-if (!empty($whereParts)) $sql .= " WHERE " . implode(' AND ', $whereParts);
-$sql .= " ORDER BY id_cliente DESC LIMIT 200";
+// Cargar clientes iniciales
+$sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes ORDER BY nombre ASC, apellido_paterno ASC LIMIT 200";
 $stmt = $pdo->prepare($sql);
-$stmt->execute($params);
+$stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>
@@ -178,137 +124,402 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Clientes — Punto de Venta</title>
+  <title>Gestión de Clientes</title>
 
-  <!-- Poppins -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CDN -->
+  
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- SweetAlert2 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    :root{
-      --verde: #b4c24d;
-      --azul:  #2d4353;
-      --rosa:  #e15871;
-      --gris:  #eeeeee;
-      --font: 'Poppins', sans-serif;
+    :root {
+      --primary: #b4c24d;
+      --primary-dark: #9fb03d;
+      --secondary: #2d4353;
+      --accent: #e15871;
+      --gray-bg: #eeeeee;
     }
-    body { font-family: var(--font); background: linear-gradient(180deg,#ffffff 0%, #f7fafc 100%); color: #0f172a; }
-    .btn-primary { background: var(--verde); color: white; }
-    .input-error { border-color: var(--rosa) !important; box-shadow: 0 0 0 4px rgba(225,89,113,0.06); }
 
-    /* Animaciones & WOW */
-    @keyframes popIn { from { opacity:0; transform: translateY(10px) scale(.98) } to { opacity:1; transform: translateY(0) scale(1) } }
-    .animate-pop { animation: popIn .42s cubic-bezier(.2,.9,.3,1) both; }
-    @keyframes slideUp { from { opacity:0; transform: translateY(12px) } to { opacity:1; transform: translateY(0) } }
-    .animate-slideUp { animation: slideUp .5s cubic-bezier(.2,.9,.3,1) both; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f9fafb 0%, #eeeeee 100%);
+      min-height: 100vh;
+    }
 
-    /* Modal basics */
-    .modal-backdrop { background: rgba(2,6,23,0.6); backdrop-filter: blur(4px); }
-    .card-wow { transform-origin: center; transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s; }
-    .card-wow:hover { transform: translateY(-6px) scale(1.005); box-shadow: 0 18px 40px rgba(45,67,83,0.06); }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-    /* small helpers */
-    .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    .animate-slideDown { animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .animate-scaleIn { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+    .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
+
+    .custom-checkbox {
+      appearance: none;
+      width: 1.125rem;
+      height: 1.125rem;
+      border: 2px solid #cbd5e1;
+      border-radius: 0.375rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .custom-checkbox:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .custom-checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Dropdown con z-index alto para que siempre esté encima */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      padding: 1.25rem;
+      min-width: 320px;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(10px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .dropdown-menu.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .table-row {
+      transition: all 0.2s ease;
+    }
+
+    .table-row:hover {
+      background: rgba(180, 194, 77, 0.04);
+    }
+
+    .table-row.selected {
+      background: linear-gradient(90deg, rgba(180, 194, 77, 0.15) 0%, rgba(180, 194, 77, 0.08) 100%);
+      border-left: 3px solid #b4c24d;
+    }
+
+    .fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary) 0%, #1e2d38 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(45, 67, 83, 0.3);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 40;
+    }
+
+    .fab:hover {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 12px 32px rgba(45, 67, 83, 0.4);
+    }
+
+    .empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .modal-backdrop {
+      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .letter-pill {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .letter-pill:hover {
+      background: rgba(180, 194, 77, 0.1);
+      transform: scale(1.05);
+    }
+
+    .letter-pill.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(180, 194, 77, 0.3);
+    }
+
+    .hover-lift {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .truncate-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Barra de búsqueda mejorada */
+    .search-input {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-input:focus {
+      box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.1);
+    }
+
+    .search-input.has-value {
+      border-color: var(--primary);
+      background: rgba(180, 194, 77, 0.02);
+    }
   </style>
 </head>
-<body class="p-6 bg-[var(--gris)]">
-  <div class="max-w-7xl mx-auto animate-pop">
+<body class="p-4 md:p-6">
+  <div class="max-w-7xl mx-auto pb-32">
+    
+    <!-- Header -->
+    <div class="mb-8 animate-slideDown">
+      <div class="mb-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Clientes</h1>
+        <p class="text-gray-600 text-base">Administra y organiza tu base de clientes de forma eficiente</p>
+      </div>
 
-    <!-- ============================
-         HEADER PREMIUM (BUSCADOR / FILTROS / AGREGAR)
-         ============================ -->
-    <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col lg:flex-row gap-4 lg:items-center justify-between border-b border-gray-100 mb-6 animate-slideUp">
-        <!-- BUSCADOR (UNIFICADO - tiempo real) -->
-        <div class="flex items-center gap-3 w-full lg:w-3/5">
-            <div class="relative w-full">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="busqueda" type="text" placeholder="Buscar por nombre o correo..." value="<?= htmlspecialchars($q ?: $nameFilter ?: $emailFilter) ?>"
-                       class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-[var(--verde)] focus:border-[var(--verde)] transition duration-150"/>
-                <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[var(--rosa)] <?= ($q==='' && $nameFilter==='' && $emailFilter==='') ? 'hidden' : '' ?>">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Total Clientes</p>
+              <p id="totalClientes" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
             </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+          </div>
         </div>
 
-        <!-- FILTROS Y BOTÓN AGREGAR -->
-        <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
-            <select id="estadoFiltro" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-[var(--verde)]/50 focus:border-[var(--verde)] transition duration-150">
-                <option value="">Todos los estados</option>
-                <option value="nuevo" <?= ($estadoFilter === 'nuevo') ? 'selected' : '' ?>>Nuevos</option>
-                <option value="frecuente" <?= ($estadoFilter === 'frecuente') ? 'selected' : '' ?>>Frecuentes</option>
-                <option value="moroso" <?= ($estadoFilter === 'moroso') ? 'selected' : '' ?>>Morosos</option>
-            </select>
-
-            <button id="btnAgregar" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--azul)] text-white font-semibold transition duration-200 hover:bg-[#1c2b39] shadow-md">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Agregar cliente
-            </button>
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Seleccionados</p>
+              <p id="selectedCount" class="text-3xl font-bold" style="color: #b4c24d;">0</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            </div>
+          </div>
         </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-200 border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Resultados</p>
+              <p id="filteredCount" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ============================
-         TABLA DE CLIENTES (RENDERIZADA POR JS EN BÚSQUEDA EN TIEMPO REAL)
-         ============================ -->
-    <div id="tabla-wrap" class="bg-white rounded-2xl shadow p-4 card-wow">
-      <?php if($flash): ?>
-        <div id="flash-data" data-msg="<?=htmlspecialchars($flash['msg'])?>" data-type="<?=htmlspecialchars($flash['type'])?>" style="display:none"></div>
-      <?php endif; ?>
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slideUp delay-100 border border-gray-100">
+      <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+        <!-- Search Bar -->
+        <div class="relative flex-1">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            id="searchInput" 
+            type="text" 
+            placeholder="Buscar por nombre, correo o teléfono..." 
+            class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
+          />
+          <button id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
 
+        <!-- Filter Dropdown -->
+        <div class="dropdown">
+          <button id="filterBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            Filtros
+            <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
+            <div class="mb-3">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por inicial</p>
+              <div class="grid grid-cols-7 gap-2">
+                <button class="letter-pill active px-3 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700" data-letter="ALL">
+                  Todos
+                </button>
+                <?php foreach(range('A', 'Z') as $letter): ?>
+                <button class="letter-pill px-3 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700" data-letter="<?= $letter ?>">
+                  <?= $letter ?>
+                </button>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Button -->
+        <button onclick="window.location.href='index.php?view=agregar_cliente'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Agregar
+        </button>
+      </div>
+
+      <!-- Bulk Actions -->
+      <div id="bulkActions" class="hidden mt-5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border-2 border-primary/20">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" id="selectAll" class="custom-checkbox" />
+            <span class="text-sm font-semibold text-gray-700">
+              <span id="bulkSelectedCount">0</span> cliente(s) seleccionado(s)
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="bulkDelete()" class="px-5 py-2.5 text-white rounded-lg font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Eliminar
+            </button>
+            <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-slideUp delay-200 border border-gray-100 mb-8">
       <div class="overflow-x-auto">
-        <table id="tabla-clientes" class="min-w-full divide-y">
-          <thead class="bg-[var(--gris)] rounded-t-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <tr>
-              <th class="px-4 py-3 text-left text-sm font-medium">ID</th>
-              <th class="px-4 py-3 text-left text-sm font-medium">Nombre</th>
-              <th class="px-4 py-3 text-left text-sm font-medium">Celular</th>
-              <th class="px-4 py-3 text-left text-sm font-medium">Correo</th>
-              <th class="px-4 py-3 text-left text-sm font-medium">Dirección</th>
-              <th class="px-4 py-3 text-right text-sm font-medium">Acciones</th>
+              <th class="px-6 py-4 text-left">
+                <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">#</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Celular</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Dirección</th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody id="tabla-body" class="divide-y">
-            <!-- Server-rendered rows as fallback / first paint -->
-            <?php if (count($clientes)===0): ?>
-              <tr><td colspan="6" class="p-6 text-center text-gray-500">No hay clientes registrados.</td></tr>
-            <?php else: ?>
-              <?php foreach($clientes as $c): 
-                $displayName = htmlspecialchars(trim($c['nombre'].' '.$c['apellido_paterno'].' '.$c['apellido_materno']));
-                $direccion = htmlspecialchars(trim(($c['calle'] ?? '') . ' ' . ($c['num_ext'] ?? '') . ' ' . ($c['num_int'] ?? '') . ' ' . ($c['colonia'] ?? '') . ' ' . ($c['cp'] ?? '') . ' ' . ($c['estado'] ?? '')));
-              ?>
-                <tr class="hover:bg-gray-50 transition">
-                  <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['id_cliente'])?></td>
-                  <td class="px-4 py-3 text-sm"><?= $displayName ?></td>
-                  <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['celular'])?></td>
-                  <td class="px-4 py-3 text-sm"><?=htmlspecialchars($c['correo'])?></td>
-                  <td class="px-4 py-3 text-sm truncate-2"><?= $direccion ?></td>
-                  <td class="px-4 py-3 text-right">
-                    <div class="inline-flex gap-2">
-                      <button onclick="location.href='index.php?view=editar_cliente&id=<?= $c['id_cliente'] ?>'" class="px-3 py-1 rounded-lg border hover:bg-[var(--gris)] transition">Editar</button>
-                      <button onclick="openDetalle(<?= $c['id_cliente'] ?>)" class="px-3 py-1 rounded-lg border bg-white hover:bg-[var(--gris)] transition">Ver</button>
-                      <button onclick="confirmDelete(<?= $c['id_cliente'] ?>, '<?=htmlspecialchars(addslashes($c['nombre']))?>')" class="px-3 py-1 rounded-lg bg-[var(--rosa)] text-white hover:opacity-95 transition">Eliminar</button>
-                    </div>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
+          <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
           </tbody>
         </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden empty-state">
+        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron clientes</h3>
+        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo cliente</p>
       </div>
     </div>
 
   </div>
 
-  <!-- ============================
-       MODAL: DETALLES DEL CLIENTE (solo datos básicos)
-       - "Ver más" -> detalle_cliente.php?id=...
-       - "Cargar en formulario" -> editar_cliente
-       ============================ -->
-  <div id="modalDetalle" class="fixed inset-0 hidden items-center justify-center z-50">
+  <!-- FAB -->
+  <button class="fab" onclick="window.location.href='index.php?view=agregar_cliente'">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+  </button>
+
+  <!-- MODAL (VERSIÓN ORIGINAL) -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
     <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden animate-slideUp">
       <div class="p-4 border-b flex items-center justify-between">
@@ -345,217 +556,364 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="flex items-center justify-end gap-3">
-          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg border text-sm">Ver más</a>
-          <button id="btnCargarEnForm" class="px-4 py-2 rounded-lg btn-primary">Cargar en formulario</button>
+          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg btn-primary">Ver más</a>
         </div>
-        
       </div>
     </div>
   </div>
 
-<script>
-  // ----------------------
-  // Utilidades: debounce
-  // ----------------------
-  function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+  <script>
+    let allClientes = <?= json_encode($clientes) ?>;
+    let filteredClientes = [...allClientes];
+    let selectedIds = new Set();
+    let currentLetter = 'ALL';
+    let currentSearch = '';
 
-  // ----------------------
-  // Real-time search (name/email unified)
-  // ----------------------
-  const inputSearch = document.getElementById('busqueda');
-  const estadoFiltro = document.getElementById('estadoFiltro');
-  const clearSearch = document.getElementById('clear-search');
-  const tablaBody = document.getElementById('tabla-body');
+    function debounce(fn, ms) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn.apply(this, args), ms);
+      };
+    }
 
-  // build row HTML
-  function rowHtml(item){
-    const direccion = item.direccion || '-';
-    return `<tr class="hover:bg-gray-50 transition">
-      <td class="px-4 py-3 text-sm">${item.id_cliente}</td>
-      <td class="px-4 py-3 text-sm">${escapeHtml(item.nombre)}</td>
-      <td class="px-4 py-3 text-sm">${escapeHtml(item.celular)}</td>
-      <td class="px-4 py-3 text-sm">${escapeHtml(item.correo)}</td>
-      <td class="px-4 py-3 text-sm truncate-2">${escapeHtml(direccion)}</td>
-      <td class="px-4 py-3 text-right">
-        <div class="inline-flex gap-2">
-          <button onclick="location.href='index.php?view=editar_cliente&id=${item.id_cliente}'" class="px-3 py-1 rounded-lg border hover:bg-[var(--gris)] transition">Editar</button>
-          <button onclick="openDetalle(${item.id_cliente})" class="px-3 py-1 rounded-lg border bg-white hover:bg-[var(--gris)] transition">Ver</button>
-          <button onclick="confirmDelete(${item.id_cliente}, '${escapeJs(item.nombre)}')" class="px-3 py-1 rounded-lg bg-[var(--rosa)] text-white hover:opacity-95 transition">Eliminar</button>
-        </div>
-      </td>
-    </tr>`;
-  }
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
 
-  // escape helpers
-  function escapeHtml(str){ if(!str) return ''; return String(str).replace(/[&<>"'`]/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;' })[s]); }
-  function escapeJs(str){ if(!str) return ''; return String(str).replace(/'/g,"\\'").replace(/\n/g,' '); }
+    function init() {
+      renderTable();
+      setupEventListeners();
+      updateStats();
+    }
 
-  const doSearch = debounce(() => {
-    const q = inputSearch.value.trim();
-    const estado = estadoFiltro ? estadoFiltro.value.trim() : '';
-    // call search endpoint
-    fetch(`${location.pathname}?action=search&q=${encodeURIComponent(q)}&estado=${encodeURIComponent(estado)}`)
-      .then(r => r.json())
-      .then(json => {
-        if (!json.success) {
-          // leave server-rendered content
-          return;
+    function setupEventListeners() {
+      const searchInput = document.getElementById('searchInput');
+      const clearSearch = document.getElementById('clearSearch');
+      
+      // Búsqueda en tiempo real más rápida
+      searchInput.addEventListener('input', debounce(function() {
+        currentSearch = this.value.trim();
+        if (currentSearch) {
+          clearSearch.classList.remove('hidden');
+          this.classList.add('has-value');
+        } else {
+          clearSearch.classList.add('hidden');
+          this.classList.remove('has-value');
         }
-        const rows = json.clientes || [];
-        if (rows.length === 0) {
-          tablaBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">No hay clientes registrados.</td></tr>';
-          return;
-        }
-        tablaBody.innerHTML = rows.map(r => rowHtml(r)).join('');
-      })
-      .catch(err => {
-        console.error('search err', err);
+        performSearch();
+      }, 150));
+
+      clearSearch.addEventListener('click', () => {
+        searchInput.value = '';
+        currentSearch = '';
+        clearSearch.classList.add('hidden');
+        searchInput.classList.remove('has-value');
+        performSearch();
       });
-  }, 300);
 
-  inputSearch && inputSearch.addEventListener('input', () => {
-    clearSearch.classList.remove('hidden');
-    doSearch();
-  });
+      const filterBtn = document.getElementById('filterBtn');
+      const filterMenu = document.getElementById('filterMenu');
+      const filterIcon = document.getElementById('filterIcon');
 
-  clearSearch && clearSearch.addEventListener('click', () => {
-    inputSearch.value = '';
-    clearSearch.classList.add('hidden');
-    doSearch();
-  });
+      filterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterMenu.classList.toggle('active');
+        filterIcon.style.transform = filterMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
 
-  estadoFiltro && estadoFiltro.addEventListener('change', () => {
-    doSearch();
-  });
+      document.addEventListener('click', (e) => {
+        if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+          filterMenu.classList.remove('active');
+          filterIcon.style.transform = 'rotate(0deg)';
+        }
+      });
 
-  // ----------------------
-  // Add / Back
-  // ----------------------
-  document.getElementById('btnAgregar') && document.getElementById('btnAgregar').addEventListener('click', () => {
-    window.location.href = 'index.php?view=agregar_cliente';
-  });
+      // Filtros alfabéticos funcionando correctamente
+      document.querySelectorAll('.letter-pill').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          document.querySelectorAll('.letter-pill').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentLetter = this.dataset.letter;
+          console.log('Filtro seleccionado:', currentLetter); // Debug
+          performSearch();
+        });
+      });
 
-  // ----------------------
-  // Delete with SweetAlert
-  // ----------------------
-  function confirmDelete(id, nombre){
-    Swal.fire({
-      title: 'Eliminar cliente',
-      html: `¿Eliminar a <strong>${nombre}</strong>?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--rosa)',
-      confirmButtonText: 'Sí, eliminar',
-    }).then((res)=>{
-      if(res.isConfirmed){
-        fetch(`${location.pathname}?action=delete`, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({id: id})
+      document.getElementById('selectAll').addEventListener('change', function() {
+        if (this.checked) {
+          filteredClientes.forEach(c => selectedIds.add(c.id_cliente));
+        } else {
+          selectedIds.clear();
+        }
+        renderTable();
+        updateBulkActions();
+      });
+
+      document.getElementById('selectAllHeader').addEventListener('change', function() {
+        if (this.checked) {
+          filteredClientes.forEach(c => selectedIds.add(c.id_cliente));
+        } else {
+          selectedIds.clear();
+        }
+        renderTable();
+        updateBulkActions();
+      });
+    }
+
+    function performSearch() {
+      // Construir URL correctamente
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('action', 'search');
+      currentUrl.searchParams.set('q', currentSearch);
+      currentUrl.searchParams.set('letter', currentLetter);
+      
+      console.log('Buscando con:', { search: currentSearch, letter: currentLetter }); // Debug
+      
+      fetch(currentUrl.toString())
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
         })
-        .then(r => r.json())
         .then(json => {
-          if(json.success){
-            Swal.fire({title:'Eliminado', text:'Cliente eliminado correctamente', icon:'success', confirmButtonColor:'var(--verde)'}).then(()=> doSearch());
+          console.log('Resultados:', json.clientes?.length || 0); // Debug
+          if (json.success) {
+            filteredClientes = json.clientes || [];
+            renderTable();
+            updateStats();
           } else {
-            Swal.fire('Error', json.error || 'No se pudo eliminar','error');
+            console.error('Error en búsqueda:', json.error);
+            Swal.fire('Error', json.error || 'Error al buscar', 'error');
           }
         })
-        .catch(()=> Swal.fire('Error','Error en el servidor','error'));
-      }
-    });
-  }
+        .catch(err => {
+          console.error('Search error:', err);
+          // No mostrar error en cada búsqueda, solo en consola
+        });
+    }
 
-  // ----------------------
-// Modal: abrir detalle (fetch cliente JSON)
-// ----------------------
-const modal = document.getElementById('modalDetalle');
-const detalle = {
-  nombre: document.getElementById('d-nombre'),
-  correo: document.getElementById('d-correo'),
-  celular: document.getElementById('d-celular'),
-  direccion: document.getElementById('d-direccion'),
-  cp: document.getElementById('d-cp'),
-  estado: document.getElementById('d-estado'),
-  btnVerMas: document.getElementById('btnVerMas'),
-  btnCargarEnForm: document.getElementById('btnCargarEnForm')
-};
-
-let currentClienteId = null;
-
-function openDetalle(id) {
-  currentClienteId = id;
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-
-  // placeholder mientras carga
-  detalle.nombre.textContent = 'Cargando...';
-  detalle.correo.textContent = '';
-  detalle.celular.textContent = '';
-  detalle.direccion.textContent = '';
-  detalle.cp.textContent = '';
-  detalle.estado.textContent = '';
-
-  // ---------- ADAPTADO A TU CÓDIGO ----------
- const url = `index.php?view=clientes&action=getCliente&id=${encodeURIComponent(id)}`;
-  // ------------------------------------------
-
-  fetch(url)
-    .then(response => {
-      // VALIDAMOS ANTES DE PARSEAR
-      if (!response.ok) throw new Error('Respuesta no OK del servidor (HTTP ' + response.status + ')');
-      return response.json();
-    })
-    .then(json => {
-      // VALIDAMOS ESTRUCTURA JSON
-      if (!json || typeof json !== 'object') {
-        throw new Error('Respuesta inesperada del servidor (no es JSON válido).');
-      }
-
-      if (!json.success) {
-        Swal.fire('Error', json.error || 'No se pudo obtener información', 'error');
-        closeDetalle();
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (filteredClientes.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
         return;
       }
 
-      const c = json.cliente;
+      emptyState.classList.add('hidden');
+      
+      tbody.innerHTML = filteredClientes.map((cliente, index) => {
+        const isSelected = selectedIds.has(cliente.id_cliente);
+        const displayName = escapeHtml(cliente.nombre || `${cliente.nombre} ${cliente.apellido_paterno || ''} ${cliente.apellido_materno || ''}`);
+        const direccion = escapeHtml(cliente.direccion || '-');
+        
+        return `
+          <tr class="table-row ${isSelected ? 'selected' : ''}" data-id="${cliente.id_cliente}">
+            <td class="px-6 py-4">
+              <input type="checkbox" class="custom-checkbox row-checkbox" data-id="${cliente.id_cliente}" ${isSelected ? 'checked' : ''} />
+            </td>
+            <td class="px-6 py-4 text-sm font-semibold text-gray-900">${index + 1}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
+                  ${(cliente.inicial || cliente.nombre?.charAt(0) || 'C').toUpperCase()}
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">${displayName}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700 font-medium">${escapeHtml(cliente.celular || '-')}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${escapeHtml(cliente.correo || '-')}</td>
+            <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${direccion}</td>
+            <td class="px-6 py-4 text-right">
+              <div class="inline-flex gap-2">
+                <button onclick="openDetalle(${cliente.id_cliente})" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
+                  Ver
+                </button>
+                <button onclick="window.location.href='index.php?view=editar_cliente&id=${cliente.id_cliente}'" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
+                  Editar
+                </button>
+                <button onclick="confirmDelete(${cliente.id_cliente}, '${escapeHtml(displayName).replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
 
-      detalle.nombre.textContent = `${c.nombre || ''} ${c.apellido_paterno || ''} ${c.apellido_materno || ''}`;
-      detalle.correo.textContent = c.correo || '-';
-      detalle.celular.textContent = c.celular || '-';
-      detalle.direccion.textContent = [c.calle, c.num_ext, c.num_int, c.colonia].filter(Boolean).join(' ') || '-';
-      detalle.cp.textContent = c.cp || '-';
-      detalle.estado.textContent = c.estado || '-';
-
-      // Botones del modal
-    // dentro de openDetalle(id) después de cargar los datos:
-        detalle.btnVerMas.setAttribute('data-id', id);
-        detalle.btnVerMas.href = `index.php?view=detalle_cliente&id=${encodeURIComponent(id)}`;
-
-      detalle.btnCargarEnForm.onclick = () => {
-        window.location.href = 'index.php?view=editar_cliente&id=' + encodeURIComponent(id);
-      };
-    })
-    .catch(err => {
-      console.error('ERROR al cargar detalle cliente:', err);
-
-      Swal.fire({
-        title: 'Error',
-        text: 'Error al cargar los datos del cliente. Detalle técnico: ' + err.message,
-        icon: 'error',
-        confirmButtonColor: '#b4c24d'
+      document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+          const id = parseInt(this.dataset.id);
+          if (this.checked) {
+            selectedIds.add(id);
+          } else {
+            selectedIds.delete(id);
+          }
+          updateBulkActions();
+          renderTable();
+        });
       });
+    }
 
-      closeDetalle();
-    });
-}
+    function updateStats() {
+      document.getElementById('totalClientes').textContent = allClientes.length;
+      document.getElementById('filteredCount').textContent = filteredClientes.length;
+      document.getElementById('selectedCount').textContent = selectedIds.size;
+    }
 
-function closeDetalle() {
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-  currentClienteId = null;
-}
+    function updateBulkActions() {
+      const bulkActions = document.getElementById('bulkActions');
+      const count = selectedIds.size;
+      
+      if (count > 0) {
+        bulkActions.classList.remove('hidden');
+        document.getElementById('bulkSelectedCount').textContent = count;
+      } else {
+        bulkActions.classList.add('hidden');
+      }
+      
+      updateStats();
+    }
 
-</script>
+    function clearSelection() {
+      selectedIds.clear();
+      document.getElementById('selectAll').checked = false;
+      document.getElementById('selectAllHeader').checked = false;
+      renderTable();
+      updateBulkActions();
+    }
+
+    function confirmDelete(id, nombre) {
+      Swal.fire({
+        title: '¿Eliminar cliente?',
+        html: `¿Estás seguro de eliminar a <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteCliente(id);
+        }
+      });
+    }
+
+    function deleteCliente(id) {
+      fetch(`${location.pathname}?action=delete`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: id})
+      })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          Swal.fire({
+            title: 'Eliminado',
+            text: 'El cliente ha sido eliminado correctamente',
+            icon: 'success',
+            confirmButtonColor: '#b4c24d',
+            timer: 2000
+          });
+          performSearch();
+        } else {
+          Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+        }
+      })
+      .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
+    }
+
+    function bulkDelete() {
+      const count = selectedIds.size;
+      
+      Swal.fire({
+        title: '¿Eliminar clientes seleccionados?',
+        html: `¿Estás seguro de eliminar <strong>${count}</strong> cliente(s)?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar todos',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const ids = Array.from(selectedIds);
+          fetch(`${location.pathname}?action=deleteMultiple`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ids: ids})
+          })
+          .then(r => r.json())
+          .then(json => {
+            if (json.success) {
+              Swal.fire({
+                title: 'Eliminados',
+                text: `${json.count} cliente(s) eliminado(s) correctamente`,
+                icon: 'success',
+                confirmButtonColor: '#b4c24d',
+                timer: 2000
+              });
+              clearSelection();
+              performSearch();
+            } else {
+              Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+            }
+          })
+          .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
+        }
+      });
+    }
+
+    // MODAL DETALLE (VERSIÓN ORIGINAL - LÓGICA INTACTA)
+    const modal = document.getElementById('modalDetalle');
+    const detalle = {
+      nombre: document.getElementById('d-nombre'),
+      correo: document.getElementById('d-correo'),
+      celular: document.getElementById('d-celular'),
+      direccion: document.getElementById('d-direccion'),
+      cp: document.getElementById('d-cp'),
+      estado: document.getElementById('d-estado'),
+      btnVerMas: document.getElementById('btnVerMas')
+    };
+
+    function openDetalle(id) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      detalle.nombre.textContent = 'Cargando...';
+
+      const url = `index.php?view=clientes&action=getCliente&id=${encodeURIComponent(id)}`;
+
+      fetch(url)
+        .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
+        .then(json => {
+          if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+          const c = json.cliente;
+          detalle.nombre.textContent = `${c.nombre || ''} ${c.apellido_paterno || ''} ${c.apellido_materno || ''}`;
+          detalle.correo.textContent = c.correo || '-';
+          detalle.celular.textContent = c.celular || '-';
+          detalle.direccion.textContent = [c.calle, c.num_ext, c.num_int, c.colonia].filter(Boolean).join(' ') || '-';
+          detalle.cp.textContent = c.cp || '-';
+          detalle.estado.textContent = c.estado || '-';
+          detalle.btnVerMas.href = `index.php?view=detalle_cliente&id=${encodeURIComponent(id)}`;
+        })
+        .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+    }
+    
+    function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
