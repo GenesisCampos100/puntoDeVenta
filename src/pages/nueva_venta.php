@@ -59,7 +59,6 @@ foreach ($rows as $row) {
             'precio' => $row['producto_precio'] ?: 0,
             'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
-            'talla_default' => $row['producto_talla'] ?: 'Única',
             'color_default' => $row['producto_color'] ?: 'Sin color',
             'stock' => $row['producto_cantidad'] ?: 0,
         ];
@@ -232,62 +231,55 @@ function normalizeCategory($name) {
 </div>
 
 <!-- GRID PRODUCTOS -->
-<div class="px-6 pb-24">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
-        <?php foreach($productos as $prod): 
-            $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
-            $precio = $prod['precio'] ?: 0;
-            $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
-        ?>
-            <article class="producto bg-white shadow-lg rounded-2xl p-4 text-center animate-slide"
-                     data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
-                     data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-                     data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-                     data-price="<?= htmlspecialchars($precio) ?>"
-                     data-category="<?= htmlspecialchars($prod['categoria']) ?>"
-                     data-stock="<?= $prod['stock'] ?>"
-                     data-variants='<?= $variants_json ?>'>
-                
-                <div class="relative overflow-hidden rounded-xl mb-3">
-                    <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
-                         alt="<?= htmlspecialchars($prod['nombre']) ?>" 
-                         class="w-full h-48 object-cover rounded-xl product-image">
-                </div>
-                
-                <h3 class="font-semibold text-gray-800 text-base mb-1"><?= htmlspecialchars($prod['nombre']) ?></h3>
-                <p class="text-gray-500 text-sm mb-2"><?= htmlspecialchars($prod['categoria']) ?></p>
-                <p class="text-xl font-bold price mb-2" style="color: var(--primary);">$<?= number_format($precio, 2) ?></p>
-                
-                <!-- STOCK -->
-                <p class="text-sm mb-3 font-semibold stock-text" style="color: #10b981;">
-                    Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
-                </p>
-                
-                <!-- VARIANTES -->
-                <select class="variant-size border-2 rounded-lg px-3 py-2 text-sm mb-2 w-full focus:border-primary focus:outline-none">
-                    <?php 
-                        $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
-                        if (empty($sizes)) $sizes = [$prod['talla_default']];
-                        foreach ($sizes as $size): ?>
-                        <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                
-                <select class="variant-color border-2 rounded-lg px-3 py-2 text-sm mb-3 w-full focus:border-primary focus:outline-none">
-                    <?php 
-                        $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
-                        if (empty($colors)) $colors = [$prod['color_default']];
-                        foreach ($colors as $color): ?>
-                        <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                
-                <button class="add-to-cart w-full font-semibold py-3 rounded-xl text-white transition-all hover:shadow-lg" style="background: linear-gradient(135deg, var(--secondary) 0%, #1e3244 100%);">
-                    Agregar al Carrito
-                </button>
-            </article>
-        <?php endforeach; ?>
-    </div>
+<div class="px-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
+    <?php foreach($productos as $prod): 
+      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
+      $precio = $prod['precio'] ?: 0;
+      $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
+    ?>
+      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
+               data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
+               data-name="<?= htmlspecialchars($prod['nombre']) ?>"
+               data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
+               data-price="<?= htmlspecialchars($precio) ?>"
+               data-category="<?= htmlspecialchars($prod['categoria']) ?>"
+               data-stock="<?= $prod['stock'] ?>"
+               data-variants='<?= $variants_json ?>'>
+        
+        <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['nombre']) ?>" class="w-full h-40 object-cover rounded product-image">
+        
+        <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
+        <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
+        <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
+
+        <!-- STOCK MOSTRADO -->
+        <p class="text-sm mt-1 text-green-600 font-semibold stock-text">
+            Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
+        </p>
+
+        <select class="variant-size border rounded-lg px-2 py-1 text-sm mt-2 w-full">
+          <?php 
+            $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
+            if (empty($sizes)) $sizes = [$prod['talla_default']];
+            foreach ($sizes as $size): ?>
+              <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+          <?php endforeach; ?>
+        </select>
+
+        <select class="variant-color border rounded-lg px-2 py-1 text-sm mt-2 w-full">
+          <?php 
+            $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
+            if (empty($colors)) $colors = [$prod['color_default']];
+            foreach ($colors as $color): ?>
+              <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+          <?php endforeach; ?>
+        </select>
+
+        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
+      </article>
+    <?php endforeach; ?>
+  </div>
 </div>
 
 <!-- CARRITO LATERAL -->
