@@ -1,13 +1,38 @@
 <?php 
-// empleados_contenido_v5.php - Premium Modern Design (Same as clientes_contenido_v5)
+// empleados_contenido_enhanced.php - Premium Modern Design with All Improvements
 require_once __DIR__ . '/../config/db.php';
+
+// AJAX: Get employee by ID
+if (isset($_GET['action']) && $_GET['action'] === 'getEmpleado') {
+    header('Content-Type: application/json; charset=utf-8');
+    $id = intval($_GET['id'] ?? 0);
+    if ($id <= 0) {
+        echo json_encode(['success' => false, 'error' => 'ID inválido']);
+        exit;
+    }
+    
+    $sql = "SELECT e.*, u.correo, r.nombre_rol FROM empleados e  
+            LEFT JOIN usuarios u ON e.id_empleado = u.id_empleado
+            LEFT JOIN roles r ON e.id_rol = r.id_rol
+            WHERE e.id_empleado = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$id]);
+    $empleado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($empleado) {
+        echo json_encode(['success' => true, 'empleado' => $empleado]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Empleado no encontrado']);
+    }
+    exit;
+}
 
 $busqueda = $_GET['busqueda'] ?? '';
 $puesto = $_GET['puesto'] ?? '';
 $orden = $_GET['orden'] ?? 'e.nombre ASC';
-$allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
+$allowed_order = ['e.nombre ASC', 'e.nombre DESC', 'e.id_empleado ASC', 'e.id_empleado DESC'];
 if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
-$vista_actual = $_GET['view'] ?? 'empleados_contenido';
+$vista_actual = $_GET['view'] ?? 'empleados';
 
 $sql = "SELECT
             e.id_empleado AS numero,
@@ -142,29 +167,43 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       font-weight: 700;
     }
 
+    /* Dropdown Premium */
     .dropdown {
       position: relative;
     }
 
     .dropdown-menu {
       position: absolute;
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-      padding: 1.25rem;
-      min-width: 280px;
-      z-index: 1000;
+      background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      min-width: 340px;
+      z-index: 9999;
       opacity: 0;
-      transform: translateY(10px) scale(0.95);
+      transform: translateY(-10px) scale(0.95);
       pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(0, 0, 0, 0.06);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid rgba(180, 194, 77, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .dropdown-menu.active {
       opacity: 1;
       transform: translateY(0) scale(1);
       pointer-events: all;
+    }
+    
+    .dropdown-menu select {
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dropdown-menu select:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(180, 194, 77, 0.2);
     }
 
     .table-row {
@@ -228,6 +267,11 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     .empty-state {
       padding: 4rem 2rem;
       text-align: center;
+    }
+    
+    .modal-backdrop {
+      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.4);
     }
   </style>
 </head>
@@ -419,7 +463,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <tbody class="bg-white divide-y divide-gray-200">
             <?php if (!empty($empleados)): ?>
               <?php foreach ($empleados as $emp): ?>
-                <tr class="table-row" data-id="<?= $emp['numero'] ?>">
+                <tr class="table-row" id="row-<?= $emp['numero'] ?>" data-id="<?= $emp['numero'] ?>">
                   <td class="px-6 py-4">
                     <input type="checkbox" class="custom-checkbox row-checkbox" data-id="<?= $emp['numero'] ?>" />
                   </td>
@@ -455,12 +499,15 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                   <td class="px-6 py-4 text-sm text-gray-600"><?= htmlspecialchars($emp['fecha']) ?></td>
                   <td class="px-6 py-4 text-right">
                     <div class="inline-flex gap-2">
-                      <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
+                      <button onclick="openDetalle('<?= $emp['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
+                        Ver
+                      </button>
+                      <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
                         Editar
                       </a>
-                      <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors" data-id="<?= htmlspecialchars($emp['numero']) ?>">
+                      <button onclick="confirmDelete('<?= $emp['numero'] ?>', '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
                         Eliminar
-                      </a>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -492,7 +539,58 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     </svg>
   </button>
 
+  <!-- MODAL VER EMPLEADO -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
+    <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden animate-scaleIn">
+      <div class="p-4 border-b flex items-center justify-between">
+        <h3 class="text-lg font-semibold" id="modal-title">Detalle del empleado</h3>
+        <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none px-3" onclick="closeDetalle()">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-500">Nombre</p>
+            <p id="d-nombre" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Correo</p>
+            <p id="d-correo" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Puesto</p>
+            <p id="d-puesto" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Estado</p>
+            <p id="d-estado" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Fecha de Ingreso</p>
+            <p id="d-fecha" class="font-medium text-gray-900">-</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg text-white font-semibold" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">Ver más</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ** REFERENCIAS ** 
+    const modal = document.getElementById('modalDetalle');
+    const detalle = {
+      nombre: document.getElementById('d-nombre'),
+      correo: document.getElementById('d-correo'),
+      puesto: document.getElementById('d-puesto'),
+      estado: document.getElementById('d-estado'),
+      fecha: document.getElementById('d-fecha'),
+      btnVerMas: document.getElementById('btnVerMas')
+    };
+
     // Selection state
     let selectedIds = new Set();
 
@@ -534,17 +632,64 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       }
     });
 
-    // Search input visual feedback
+    // BÚSQUEDA EN TIEMPO REAL (exactamente como nueva_venta.php)
     const searchInput = document.getElementById('busqueda-input');
     if (searchInput.value.trim()) {
       searchInput.classList.add('has-value');
     }
 
-    searchInput.addEventListener('input', function() {
-      if (this.value.trim()) {
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      const rows = document.querySelectorAll('tbody .table-row');
+      
+      // Visual feedback
+      if (searchTerm) {
         this.classList.add('has-value');
       } else {
         this.classList.remove('has-value');
+      }
+      
+      // Filtrar filas en tiempo real
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const numero = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        const nombre = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+        const correo = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const estado = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+        
+        if (numero.includes(searchTerm) || nombre.includes(searchTerm) || correo.includes(searchTerm) || estado.includes(searchTerm)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      // Mostrar/ocultar mensaje de "no se encontraron empleados"
+      if (visibleCount === 0 && searchTerm && rows.length > 0) {
+        let noResultsRow = document.getElementById('noResultsRow');
+        if (!noResultsRow) {
+          noResultsRow = document.createElement('tr');
+          noResultsRow.id = 'noResultsRow';
+          noResultsRow.innerHTML = `
+            <td colspan="7" class="px-6 py-16">
+              <div class="empty-state">
+                <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
+                <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
+              </div>
+            </td>
+          `;
+          document.querySelector('tbody').appendChild(noResultsRow);
+        }
+        noResultsRow.style.display = '';
+      } else {
+        const noResultsRow = document.getElementById('noResultsRow');
+        if (noResultsRow) {
+          noResultsRow.style.display = 'none';
+        }
       }
     });
 
@@ -563,7 +708,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
     function updateRowSelection() {
       document.querySelectorAll('.table-row').forEach(row => {
-        const id = parseInt(row.dataset.id);
+        const id = row.dataset.id;
         if (selectedIds.has(id)) {
           row.classList.add('selected');
         } else {
@@ -577,7 +722,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       const checkboxes = document.querySelectorAll('.row-checkbox');
       if (this.checked) {
         checkboxes.forEach(cb => {
-          selectedIds.add(parseInt(cb.dataset.id));
+          selectedIds.add(cb.dataset.id);
           cb.checked = true;
         });
       } else {
@@ -593,7 +738,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       const checkboxes = document.querySelectorAll('.row-checkbox');
       if (this.checked) {
         checkboxes.forEach(cb => {
-          selectedIds.add(parseInt(cb.dataset.id));
+          selectedIds.add(cb.dataset.id);
           cb.checked = true;
         });
       } else {
@@ -608,7 +753,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     // Individual checkbox selection
     document.querySelectorAll('.row-checkbox').forEach(cb => {
       cb.addEventListener('change', function() {
-        const id = parseInt(this.dataset.id);
+        const id = this.dataset.id;
         if (this.checked) {
           selectedIds.add(id);
         } else {
@@ -648,45 +793,128 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
-          // Redirect to delete multiple employees
-          const idsParam = ids.join(',');
-          window.location.href = `index.php?view=eliminar_empleados_multiple&ids=${idsParam}`;
+          fetch(`index.php?view=eliminar_empleados_multiple`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ids: ids})
+          })
+          .then(r => r.json())
+          .then(json => {
+            if (json.success) {
+              Swal.fire({
+                title: 'Eliminados',
+                text: `${json.count} empleado(s) eliminado(s) correctamente`,
+                icon: 'success',
+                confirmButtonColor: '#b4c24d',
+                timer: 2000
+              });
+              
+              // Eliminar filas del DOM
+              ids.forEach(id => {
+                const row = document.getElementById('row-' + id);
+                if(row) row.remove();
+              });
+              
+              // Limpiar selección y actualizar contadores
+              clearSelection();
+              const totalEl = document.getElementById('totalEmpleados');
+              if(totalEl) totalEl.textContent = parseInt(totalEl.textContent) - json.count;
+              
+            } else {
+              Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+            }
+          })
+          .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
         }
       });
     }
 
-    // Delete confirmation with SweetAlert2 (ORIGINAL LOGIC PRESERVED)
-    (function(){
-      function attachDeleteHandlers() {
-        document.querySelectorAll('.btn-eliminar').forEach(btn => {
-          btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const href = this.getAttribute('href');
-            Swal.fire({
-              title: '¿Estás seguro?',
-              html: '¿Realmente deseas eliminar este empleado?<br>Esta acción no se puede deshacer.',
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#e15871',
-              cancelButtonColor: '#6b7280',
-              confirmButtonText: 'Sí, eliminar',
-              cancelButtonText: 'Cancelar',
-              reverseButtons: true
-            }).then((result) => {
-              if (result.isConfirmed) {
-                window.location.href = href;
-              }
-            });
-          });
-        });
-      }
+    // ** FUNCIÓN ABRIR DETALLE CON AJAX **
+    function openDetalle(id) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      detalle.nombre.textContent = 'Cargando...';
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
-      } else {
-        attachDeleteHandlers();
-      }
-    })();
+      const url = `index.php?view=empleados&action=getEmpleado&id=${encodeURIComponent(id)}`;
+
+      fetch(url)
+        .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
+        .then(json => {
+          if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+          const e = json.empleado;
+          detalle.nombre.textContent = `${e.nombre || ''} ${e.apellido_paterno || ''} ${e.apellido_materno || ''}`.trim();
+          detalle.correo.textContent = e.correo || '-';
+          detalle.puesto.textContent = e.nombre_rol || '-';
+          detalle.estado.textContent = e.estatus == 1 ? 'Activo' : 'Inactivo';
+          detalle.fecha.textContent = e.fecha || '-';
+          detalle.btnVerMas.href = `index.php?view=detalle_empleado&id=${encodeURIComponent(id)}`;
+        })
+        .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+    }
+    
+    function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    // ** CONFIRMACIÓN Y ELIMINACIÓN CON SWEETALERT **
+    function confirmDelete(id, nombre) {
+      Swal.fire({
+        title: '¿Eliminar empleado?',
+        html: `¿Estás seguro de eliminar a <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteEmpleado(id);
+        }
+      });
+    }
+
+    function deleteEmpleado(id) {
+      fetch(`index.php?view=eliminar_empleado`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({id: id})
+      })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          Swal.fire({
+            title: 'Eliminado',
+            text: 'El empleado ha sido eliminado correctamente',
+            icon: 'success',
+            confirmButtonColor: '#b4c24d',
+            timer: 2000
+          });
+          // Eliminar fila sin recargar usando ID
+          const row = document.getElementById('row-' + id);
+          if (row) {
+             row.remove();
+             // Actualizar contadores si es necesario
+             const totalEl = document.getElementById('totalEmpleados');
+             if(totalEl) totalEl.textContent = parseInt(totalEl.textContent) - 1;
+          } else {
+             // Fallback
+             setTimeout(() => window.location.reload(), 1000);
+          }
+        } else {
+          Swal.fire('Error', json.error || 'No se pudo eliminar el empleado', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error en el servidor', 'error');
+      });
+    }
   </script>
 </body>
 </html>

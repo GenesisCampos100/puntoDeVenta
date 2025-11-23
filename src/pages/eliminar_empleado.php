@@ -1,47 +1,67 @@
-<?php 
-    require_once __DIR__ . "/../config/db.php";
+<?php
+require_once __DIR__ . "/../config/db.php";
 
-    try {
-        $empleado_id = $_GET['id'] ?? null;
+// Limpiar cualquier salida previa
+while (ob_get_level()) ob_end_clean();
 
-        if ($empleado_id === false || $empleado_id <= 0) {
-            // ID inválido: mostramos mensaje y detenemos ejecución
-            echo "ID de empleado inválido.";
-            exit;
-        }
+// Configurar cabecera JSON
+header('Content-Type: application/json; charset=utf-8');
 
-        // --- OPCIONAL: Verificar que el empleado exista antes de eliminar ---
-        $stmt_check = $pdo->prepare("SELECT id_empleado FROM empleados WHERE id_empleado = ?");
-        $stmt_check->execute([$empleado_id]);
-        if ($stmt_check->rowCount() === 0) {
-            echo "No se encontró el empleado con ese ID.";
-            exit;
-        }
+// Verificar método POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+    exit;
+}
 
-        // Iniciar transacción
-        $pdo->beginTransaction();
+// 1. Intentar leer JSON del body
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+$id = $data['id'] ?? null;
 
-        // Eliminar de usuarios
-        $stmt1 = $pdo->prepare("DELETE FROM usuarios WHERE id_empleado = ?");
-        $stmt1->execute([$empleado_id]);
+// 2. Si no hay JSON, intentar leer POST normal
+if ($id === null) {
+    $id = $_POST['id'] ?? $_GET['id'] ?? null;
+}
 
-        // Eliminar de empleados
-        $stmt2 = $pdo->prepare("DELETE FROM empleados WHERE id_empleado = ?");
-        $stmt2->execute([$empleado_id]);
+// 3. Validar ID (permitir strings no vacíos)
+if (!$id || trim($id) === '') {
+    echo json_encode(['success' => false, 'error' => 'ID de empleado inválido']);
+    exit;
+}
 
-        // Confirmar cambios
-        $pdo->commit();
+// No forzar cast a int para soportar VARCHAR
+$id = trim($id);
 
-        // Redirigir a la lista de empleados
-        header("Location: index.php?view=empleados");
+try {
+    // Verificar si existe el empleado
+    $stmtCheck = $pdo->prepare("SELECT id_empleado FROM empleados WHERE id_empleado = ?");
+    $stmtCheck->execute([$id]);
+    if (!$stmtCheck->fetch()) {
+        echo json_encode(['success' => false, 'error' => 'Empleado no encontrado']);
         exit;
-    } catch (Exception $e) {
-        // Revertir cambios si hubo error
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        echo "Error al eliminar empleado. Detalles registrados en el log.";
-        error_log("Error al eliminar empleado ID $empleado_id: " . $e->getMessage());
     }
+
+    // Iniciar transacción
+    $pdo->beginTransaction();
+
+    // Eliminar usuario asociado (si existe)
+    $stmtUser = $pdo->prepare("DELETE FROM usuarios WHERE id_empleado = ?");
+    $stmtUser->execute([$id]);
+
+    // Eliminar empleado
+    $stmtEmp = $pdo->prepare("DELETE FROM empleados WHERE id_empleado = ?");
+    if ($stmtEmp->execute([$id])) {
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => 'Empleado eliminado correctamente']);
+    } else {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'error' => 'No se pudo eliminar el empleado']);
+    }
+
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    error_log("Error al eliminar empleado $id: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Error interno al procesar la solicitud']);
+}
+exit;
 ?>

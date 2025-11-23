@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/db.php';
 
 // AJAX: obtener cliente por id
 if (isset($_GET['action']) && $_GET['action'] === "getCliente") {
+    while (ob_get_level()) ob_end_clean();
     header("Content-Type: application/json; charset=utf-8");
     $id = intval($_GET['id'] ?? 0);
     if ($id <= 0) {
@@ -23,6 +24,7 @@ if (isset($_GET['action']) && $_GET['action'] === "getCliente") {
 
 // AJAX: búsqueda en tiempo real
 if (isset($_GET['action']) && $_GET['action'] === 'search') {
+    while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
     $q = isset($_GET['q']) ? trim($_GET['q']) : '';
     $letter = isset($_GET['letter']) ? trim($_GET['letter']) : '';
@@ -63,50 +65,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
             ];
         }, $rows);
         echo json_encode(['success'=>true,'clientes'=>$data]);
-    } catch (Exception $e) {
-        echo json_encode(['success'=>false,'error'=>$e->getMessage()]);
-    }
-    exit;
-}
-
-// AJAX: eliminar cliente
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'delete') {
-    header('Content-Type: application/json; charset=utf-8');
-    $raw = file_get_contents('php://input');
-    $data = json_decode($raw, true);
-    $id = isset($data['id']) ? (int)$data['id'] : 0;
-    if ($id <= 0) {
-        echo json_encode(['success'=>false,'error'=>'ID inválido']);
-        exit;
-    }
-    
-    try {
-        $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente = :id");
-        $stmt->execute([':id'=>$id]);
-        echo json_encode(['success'=>true]);
-    } catch (Exception $e) {
-        echo json_encode(['success'=>false,'error'=>$e->getMessage()]);
-    }
-    exit;
-}
-
-// AJAX: eliminar múltiples clientes
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'deleteMultiple') {
-    header('Content-Type: application/json; charset=utf-8');
-    $raw = file_get_contents('php://input');
-    $data = json_decode($raw, true);
-    $ids = isset($data['ids']) ? $data['ids'] : [];
-    
-    if (empty($ids)) {
-        echo json_encode(['success'=>false,'error'=>'No se seleccionaron clientes']);
-        exit;
-    }
-    
-    try {
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente IN ($placeholders)");
-        $stmt->execute($ids);
-        echo json_encode(['success'=>true, 'count' => count($ids)]);
     } catch (Exception $e) {
         echo json_encode(['success'=>false,'error'=>$e->getMessage()]);
     }
@@ -594,25 +552,52 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
       const searchInput = document.getElementById('searchInput');
       const clearSearch = document.getElementById('clearSearch');
       
-      // Búsqueda en tiempo real más rápida
-      searchInput.addEventListener('input', debounce(function() {
-        currentSearch = this.value.trim();
-        if (currentSearch) {
+      // BÚSQUEDA EN TIEMPO REAL (exactamente como nueva_venta.php)
+      searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#tableBody .table-row');
+        
+        // Mostrar/ocultar botón de limpiar
+        if (searchTerm) {
           clearSearch.classList.remove('hidden');
           this.classList.add('has-value');
         } else {
           clearSearch.classList.add('hidden');
           this.classList.remove('has-value');
         }
-        performSearch();
-      }, 150));
+        
+        // Filtrar filas en tiempo real
+        rows.forEach(row => {
+          const nombre = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+          const celular = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+          const correo = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+          const direccion = row.querySelector('td:nth-child(6)')?.textContent.toLowerCase() || '';
+          
+          if (nombre.includes(searchTerm) || celular.includes(searchTerm) || correo.includes(searchTerm) || direccion.includes(searchTerm)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        
+        // Actualizar estado vacío
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+        const emptyState = document.getElementById('emptyState');
+        if (visibleRows.length === 0 && searchTerm) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      });
 
       clearSearch.addEventListener('click', () => {
         searchInput.value = '';
-        currentSearch = '';
         clearSearch.classList.add('hidden');
         searchInput.classList.remove('has-value');
-        performSearch();
+        // Mostrar todas las filas
+        document.querySelectorAll('#tableBody .table-row').forEach(row => row.style.display = '');
+        // Ocultar empty state
+        document.getElementById('emptyState').classList.add('hidden');
       });
 
       const filterBtn = document.getElementById('filterBtn');
@@ -811,7 +796,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function deleteCliente(id) {
-      fetch(`${location.pathname}?action=delete`, {
+      fetch(`index.php?view=eliminar_cliente`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({id: id})
@@ -850,7 +835,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
       }).then((result) => {
         if (result.isConfirmed) {
           const ids = Array.from(selectedIds);
-          fetch(`${location.pathname}?action=deleteMultiple`, {
+          fetch(`index.php?view=eliminar_clientes_multiple`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ids: ids})
