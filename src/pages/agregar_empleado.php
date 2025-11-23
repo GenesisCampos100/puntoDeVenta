@@ -366,13 +366,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         .form-input:focus, .form-select:focus {
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px rgba(180, 194, 77, 0.12);
+            box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.08);
         }
 
-        .form-input.error {
+        .form-input.error, .form-select.error {
             border-color: var(--error);
             background: #fef2f2;
             animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .form-input.error:focus, .form-select.error:focus {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
         }
 
         .grid-2 {
@@ -656,11 +660,49 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                e.preventDefault();
                
                 // Clear previous errors
-                document.querySelectorAll('.form-input').forEach(input => {
+                document.querySelectorAll('.form-input, .form-select').forEach(input => {
                     input.classList.remove('error');
                     input.style.animation = 'none';
                     setTimeout(() => { input.style.animation = ''; }, 10);
                 });
+
+                // Client-side validation for required fields
+                const requiredFields = [
+                    { name: 'apellido_p', label: 'Apellido Paterno' },
+                    { name: 'nombres', label: 'Nombre' },
+                    { name: 'correo', label: 'Correo' },
+                    { name: 'contra', label: 'Contraseña' },
+                    { name: 'telefono', label: 'Teléfono' },
+                    { name: 'calle', label: 'Calle' },
+                    { name: 'num_ext', label: 'Número Exterior' },
+                    { name: 'colonia', label: 'Colonia' },
+                    { name: 'estado', label: 'Estado' },
+                    { name: 'id_rol', label: 'Puesto' },
+                    { name: 'num_empleado', label: 'Número de empleado' }
+                ];
+
+                let hasErrors = false;
+                const errors = [];
+
+                requiredFields.forEach(field => {
+                    const input = document.querySelector(`[name="${field.name}"]`);
+                    if (input && input.value.trim() === '') {
+                        input.classList.add('error');
+                        hasErrors = true;
+                        errors.push(`El campo ${field.label} es obligatorio`);
+                    }
+                });
+
+                if (hasErrors) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Formulario incompleto',
+                        html: errors.join('<br>'),
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#b4c24d'
+                    });
+                    return false;
+                }
 
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const btnText = submitBtn.querySelector('.btn-text');
