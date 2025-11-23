@@ -1,5 +1,5 @@
-<?php
-    require_once __DIR__ . '/../config/db.php';
+<?php 
+    require_once __DIR__ . "/../config/db.php";
 
     $id_venta = $_GET['id_venta'] ?? 0;
 
@@ -7,14 +7,14 @@
         die("ID de venta no proporcionado.");
     }
 
-    // 🔹 Obtener los datos de la venta
+    //Obtener detalles de la venta, empleado y cliente
     $stmtVenta = $pdo->prepare("
-        SELECT v.*, 
-            e.id_empleado AS num_empleado,
-            e.nombre AS nom_empleado,
-            e.apellido_paterno AS ap_empleado,
-            c.nombre AS nom_cliente,
-            c.apellido_paterno AS ap_cliente
+        SELECT 
+            v.*,
+            e.nombre AS emp_nombre,
+            e.apellido_paterno AS emp_ap,
+            c.nombre AS cli_nombre,
+            c.apellido_paterno AS cli_ap
         FROM ventas v
         LEFT JOIN empleados e ON e.id_empleado = v.id_empleado
         LEFT JOIN clientes c ON c.id_cliente = v.id_cliente
@@ -27,9 +27,10 @@
         die("Venta no encontrada.");
     }
 
-    // 🔹 Obtener los detalles de la venta
+    // Obtener detalles de los productos vendidos
     $stmtDetalles = $pdo->prepare("
-        SELECT dv.*, 
+        SELECT
+            dv.*,
             p.nom_producto,
             COALESCE(vr.talla, p.talla) AS talla,
             COALESCE(vr.color, p.color) AS color
@@ -41,40 +42,40 @@
     $stmtDetalles->execute([$id_venta]);
     $detalles = $stmtDetalles->fetchAll(PDO::FETCH_ASSOC);
 
-    // 🔹 Determinar cliente
-    $cliente = "Público en general";
-    if (!empty($venta['id_cliente'])) {
-        $cliente = $venta['nom_cliente'] . ' ' . $venta['ap_cliente'];
-    }
+    // Obtener el tipo de pago
+    $stmtPago = $pdo->prepare("
+        SELECT 
+            metodo,
+            monto,
+            referencia
+        FROM pagos_venta
+        WHERE id_venta = ?
+    ");
+
+    $stmtPago->execute([$id_venta]);
+    $pagos = $stmtPago->fetchAll(PDO::FETCH_ASSOC);
+
+    $tipoPago = $pagos ?: [];
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket de Venta</title>
+    <title>Ticket</title>
     <style>
         body {
             width: 80mm;
             font-family: monospace;
             font-size: 12px;
-            color: #000;
         }
 
-        .centrado { 
-            text-align: center; 
+        .center {
+            text-align: center;
         }
 
-        .ticket { 
-            width: 100%; 
-        }
-
-        hr { 
-            border: 1px dashed #000; 
-        }
-
-        .totales { 
-            text-align: right; 
+        hr {
+            border: 1px dashed #000;
         }
 
         table { 
@@ -84,60 +85,162 @@
 
         td, th { 
             padding: 2px; 
-            text-align: left; 
+        }
+    
+        .totales { 
+            text-align: right; 
+        }
+    
+        /*.desc-prod { 
+            font-size: 10px; color: #555; 
+        }*/
+
+        /* Layout sin tablas para pagos (flex, más compacto) */
+        .pagos {
+            width: 100%;
+              margin-top: 2px; /* pequeño espacio respecto al texto anterior */
+        }
+        
+        .pago {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            align-items: flex-start;
+            padding: 0 0 1px 0; /* un poco de espacio entre filas */
+        }
+
+        .pago .metodo {
+            text-align: left;
+            flex: 1 1 60%;
+            word-break: break-word;
+        }
+
+        .pago .monto {
+            text-align: right;
+            flex: 0 0 40%;
+            min-width: 50px;
+        }
+
+        .pago .ref { 
+            display: block; 
+            font-size: 9px; 
+            margin-top: 1px; 
+        }
+                
+        /* Información superior (ticket) ligeramente separada */
+        .ticket-info { 
+            margin: 0 0 3px 0;
+            line-height: 1.08; 
+        }
+        
+        /* Centrar columnas Cant (1), Productos (2), Precio (3), Descuento (4) y Subt (5) */
+        table th:nth-child(1), table td:nth-child(1),
+        table th:nth-child(2), table td:nth-child(2),
+        table th:nth-child(3), table td:nth-child(3),
+        table th:nth-child(4), table td:nth-child(4),
+        table th:nth-child(5), table td:nth-child(5) {
+            text-align: center;
         }
     </style>
 </head>
-<body onload="window.print();">
-    <div class="ticket">
-        <div class="centrao">
-            <h2 class="centrado">PRISMA</h2>
-            <p>
-                Ticket #<?= $venta['id_venta'] ?><br>
-                Fecha: <?= date('d/m/Y H:i', strtotime($venta['fecha'])) ?><br>
-                Nº Empleado: <?= $venta['num_empleado'] ?><br>
-                Cajero: <?= htmlspecialchars($venta['nom_empleado'] . ' ' . $venta['ap_empleado']) ?><br>
-                Cliente: <?= htmlspecialchars($cliente) ?><br>
-                Tipo de pago: <?= htmlspecialchars($venta['tipo_pago']) ?>
-            </p>
-        </div>
+<body>
+    <h1 class = "center">PRISMA</h1>
 
-        <hr>
-        <table>
-            <tr>
-                <th>Cant</th>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Subt</th>
-            </tr>
-            <?php 
-            $totalDescuento = 0;
-            foreach ($detalles as $d): 
-                $desc = floatval($d['descuento'] ?? 0);
-                $subtotal = ($d['cantidad'] * $d['precio_unitario']) - $desc;
-                $totalDescuento += $desc;
-            ?>
-            <tr>
-                <td><?= $d['cantidad'] ?></td>
-                <td>
-                    <?= htmlspecialchars($d['nom_producto']) ?><br>
-                    <small><?= $d['talla'] ?> / <?= $d['color'] ?></small>
-                </td>
-                <td>$<?= number_format($d['precio_unitario'], 2) ?></td>
-                <td>$<?= number_format($subtotal, 2) ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
+    <p class = "center">
+        Km 20.5 de la Carretera Manzanillo-Cihuatlán,
+        Colonia El Naranjo, Código Postal 28868,
+        Manzanillo, Colima, México.
+    </p>
 
-        <hr>
-        <p class="totales">Descuento productos: $<?= number_format($totalDescuento, 2) ?></p>
-        <p class="totales">Descuento general: $<?= number_format($venta['descuento_general'], 2) ?></p>
-        <p class="totales"><strong>Total a pagar: $<?= number_format($venta['pago_total'], 2) ?></strong></p>
+    <p>
+        Ticket #<?= $venta['id_venta'] ?><br>
+        Fecha: <?= date('d/m/Y H:i', strtotime($venta['fecha'])) ?><br>
+        Cajero: <?= $venta['emp_nombre'] . ' ' . $venta['emp_ap'] ?><br>
+        <?php if (!empty($venta['id_cliente'])): ?>
+            Cliente: <?= htmlspecialchars($venta['cli_nombre'] . ' ' . $venta['cli_ap']) ?><br>
+        <?php endif; ?>
+    </p>
 
-        <hr>
-        <div class="centrado">
-            <p>¡Gracias por su compra!</p>
-        </div>
+    <hr>
+
+    <table>
+        <tr>
+            <th>Cant</th>
+            <th>Productos</th>
+            <th>Precio</th>
+            <th>Descuento</th>
+            <th>Subt</th>
+        </tr>
+
+        <?php
+            $totalDescuentoProductos = 0;
+            $calculatedSubtotal = 0; // subtotal calculado a partir de los productos
+
+                foreach ($detalles as $d):
+                    $descProd = floatval($d['descuento'] ?? 0);
+                    $subtotal = ($d['cantidad'] * $d['precio_unitario']) - $descProd;
+                    $totalDescuentoProductos += $descProd;
+                    $calculatedSubtotal += $subtotal;
+        ?>
+
+        <tr>
+            <td><?= $d['cantidad'] ?></td>
+            <td>
+                <?= htmlspecialchars($d['nom_producto']) ?><br>
+                <small><?= $d['talla'] ?> / <?= $d['color'] ?></small>
+            </td>
+            <td>$<?= number_format($d['precio_unitario'],2) ?></td>
+            <td>
+                <?php if ($descProd > 0): ?>
+                    <div class="desc-prod">$<?= number_format($descProd,2) ?></div>
+                <?php endif; ?>
+            </td>
+            <td>$<?= number_format($subtotal,2) ?></td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
+
+    <hr>
+
+    <p class="totales">Subtotal: $<?= number_format($calculatedSubtotal ?? 0, 2) ?></p>
+    <p class="totales">Descuento general: $<?= number_format($venta['descuento_general'], 2) ?></p>
+    <p class="totales"><strong>Total a pagar: $<?= number_format($venta['total'], 2) ?></strong></p>
+
+    <hr>
+
+    <p class="ticket-info">
+        Método de pago: 
+        <?php if (empty($tipoPago)): ?>
+            DESCONOCIDO
+        <?php else: ?>
+            <div class="pagos">
+                <?php foreach ($tipoPago as $p): ?>
+                    <div class="pago">
+                        <div class="metodo"><?= htmlspecialchars($p['metodo']) ?></div>
+                        <div class="monto">
+                            <?= '$' . number_format($p['monto'], 2) ?>
+                            <?php if (!empty($p['referencia'])): ?>
+                                <span class="ref">Ref: <?= htmlspecialchars(substr($p['referencia'] ?? '', -4)) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </p>
+
+    <div class = "center">
+        <p>"ESTE TICKET NO ES COMPROBANTE FISCAL"</p>
+        <p>
+            Para solicitar factura, por favor envíe su información fiscal al correo:<br>
+            <strong>prisma_pos@outlook.com</strong>
+        </p>
+        <p>Su solicitud será atendida dentro de las proximas 24 horas hábiles.</p>
+        <p>Cuenta con 30 días naturales para solicitar su factura.</p>
     </div>
+
+    <hr>
+
+    <p class="center">¡Gracias por su compra!</p>
 </body>
 </html>

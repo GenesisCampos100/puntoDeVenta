@@ -130,27 +130,16 @@ try {
 
     $pdo->commit();
 
-    // ✅ Redirigir al ticket automáticamente
-    header("Location: ../ventas/ticket.php?id_venta=" . $id_venta);
+    // Devolver JSON para que el frontend (fetch) lo procese correctamente
+    echo json_encode([
+        'success' => true,
+        'message' => 'Venta registrada correctamente.',
+        'id_venta' => $id_venta,
+        'subtotal' => number_format($subtotal, 2),
+        'descuento_general' => number_format($descuento_general_final, 2),
+        'total' => number_format($total, 2)
+    ]);
     exit;
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Venta registrada correctamente.',
-        'id_venta' => $id_venta,
-        'subtotal' => number_format($subtotal,2),
-        'descuento_general' => number_format($descuento_general_final,2),
-        'total' => number_format($total,2)
-    ]);
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Venta registrada correctamente.',
-        'id_venta' => $id_venta,
-        'subtotal' => number_format($subtotal,2),
-        'descuento_general' => number_format($descuento_general_final,2),
-        'total' => number_format($total,2)
-    ]);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

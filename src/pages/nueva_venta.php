@@ -465,6 +465,29 @@ function normalizeCategory($name) {
     </div>
 </div>
 
+<!-- MODAL TICKET -->
+<div id="ticket-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-start justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-auto max-w-[95%] md:max-w-md animate-slide overflow-hidden mt-12">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold" style="color: var(--secondary);">Ticket de Venta</h2>
+            <button id="close-ticket-modal" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
+        </div>
+
+        <div class="max-h-[60vh] mb-4 flex items-start justify-center">
+            <div class="overflow-auto pr-2" style="max-height:60vh; width: fit-content;">
+                <div class="border p-1 bg-gray-50" style="width:85mm;max-width:100%;">
+                    <iframe id="ticket-iframe" src="" frameborder="0" style="width:100%;height:60vh;background:white;display:block;margin:0"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Imprimir</button>
+        </div>
+    </div>
+</div>
+
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
