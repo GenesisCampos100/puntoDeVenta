@@ -71,8 +71,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
     exit;
 }
 
-// Cargar clientes iniciales
-$sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes ORDER BY nombre ASC, apellido_paterno ASC LIMIT 200";
+// Parámetro de ordenamiento
+$orden = $_GET['orden'] ?? 'nombre ASC';
+$allowed_order = ['nombre ASC', 'nombre DESC'];
+if(!in_array($orden, $allowed_order)) $orden = 'nombre ASC';
+
+// Cargar clientes iniciales con ordenamiento
+$sql = "SELECT id_cliente, nombre, apellido_paterno, apellido_materno, celular, correo, calle, num_ext, num_int, colonia, cp, estado FROM clientes ORDER BY $orden LIMIT 200";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -354,62 +359,60 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Search and Filters -->
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slideUp delay-100 border border-gray-100">
-      <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-        <!-- Search Bar -->
-        <div class="relative flex-1">
-          <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-          <input 
-            id="searchInput" 
-            type="text" 
-            placeholder="Buscar por nombre, correo o teléfono..." 
-            class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
-          />
-          <button id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      <form method="GET" action="index.php" id="toolbar-form">
+        <input type="hidden" name="view" value="clientes">
+        
+        <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+          <!-- Search Bar -->
+          <div class="relative flex-1">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-          </button>
-        </div>
+            <input 
+              id="searchInput" 
+              type="text" 
+              placeholder="Buscar por nombre, correo o teléfono..." 
+              class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
+            />
+            <button type="button" id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
 
-        <!-- Filter Dropdown -->
-        <div class="dropdown">
-          <button id="filterBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-            </svg>
-            Filtros
-            <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </button>
+          <!-- Order Dropdown -->
+          <div class="dropdown">
+            <button type="button" id="orderBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              Ordenar
+              <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
 
-          <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
-            <div class="mb-3">
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por inicial</p>
-              <div class="grid grid-cols-7 gap-2">
-                <button class="letter-pill active px-3 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700" data-letter="ALL">
-                  Todos
-                </button>
-                <?php foreach(range('A', 'Z') as $letter): ?>
-                <button class="letter-pill px-3 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700" data-letter="<?= $letter ?>">
-                  <?= $letter ?>
-                </button>
-                <?php endforeach; ?>
+            <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
+                  <option value="nombre ASC" <?= ($orden == 'nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
+                  <option value="nombre DESC" <?= ($orden == 'nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                </select>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Add Button -->
-        <button onclick="window.location.href='index.php?view=agregar_cliente'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-          </svg>
-          Agregar
-        </button>
-      </div>
+          <!-- Add Button -->
+          <button type="button" onclick="window.location.href='index.php?view=agregar_cliente'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar
+          </button>
+        </div>
+      </form>
 
       <!-- Bulk Actions -->
       <div id="bulkActions" class="hidden mt-5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border-2 border-primary/20">
@@ -476,40 +479,73 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </svg>
   </button>
 
-  <!-- MODAL (VERSIÓN ORIGINAL) -->
-  <div id="modalDetalle" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <!-- MODAL (PREMIUM DESIGN) -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
-    <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden animate-slideUp">
-      <div class="p-4 border-b flex items-center justify-between">
-        <h3 class="text-lg font-semibold" id="modal-title">Detalle del cliente</h3>
-        <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none px-3" onclick="closeDetalle()">&times;</button>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden animate-slideUp">
+      <!-- Header con gradiente -->
+      <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Detalle del Cliente
+        </h3>
+        <button class="text-white/70 hover:text-white text-2xl leading-none transition-colors" onclick="closeDetalle()">&times;</button>
       </div>
 
-      <div class="p-6 space-y-4">
-        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p class="text-sm text-gray-500">Nombre</p>
-            <p id="d-nombre" class="font-medium text-gray-900">-</p>
+      <div class="p-8 space-y-6">
+        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <!-- Nombre -->
+          <div class="md:col-span-2 group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+              Nombre Completo
+            </p>
+            <p id="d-nombre" class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-1">-</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Correo</p>
-            <p id="d-correo" class="font-medium text-gray-900">-</p>
+          
+          <!-- Correo -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Correo Electrónico
+            </p>
+            <p id="d-correo" class="text-base text-gray-700">-</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Celular</p>
-            <p id="d-celular" class="font-medium text-gray-900">-</p>
+
+          <!-- Celular -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              Celular
+            </p>
+            <p id="d-celular" class="text-base text-gray-700">-</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Dirección</p>
-            <p id="d-direccion" class="font-medium text-gray-900 truncate-2">-</p>
+
+          <!-- Dirección -->
+          <div class="md:col-span-2 group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Dirección Completa
+            </p>
+            <p id="d-direccion" class="text-base text-gray-700 border-b border-gray-100 pb-1">-</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Código postal</p>
-            <p id="d-cp" class="font-medium text-gray-900">-</p>
+
+          <!-- CP -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Código Postal
+            </p>
+            <p id="d-cp" class="text-base text-gray-700">-</p>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Estado</p>
-            <p id="d-estado" class="font-medium text-gray-900">-</p>
+
+          <!-- Estado -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Estado
+            </p>
+            <p id="d-estado" class="text-base text-gray-700">-</p>
           </div>
         </div>
 
@@ -600,37 +636,27 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         document.getElementById('emptyState').classList.add('hidden');
       });
 
-      const filterBtn = document.getElementById('filterBtn');
-      const filterMenu = document.getElementById('filterMenu');
-      const filterIcon = document.getElementById('filterIcon');
+      // Dropdown de ordenamiento
+      const orderBtn = document.getElementById('orderBtn');
+      const orderMenu = document.getElementById('orderMenu');
+      const orderIcon = document.getElementById('orderIcon');
 
-      filterBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        filterMenu.classList.toggle('active');
-        filterIcon.style.transform = filterMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
-          filterMenu.classList.remove('active');
-          filterIcon.style.transform = 'rotate(0deg)';
-        }
-      });
-
-      // Filtros alfabéticos funcionando correctamente
-      document.querySelectorAll('.letter-pill').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
+      if (orderBtn) {
+        orderBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          document.querySelectorAll('.letter-pill').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          currentLetter = this.dataset.letter;
-          console.log('Filtro seleccionado:', currentLetter); // Debug
-          performSearch();
+          orderMenu.classList.toggle('active');
+          orderIcon.style.transform = orderMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
         });
-      });
 
-      document.getElementById('selectAll').addEventListener('change', function() {
+        document.addEventListener('click', (e) => {
+          if (!orderMenu.contains(e.target) && !orderBtn.contains(e.target)) {
+            orderMenu.classList.remove('active');
+            orderIcon.style.transform = 'rotate(0deg)';
+          }
+        });
+      }
+
+      document.getElementById('selectAll')?.addEventListener('change', function() {
         if (this.checked) {
           filteredClientes.forEach(c => selectedIds.add(c.id_cliente));
         } else {
