@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-// búsqueda cliente (ajax)
+// Búsqueda de cliente (AJAX)
 if (isset($_GET['buscar_cliente'])) {
     $texto = $_GET['buscar_cliente'];
     $sql = $db->prepare(
@@ -20,7 +20,7 @@ if (isset($_GET['buscar_cliente'])) {
     exit;
 }
 
-// traer productos con variantes
+// Traer productos con variantes
 $sql = "SELECT 
             p.cod_barras AS producto_cod_barras,
             p.nom_producto AS producto_nombre,
@@ -143,7 +143,17 @@ body{font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(180deg
 </style>
 
 </head>
-<body class="bg-gray-50">
+<body>
+
+<!-- HEADER CON BÚSQUEDA -->
+<div class="px-6 pt-6 pb-4 animate-fade">
+    <div class="search-container">
+        <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="search-products" class="search-input" placeholder="Buscar productos por nombre, categoría o código...">
+    </div>
+</div>
 
 <header class="page-header px-6 py-4 flex items-center justify-between bg-white shadow-sm rounded-xl mb-4">
   <h1 class="text-2xl font-bold text-[#0A2342] tracking-wide">Catálogo</h1>
@@ -274,10 +284,41 @@ body{font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(180deg
 
 <!-- MODAL CLIENTE (Tailwind) -->
 <div id="modalClientes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold">Seleccionar cliente</h2>
-      <button id="cerrar-modal-cliente" class="text-gray-500 text-2xl">&times;</button>
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-2xl font-bold" style="color: var(--secondary);">Seleccionar Cliente</h2>
+            <button id="cerrar-modal-cliente" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
+        </div>
+        <input type="text" id="buscarCliente" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar cliente por nombre...">
+        <div class="overflow-y-auto max-h-96">
+            <table class="w-full text-left border-collapse">
+                <thead class="sticky top-0" style="background: var(--bg-gray);">
+                    <tr>
+                        <th class="p-3 border-b-2 font-semibold">ID</th>
+                        <th class="p-3 border-b-2 font-semibold">Cliente</th>
+                        <th class="p-3 border-b-2 font-semibold">Teléfono</th>
+                        <th class="p-3 border-b-2 font-semibold">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaClientes">
+                    <?php
+                        $sql = "SELECT * FROM clientes ORDER BY nombre ASC";
+                        $stmt = $pdo->query($sql);
+                        while ($cli = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            $full = htmlspecialchars($cli['nombre'].' '.$cli['apellido_paterno'].' '.$cli['apellido_materno']);
+                            echo "<tr class='border-b hover:bg-gray-50 transition-colors'>
+                                <td class='p-3'>{$cli['id_cliente']}</td>
+                                <td class='p-3 font-medium'>{$full}</td>
+                                <td class='p-3'>".htmlspecialchars($cli['celular'])."</td>
+                                <td class='p-3'>
+                                    <button class='seleccionarCliente px-4 py-2 text-white rounded-lg font-medium transition-all hover:shadow-md' style='background: var(--primary);' data-id='{$cli['id_cliente']}' data-nombre='{$full}'>Seleccionar</button>
+                                </td>
+                            </tr>";
+                        }
+                    ?>
+                </tbody>
+            </table>
+        </div>
     </div>
     <input type="text" id="buscarCliente" class="w-full border px-3 py-2 rounded mb-3" placeholder="Buscar cliente...">
     <div class="overflow-y-auto max-h-96">
@@ -382,25 +423,47 @@ body{font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(180deg
       <select id="discount-type" class="border rounded-lg p-2 w-1/3 text-center"><option value="percent">%</option><option value="amount">$</option></select>
       <input type="number" id="discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
     </div>
-    <div class="flex justify-end gap-2">
-      <button id="close-discount" class="bg-gray-200 rounded-lg px-3 py-1">Cancelar</button>
-      <button id="apply-discount" class="bg-lime-500 text-white rounded-lg px-3 py-1">Aplicar</button>
-    </div>
-  </div>
 </div>
 
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
-    <h2 class="text-lg font-bold mb-3">Descuento del Producto</h2>
-    <div class="flex gap-2 mb-3">
-      <select id="product-discount-type" class="border rounded-lg p-2 w-1/3 text-center"><option value="percent">%</option><option value="amount">$</option></select>
-      <input type="number" id="product-discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
+<!-- MODAL DESCUENTO POR PRODUCTO -->
+<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
+        <div class="flex gap-3 mb-5">
+            <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
+                <option value="percent">%</option>
+                <option value="amount">$</option>
+            </select>
+            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+        </div>
+        <div class="flex justify-end gap-3">
+            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+        </div>
     </div>
-    <div class="flex justify-end gap-2">
-      <button id="product-discount-close" class="bg-gray-200 rounded-lg px-3 py-1">Cancelar</button>
-      <button id="product-discount-apply" class="bg-lime-500 text-white rounded-lg px-3 py-1">Aplicar</button>
+</div>
+
+<!-- MODAL TICKET -->
+<div id="ticket-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-start justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-auto max-w-[95%] md:max-w-md animate-slide overflow-hidden mt-12">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold" style="color: var(--secondary);">Ticket de Venta</h2>
+            <button id="close-ticket-modal" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
+        </div>
+
+        <div class="max-h-[60vh] mb-4 flex items-start justify-center">
+            <div class="overflow-auto pr-2" style="max-height:60vh; width: fit-content;">
+                <div class="border p-1 bg-gray-50" style="width:85mm;max-width:100%;">
+                    <iframe id="ticket-iframe" src="" frameborder="0" style="width:100%;height:60vh;background:white;display:block;margin:0"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Imprimir</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <script src="../src/scripts/cart.js"></script>
@@ -465,7 +528,7 @@ document.querySelectorAll('.producto').forEach(card => {
         const variante = findVariant(talla, color);
         if (stockText) stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
     }
-
+    
     if (variants.length) {
         if (sizeSelect) sizeSelect.addEventListener('change', updateStock);
         if (colorSelect) colorSelect.addEventListener('change', updateStock);

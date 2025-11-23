@@ -171,43 +171,90 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirmBtn) return alert("Botón de confirmar no encontrado");
         confirmBtn.disabled = true;
 
-        const formData = new FormData(paymentForm);
+        if (json.success) {
+          localStorage.removeItem("cart");
+          paymentModal?.classList.add("hidden");
+          document.dispatchEvent(new CustomEvent("ventaExitosa", { detail: json }));
+          try {
+            const ticketUrl = `scripts/ticket.php?id_venta=${encodeURIComponent(json.id_venta)}`;
+            const ticketModal = document.getElementById('ticket-modal');
+            const ticketIframe = document.getElementById('ticket-iframe');
+            const printBtn = document.getElementById('print-ticket');
+            const closeBtn = document.getElementById('close-ticket-modal');
+            const cancelBtn = document.getElementById('cancel-ticket');
 
-        try {
-            const res = await fetch("scripts/procesar_venta.php", {
-                method: "POST",
-                body: formData,
-                credentials: 'same-origin'
-            });
-
-            const text = await res.text();
-            let json;
-
-            try { json = JSON.parse(text); }
-            catch {
-                alert("Respuesta inválida del servidor");
-                confirmBtn.disabled = false;
-                return;
+            if (ticketIframe) {
+              // asignar src al iframe (misma-origin) para que cargue ticket.php con sus estilos
+              ticketIframe.src = ticketUrl;
             }
 
-            if (json.success) {
-                localStorage.removeItem("cart");
-                paymentModal?.classList.add("hidden");
+            ticketModal?.classList.remove('hidden');
+            ticketModal?.classList.add('flex');
 
-                document.dispatchEvent(new CustomEvent("ventaExitosa", { detail: json }));
+            // Desactivar el botón de imprimir hasta que el iframe cargue
+            if (printBtn) printBtn.disabled = true;
 
-                alert("✅ Venta procesada. ID: " + json.id_venta);
+            const cleanup = () => {
+              ticketModal?.classList.add('hidden');
+              ticketModal?.classList.remove('flex');
+              if (ticketIframe) {
+                // limpiar src y onload
+                ticketIframe.onload = null;
+                ticketIframe.src = '';
+              }
+              if (printBtn) printBtn.disabled = false;
+            };
 
-            } else {
-                alert("❌ " + (json.message || "Error al procesar la venta"));
+            if (closeBtn) closeBtn.onclick = cleanup;
+            if (cancelBtn) cancelBtn.onclick = cleanup;
+
+            // Cerrar al hacer click fuera del contenido
+            const outsideHandler = (ev) => {
+              if (ev.target === ticketModal) cleanup();
+            };
+            ticketModal?.addEventListener('click', outsideHandler);
+
+            // Habilitar impresión y ajustar altura del iframe cuando termine de cargar
+            if (ticketIframe) {
+              ticketIframe.onload = () => {
+                try {
+                  const doc = ticketIframe.contentDocument || ticketIframe.contentWindow.document;
+                  const contentHeight = Math.max(
+                    doc.documentElement.scrollHeight || 0,
+                    (doc.body && doc.body.scrollHeight) || 0
+                  );
+                  // Ajustar la altura del iframe al contenido para que el scrollbar quede en el contenedor exterior
+                  ticketIframe.style.height = contentHeight + 'px';
+                } catch (e) {
+                  console.error('No se pudo ajustar la altura del iframe:', e);
+                } finally {
+                  if (printBtn) printBtn.disabled = false;
+                }
+              };
             }
 
-        } catch (err) {
-            console.error(err);
-            alert("❌ Error de red al procesar la venta");
+            if (printBtn) {
+              printBtn.onclick = () => {
+                if (!ticketIframe || !ticketIframe.contentWindow) {
+                  return alert('El ticket aún no está listo para imprimir. Intenta de nuevo en unos segundos.');
+                }
+                try {
+                  ticketIframe.contentWindow.focus();
+                  ticketIframe.contentWindow.print();
+                } catch (e) {
+                  console.error('Error al imprimir desde iframe:', e);
+                  alert('No fue posible imprimir desde el modal. Abre el ticket en una nueva pestaña manualmente si lo deseas.');
+                }
+              };
+            }
 
-        } finally {
-            confirmBtn.disabled = false;
+          } catch (err) {
+            console.error('No se pudo cargar el ticket:', err);
+            alert('Venta procesada, pero no se pudo cargar el ticket.');
+          }
+          alert("✅ Venta procesada. ID: " + json.id_venta);
+        } else {
+          alert("❌ " + (json.message || "Error al procesar la venta"));
         }
     });
 
@@ -300,5 +347,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === ventaModal) ventaModal.classList.add("hidden");
     });
 
-}); // DOMContentLoaded
-})(); // IIFE
+  }); // fin DOMContentLoaded
+})(); // fin IIFE

@@ -1,1 +1,1 @@
-# puntoDeVenta
+# Punto de Venta
