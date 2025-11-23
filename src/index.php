@@ -22,10 +22,22 @@ $view = $_GET['view'] ?? 'nueva_venta';
 // Detectar si es una petición AJAX para JSON
 $action = $_GET['action'] ?? null;
 
-// 🟢 Si viene AJAX como "getCliente", NO cargar layout
-if ($view === 'clientes' && $action === 'getCliente') {
+// 🟢 Si viene AJAX para Clientes (get, search, delete), NO cargar layout
+if ($view === 'clientes' && in_array($action, ['getCliente', 'search', 'delete', 'deleteMultiple'])) {
     include __DIR__ . "/pages/clientes_contenido.php";
     exit; // 🚀 IMPORTANTE
+}
+
+// 🟢 Si viene AJAX como "getEmpleado", NO cargar layout
+if ($view === 'empleados' && $action === 'getEmpleado') {
+    include __DIR__ . "/pages/empleados_contenido.php";
+    exit;
+}
+
+// 🟢 Lógica de eliminación (sin layout)
+if ($view === 'eliminar_empleado' || $view === 'eliminar_empleados_multiple' || $view === 'eliminar_cliente' || $view === 'eliminar_clientes_multiple') {
+    include __DIR__ . "/pages/" . $view . ".php";
+    exit;
 }
 
 // Rutas válidas
@@ -48,6 +60,7 @@ $views = [
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
     'editar_producto' => __DIR__ . "/pages/editar_producto.php",
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
+    'eliminar_empleados_multiple' => __DIR__ . "/pages/eliminar_empleados_multiple.php",
 ];
 
 // 🔐 Si la vista no existe, mostrar 404
