@@ -1,262 +1,413 @@
 <?php 
-    require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/db.php";
 
-<<<<<<< HEAD
-=======
-    // Calcular un id_empleado por defecto
-    $id_empleado = '';
+// Calcular un id_empleado por defecto
+$id_empleado = '';
 
-    $stmt = $pdo->query("SELECT * FROM roles");
-    $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
->>>>>>> 374693a (avances y cambios)
+$stmt = $pdo->query("SELECT * FROM roles");
+$roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $estatus = 1;
-    if($_SERVER['REQUEST_METHOD'] === 'POST') {
-        try {
-<<<<<<< HEAD
-            $nombre_completo = $_POST['nombre_completo'];
-            $correo = $_POST['correo'];
-            $password = md5($_POST['password']); // Encriptar la contraseña
-            $telefono = $_POST['telefono'];
-            $direccion = $_POST['direccion'];
-            $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
-            $rol_id = $_POST['rol_id'];
+$estatus = 1;
+if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
+    try {
+        /* --- Validación de campos obligatorios --- */
+        $campos_obligatorios = [
+            'apellido_p' => 'Apellido Paterno',
+            'nombres' => 'Nombre',
+            'correo' => 'Correo',
+            'contra' => 'Contraseña',
+            'telefono' => 'Teléfono',
+            'calle' => 'Calle',
+            'num_ext' => 'Número Exterior',
+            'colonia' => 'Colonia',
+            'estado' => 'Estado',
+            'id_rol' => 'Puesto',
+            'num_empleado' => 'Número de empleado'
+        ];
 
-            if ($nombre_completo === '') {
-            throw new Exception("El nombre del producto es obligatorio.");
+        foreach ($campos_obligatorios as $campo => $etiqueta) {
+            if (empty($_POST[$campo])) {
+                echo json_encode(["error" => "El campo $etiqueta es obligatorio. Por favor, complételo.", "icon" => "warning"]);
+                exit;
             }
+        }
 
-            $stmt = $pdo->prepare("INSERT INTO usuarios(id, nombre_completo, telefono, direccion, correo, password, estatus, fecha, rol_id) 
-            VALUES (NULL, ?, ?, ?, ?, ?, ?, NOW(), ?)");
-            
-            $stmt->execute([$nombre_completo, $telefono, $direccion, $correo, $password, $estatus, $rol_id]);
-            header("Location: index.php?view=empleados");
+        /* --- Validar nombre y apellidos --- */
+        $nombre = trim(filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING));
+        $apellido_paterno = trim(filter_input(INPUT_POST, 'apellido_p', FILTER_SANITIZE_STRING));
+        $apellido_materno = trim(filter_input(INPUT_POST, 'apellido_m', FILTER_SANITIZE_STRING));
+
+        $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
+        if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno)) {
+            echo json_encode(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
             exit;
-        } catch (Exception $e) {
-            echo "Error al agregar empleado: " . $e->getMessage(); 
-=======
-            /* --- Validación de campos obligatorios --- */
-            $campos_obligatorios = [
-                'apellido_p' => 'Apellido Paterno',
-                'nombres' => 'Nombre',
-                'correo' => 'Correo',
-                'contra' => 'Contraseña',
-                'telefono' => 'Teléfono',
-                'calle' => 'Calle',
-                'num_ext' => 'Número Exterior',
-                'colonia' => 'Colonia',
-                'estado' => 'Estado',
-                'id_rol' => 'Puesto',
-                'num_empleado' => 'Número de empleado'
-            ];
+        }
+        
+        // Validar apellido materno solo si no está vacío
+        if ($apellido_materno !== "" && !preg_match($regexNombre, $apellido_materno)) {
+            echo json_encode(["error" => "El apellido materno solo debe contener letras.", "icon" => "warning"]);
+            exit;
+        }
 
-            foreach ($campos_obligatorios as $campo => $etiqueta) {
-                if (empty($_POST[$campo])) {
-                    echo json_encode(["error" => "El campo $etiqueta es obligatorio. Por favor, complételo.", "icon" => "warning"]);
-                    exit;
-                }
-            }
-
-            /* --- Validar nombre y apellidos --- */
-            $nombre = trim(filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING));
-            $apellido_paterno = trim(filter_input(INPUT_POST, 'apellido_p', FILTER_SANITIZE_STRING));
-            $apellido_materno = trim(filter_input(INPUT_POST, 'apellido_m', FILTER_SANITIZE_STRING));
-
-            $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
-            if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno) || !preg_match($regexNombre, $apellido_materno)) {
-                echo json_encode(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
-                exit;
-            }
-
-            /* --- Validar correo --- */
-            $correo = trim(filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL));
-            if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-                echo json_encode(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
-                exit;
-            } else {
-                try {
-                    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
-                    $stmt->execute(['correo' => $correo]);
-                    $existe = $stmt->fetchColumn();
-                    
-                    if ($existe > 0) {
-                        echo json_encode(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
-                        exit;
-                    }
-                } catch (PDOException $e) {
-                    echo json_encode(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
-                    exit;
-
-                }
-            }
-
-            /* --- Validar y cifrar nuestra contraseña --- */
-            $contraseña = trim($_POST['contra']);
-
-            if (strlen($contraseña) < 8) {
-                echo json_encode(["error" => "La contraseña debe tener al menos 8 caracteres.", "icon" => "warning"]);
-                exit;
-            }
-
-            if (!preg_match('/[A-Z]/', $contraseña)) {
-                echo json_encode(["error" => "La contraseña debe contener al menos un carácter en mayúscula.", "icon" => "warning"]);
-                exit;
-            } else if (!preg_match('/[a-z]/', $contraseña)) {
-                echo json_encode(["error" => "La contraseña debe contener al menos un carácter en minúscula.", "icon" => "warning"]);
-                exit;
-            } else if (!preg_match('/[0-9)]/', $contraseña)) {
-                echo json_encode(["error" => "La contraseña debe contener al menos un número.", "icon" => "warning"]);
-                exit;
-            }
-
-            $hash = password_hash($contraseña, PASSWORD_DEFAULT);
-
-            /* --- Validar telefono --- */
-            $telefono = trim(filter_input(INPUT_POST, 'telefono', FILTER_SANITIZE_STRING));
-
-            $regexTelefono = "/^[0-9]{10}$/";
-            if (!preg_match($regexTelefono, $telefono)) { 
-                echo json_encode(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
-                exit;
-            }
-
-            /* --- Validar domicilio  --- */
-            $calle = trim(filter_input(INPUT_POST, 'calle', FILTER_SANITIZE_STRING));
-            $num_ext = trim(filter_input(INPUT_POST, 'num_ext', FILTER_SANITIZE_STRING));
-            $num_int = trim(filter_input(INPUT_POST, 'num_int', FILTER_SANITIZE_STRING));
-            $colonia = trim(filter_input(INPUT_POST, 'colonia', FILTER_SANITIZE_STRING));
-            $cp = trim(filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_STRING));
-            $estado = trim(filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING));
-
-            $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
-            $regexAlfanumerico = "/^[A-Za-z0-9\s]+$/u";  
-            $regexCP = "/^[0-9]{5}$/";
-
-            $errores = [];
-
-            if (!preg_match($regexAlfanumerico, $calle)) {
-                $errores[] = "Calle inválida."; 
-            } elseif (!preg_match($regexAlfanumerico, $num_ext)) {
-                $errores[] = "Número exterior inválido.";
-            } elseif ($num_int !== "" && !preg_match($regexAlfanumerico, $num_int)) {
-                $errores[] = "Número interior inválido.";
-            } elseif (!preg_match($regexAlfanumerico, $colonia)) {
-                $errores[] = "Colonia inválida.";
-            } elseif ($cp !== "" && !preg_match($regexCP, $cp)) {
-                $errores[] = "Código postal inválido.";
-            } elseif (!preg_match($regexLetras, $estado)) {
-                $errores[] = "Estado inválido.";
-            }
-
-            if (count($errores) > 0) {
-                echo json_encode(["error" => $errores[0], "icon" => "warning"]);
-                exit;
-            }
-
-            /* --- Validar estatus  --- */
-            $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
-
-            /* --- Validar puesto --- */
-            $id_rol = filter_input(INPUT_POST, 'id_rol', FILTER_SANITIZE_NUMBER_INT);
-
-            /* --- Validar numero de empleado --- */
-            $id_empleado = trim(filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING));
-
+        /* --- Validar correo --- */
+        $correo = trim(filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL));
+        if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
+            exit;
+        } else {
             try {
-                $stmt = $pdo->prepare("SELECT * FROM empleados WHERE id_empleado = :id_empleado");
-                $stmt->execute(['id_empleado' => $id_empleado]);
-                $existeEmpleado = $stmt->fetchColumn();
-
-                if ($existeEmpleado > 0) {
-                    echo json_encode(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
+                $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
+                $stmt->execute(['correo' => $correo]);
+                $existe = $stmt->fetchColumn();
+                
+                if ($existe > 0) {
+                    echo json_encode(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
                     exit;
                 }
             } catch (PDOException $e) {
-                echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
+                echo json_encode(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
+                exit;
+
+            }
+        }
+
+        /* --- Validar y cifrar nuestra contraseña --- */
+        $contraseña = trim($_POST['contra']);
+
+        if (strlen($contraseña) < 8) {
+            echo json_encode(["error" => "La contraseña debe tener al menos 8 caracteres.", "icon" => "warning"]);
+            exit;
+        }
+
+        if (!preg_match('/[A-Z]/', $contraseña)) {
+            echo json_encode(["error" => "La contraseña debe contener al menos un carácter en mayúscula.", "icon" => "warning"]);
+            exit;
+        } else if (!preg_match('/[a-z]/', $contraseña)) {
+            echo json_encode(["error" => "La contraseña debe contener al menos un carácter en minúscula.", "icon" => "warning"]);
+            exit;
+        } else if (!preg_match('/[0-9)]/', $contraseña)) {
+            echo json_encode(["error" => "La contraseña debe contener al menos un número.", "icon" => "warning"]);
+            exit;
+        }
+
+        $hash = password_hash($contraseña, PASSWORD_DEFAULT);
+
+        /* --- Validar telefono --- */
+        $telefono = trim(filter_input(INPUT_POST, 'telefono', FILTER_SANITIZE_STRING));
+
+        $regexTelefono = "/^[0-9]{10}$/";
+        if (!preg_match($regexTelefono, $telefono)) { 
+            echo json_encode(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
+            exit;
+        }
+
+        /* --- Validar domicilio  --- */
+        $calle = trim(filter_input(INPUT_POST, 'calle', FILTER_SANITIZE_STRING));
+        $num_ext = trim(filter_input(INPUT_POST, 'num_ext', FILTER_SANITIZE_STRING));
+        $num_int = trim(filter_input(INPUT_POST, 'num_int', FILTER_SANITIZE_STRING));
+        $colonia = trim(filter_input(INPUT_POST, 'colonia', FILTER_SANITIZE_STRING));
+        $cp = trim(filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_STRING));
+        $estado = trim(filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING));
+
+        $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
+        $regexAlfanumerico = "/^[A-Za-z0-9\\s]+$/u";  
+        $regexCP = "/^[0-9]{5}$/";
+
+        $errores = [];
+
+        if (!preg_match($regexAlfanumerico, $calle)) {
+            $errores[] = "Calle inválida."; 
+        } elseif (!preg_match($regexAlfanumerico, $num_ext)) {
+            $errores[] = "Número exterior inválido.";
+        } elseif ($num_int !== "" && !preg_match($regexAlfanumerico, $num_int)) {
+            $errores[] = "Número interior inválido.";
+        } elseif (!preg_match($regexAlfanumerico, $colonia)) {
+            $errores[] = "Colonia inválida.";
+        } elseif ($cp !== "" && !preg_match($regexCP, $cp)) {
+            $errores[] = "Código postal inválido.";
+        } elseif (!preg_match($regexLetras, $estado)) {
+            $errores[] = "Estado inválido.";
+        }
+
+        if (count($errores) > 0) {
+            echo json_encode(["error" => $errores[0], "icon" => "warning"]);
+            exit;
+        }
+
+        /* --- Validar estatus  --- */
+        $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
+
+        /* --- Validar puesto --- */
+        $id_rol = filter_input(INPUT_POST, 'id_rol', FILTER_SANITIZE_NUMBER_INT);
+
+        /* --- Validar numero de empleado --- */
+        $id_empleado = trim(filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING));
+
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM empleados WHERE id_empleado = :id_empleado");
+            $stmt->execute(['id_empleado' => $id_empleado]);
+            $existeEmpleado = $stmt->fetchColumn();
+
+            if ($existeEmpleado > 0) {
+                echo json_encode(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
                 exit;
             }
-
-            // Consulta para insertar el empleado
-            $sql = "INSERT INTO empleados 
-                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
-                VALUES
-                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                'id_empleado' => $id_empleado,
-                'nombre' => $nombre,
-                'apellido_paterno' => $apellido_paterno,
-                'apellido_materno' => $apellido_materno,
-                'celular' => $telefono,
-                'calle' => $calle,
-                'num_ext' => $num_ext,
-                'num_int' => $num_int,
-                'colonia' => $colonia,
-                'cp' => $cp,
-                'estado' => $estado,
-                'estatus' => $estatus,
-                'id_rol' => $id_rol
-            ]);
-
-            // Consulta para insertar el usuario asociado al empleado
-            $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
-                VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
-            $stmt_2 = $pdo->prepare($sql_2);
-            $stmt_2->execute([
-                'id_usuario' => NULL,
-                'correo' => $correo,
-                'contrasena' => $hash,
-                'id_empleado' => $id_empleado
-            ]);
-            
-            echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
-            exit();
-        } catch (Exception $e) {
-            echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
-            exit();
->>>>>>> 374693a (avances y cambios)
+        } catch (PDOException $e) {
+            echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
+            exit;
         }
+
+        // Consulta para insertar el empleado
+        $sql = "INSERT INTO empleados 
+            (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
+            VALUES
+            (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id_empleado' => $id_empleado,
+            'nombre' => $nombre,
+            'apellido_paterno' => $apellido_paterno,
+            'apellido_materno' => $apellido_materno,
+            'celular' => $telefono,
+            'calle' => $calle,
+            'num_ext' => $num_ext,
+            'num_int' => $num_int,
+            'colonia' => $colonia,
+            'cp' => $cp,
+            'estado' => $estado,
+            'estatus' => $estatus,
+            'id_rol' => $id_rol
+        ]);
+
+        // Consulta para insertar el usuario asociado al empleado
+        $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
+            VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
+        $stmt_2 = $pdo->prepare($sql_2);
+        $stmt_2->execute([
+            'id_usuario' => NULL,
+            'correo' => $correo,
+            'contrasena' => $hash,
+            'id_empleado' => $id_empleado
+        ]);
+        
+        echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
+        exit();
     }
+}
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Empleados</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
-=======
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
->>>>>>> 374693a (avances y cambios)
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
     <style>
-        /* --- ESTILOS BASE Y GENERALES --- */
-        body {
-            background: #f9fafb; 
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif; 
-            color: #374151; 
+        :root {
+            --primary: #b4c24d;
+            --primary-dark: #9fb03d;
+            --secondary: #2d4353;
+            --accent: #e15871;
+            --error: #ef4444;
+            --success: #10b981;
+            --text-primary: #1e2d38;
+            --text-tertiary: #64748b;
+            --font: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
-        h2 {
-            text-align: center;
-            color: #f43f5e; 
-            margin: 40px auto 25px; 
-            font-weight: 700; 
-            font-size: 28px; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase;
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #f9fafb 0%, #eeeeee 100%);
+            min-height: 100vh;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        .animate-in { animation: fadeIn 0.6s ease-out; }
+        .animate-in-delay-1 { animation: slideDown 0.5s ease-out 0.1s both; }
+        .animate-in-delay-2 { animation: slideUp 0.5s ease-out 0.2s both; }
+        .animate-in-delay-3 { animation: slideUp 0.5s ease-out 0.3s both; }
+
+        .form-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .form-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(208, 208, 208, 0.4);
+            background: linear-gradient(135deg, #2d4353 0%, #3a5468 100%);
+        }
+
+        .form-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .form-header p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 0.25rem;
+            font-weight: 400;
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.005em;
+        }
+
+        .form-label .required {
+            color: var(--accent);
+            margin-left: 0.25rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            font-family: var(--font);
+            color: var(--text-primary);
+            background: #f8f8f8;
+            border: 1.5px solid #d8d8d8;
+            border-radius: 10px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            font-weight: 500;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.08);
+        }
+
+        .form-input.error, .form-select.error {
+            border-color: var(--error);
+            background: #fef2f2;
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .form-input.error:focus, .form-select.error:focus {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .switch {
             position: relative;
             display: inline-block;
-            width: 40px;
-            height: 22px;
+            width: 52px;
+            height: 28px;
         }
 
         .switch input {
@@ -268,77 +419,364 @@
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            border-radius: 22px;
-            transition: .4s;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            border-radius: 28px;
+            transition: 0.3s;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 20px;
+            width: 20px;
             left: 4px;
-            top: 4px;
+            bottom: 4px;
             background-color: white;
             border-radius: 50%;
-            transition: .4s;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input:checked + .slider {
-            background-color: #4ade80;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
         }
 
         input:checked + .slider:before {
-            transform: translateX(18px);
+            transform: translateX(24px);
         }
-<<<<<<< HEAD
 
+        .switch-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .form-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid rgba(208, 208, 208, 0.4);
+            background: #f5f5f5;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-family: var(--font);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(180, 194, 77, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(180, 194, 77, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+         /* Títulos del formulario (Registro de Empleados) */
+body.dark-mode .form-header h1,
+body.dark-mode .form-header p,
+body.dark-mode .section-title {
+  color: #ffffff !important;
+}
+/* Formularios en modo oscuro */
+body.dark-mode .form-card,
+body.dark-mode .form-body,
+body.dark-mode .section {
+  background-color: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+/* Inputs */
+body.dark-mode .form-input,
+body.dark-mode .form-select {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #444 !important;
+}
+
+/* Placeholders */
+body.dark-mode .form-input::placeholder,
+body.dark-mode .form-select::placeholder {
+  color: #cccccc !important;
+}
+
+/* Labels */
+body.dark-mode .form-label,
+body.dark-mode label {
+  color: #eaeaea !important;
+}
+body.dark-mode .switch-label {
+  color: #eaeaea !important;
+}
+
+body.dark-mode .slider {
+  background-color: #444 !important;
+}
+body.dark-mode .form-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
+}
+/* Botón Guardar Empleado → verde en modo oscuro */
+body.dark-mode .btn-primary {
+  background-color:  #b4c24d  !important; /* verde */
+  color: white !important;
+  border: none !important;
+}
+
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
     </style>
 </head>
 <body>
-    <h2>Registro de Empleados</h2>
-    <div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 40px 38px 32px 38px; border-radius: 18px; box-shadow: 0 2px 16px rgba(0,0,0,0.10); position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-            <span style="font-size:22px; font-weight:700; color:#b3c428; font-family:'Poppins',sans-serif;">Datos Básicos</span>
-            <span style="font-size:28px; color:#b3c428; cursor:pointer; font-weight:700; line-height:1;" onclick="window.history.back()">&#10005;</span>
-        </div>
-        <form method="POST" enctype="multipart/form-data">
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label style="font-size:14px; font-weight:500; color:#374151;">Nombre:</label>
-                <input type="text" name="nombre_completo" maxlength="50" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+    <div class="form-container animate-in">
+        <div class="form-card">
+            <!-- Header -->
+            <div class="form-header animate-in-delay-1">
+                <h1>Registro de Empleados</h1>
+                <p>Complete el formulario con los datos del nuevo empleado</p>
+            </div>
 
-                <label style="font-size:14px; font-weight:500; color:#374151;">E-mail:</label>
-                <input type="email" name="correo" maxlength="100" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+            <!-- Form -->
+            <form id="agregar" action="index.php?view=agregar_empleado" method="POST" enctype="multipart/form-data">
+                <div class="form-body">
+                    <!-- Información Personal -->
+                    <div class="section animate-in-delay-2">
+                        <h2 class="section-title">Información Personal</h2>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <input type="text" name="apellido_p" maxlength="50" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Apellido Materno</label>
+                                <input type="text" name="apellido_m" maxlength="50" class="form-input">
+                            </div>
+                        </div>
 
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Contraseña:</label>
-                        <input type="password" name="password" maxlength="255" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+                        <div class="form-group">
+                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <input type="text" name="nombres" maxlength="50" class="form-input">
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <input type="email" name="correo" maxlength="100" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Teléfono<span class="required">*</span></label>
+                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Contraseña<span class="required">*</span></label>
+                            <input type="password" name="contra" maxlength="255" class="form-input" placeholder="Mínimo 8 caracteres">
+                        </div>
                     </div>
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Teléfono:</label>
-                        <input type="text" name="telefono" maxlength="20" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
+
+                    <!-- Dirección -->
+                    <div class="section animate-in-delay-3">
+                        <h2 class="section-title">Dirección</h2>
+                        
+                        <div class="grid-3">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Calle<span class="required">*</span></label>
+                                <input type="text" name="calle" maxlength="100" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">No. Exterior<span class="required">*</span></label>
+                                <input type="text" name="num_ext" maxlength="10" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="form-label">No. Interior</label>
+                                <input type="text" name="num_int" maxlength="10" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Colonia<span class="required">*</span></label>
+                                <input type="text" name="colonia" maxlength="100" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Código Postal</label>
+                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="5 dígitos">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estado<span class="required">*</span></label>
+                            <input type="text" name="estado" maxlength="100" class="form-input">
+                        </div>
+                    </div>
+
+                    <!-- Información Laboral -->
+                    <div class="section animate-in-delay-3">
+                        <h2 class="section-title">Información Laboral</h2>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Puesto<span class="required">*</span></label>
+                                <select id="id_rol" name="id_rol" class="form-select">
+                                    <option value="">Seleccionar el puesto</option>
+                                    <?php foreach ($roles as $rol): ?>
+                                        <option value="<?= $rol['id_rol'] ?>">
+                                            <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Número de Empleado<span class="required">*</span></label>
+                                <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estatus</label>
+                            <div class="switch-container">
+                                <label class="switch">
+                                    <input type="hidden" name="estatus" value="0">
+                                    <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="switch-label">Empleado activo</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Dirección:</label>
-                        <input type="text" name="direccion" maxlength="100" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-                    </div>
-                    <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Estatus:</label>
-=======
-    </style>
+                <!-- Footer -->
+                <div class="form-footer">
+                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="btn-text">Guardar Empleado</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // Form submission with AJAX (ORIGINAL LOGIC PRESERVED)
         $(document).ready(function() {
             $('#agregar').on('submit', function(e) {
                e.preventDefault();
                
+                // Clear previous errors
+                document.querySelectorAll('.form-input, .form-select').forEach(input => {
+                    input.classList.remove('error');
+                    input.style.animation = 'none';
+                    setTimeout(() => { input.style.animation = ''; }, 10);
+                });
+
+                // Client-side validation for required fields
+                const requiredFields = [
+                    { name: 'apellido_p', label: 'Apellido Paterno' },
+                    { name: 'nombres', label: 'Nombre' },
+                    { name: 'correo', label: 'Correo' },
+                    { name: 'contra', label: 'Contraseña' },
+                    { name: 'telefono', label: 'Teléfono' },
+                    { name: 'calle', label: 'Calle' },
+                    { name: 'num_ext', label: 'Número Exterior' },
+                    { name: 'colonia', label: 'Colonia' },
+                    { name: 'estado', label: 'Estado' },
+                    { name: 'id_rol', label: 'Puesto' },
+                    { name: 'num_empleado', label: 'Número de empleado' }
+                ];
+
+                let hasErrors = false;
+                const errors = [];
+
+                requiredFields.forEach(field => {
+                    const input = document.querySelector(`[name="${field.name}"]`);
+                    if (input && input.value.trim() === '') {
+                        input.classList.add('error');
+                        hasErrors = true;
+                        errors.push(`El campo ${field.label} es obligatorio`);
+                    }
+                });
+
+                if (hasErrors) {
+                const dark = document.body.classList.contains("dark-mode");
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formulario incompleto',
+                    html: errors.join('<br>'),
+
+                    // Fondo y texto según tema
+                    background: dark ? '#121212' : '#ffffff',
+                    color: dark ? '#f1f5f9' : '#1e293b',
+
+                    // Botón según tema
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: dark ? '#84cc16' : '#b4c24d'
+                });
+
+                return false;
+            }
+
+
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const btnText = submitBtn.querySelector('.btn-text');
+                const originalText = btnText.textContent;
+                
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+
                 $.ajax({
-                // Post back to the front controller so the page's POST handler runs
                     url: "index.php?view=agregar_empleado",
                     type: "POST",
                     data: $(this).serialize(),
@@ -362,161 +800,37 @@
                                     icon: res.icon || 'error',
                                     showConfirmButton: true
                                 });
+                                submitBtn.disabled = false;
+                                btnText.textContent = originalText;
                             }
                         } catch (e) {
-                            console.error("<?= "Error al procesar JSON" ?>: ", e, response);
+                            console.error("Error al procesar JSON: ", e, response);
                             Swal.fire({
-                                title: '<?= "Error" ?>',
-                                text: '<?= "Ocurrio un error al procesar la respuesta" ?>',
+                                title: 'Error',
+                                text: 'Ocurrió un error al procesar la respuesta',
                                 icon: 'error',
                                 showConfirmButton: true
                             });
+                            submitBtn.disabled = false;
+                            btnText.textContent = originalText;
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         Swal.fire({
-                            title: '<?= "Error de conexión" ?>',
-                            text: '<?= "No se pudo conectar con el servidor" ?>',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor',
                             icon: 'error',
                             showConfirmButton: true
-                        })
+                        });
+                        submitBtn.disabled = false;
+                        btnText.textContent = originalText;
                     }
                 });
             });
         });
-    </script>
-</head>
-<body>
-    <div>
-        <h2>Registro de Empleados</h2>
-    </div>
-    
-    <div>
-        <div>
-            <span>Datos Básicos</span>
-            <span id="btnClose">&#10005;</span>
-        </div>
-        
-        <form id="agregar" action="index.php?view=agregar_empleado" method="POST" enctype="multipart/form-data">
-            <div>
-                <div>
-                    <div>
-                        <label>Apellido Paterno: *</label>
-                        <input type="text" name="apellido_p" maxlength="50">
-                    </div>
-                    <div>
-                        <label>Apellido Materno: </label>
-                        <input type="text" name="apellido_m" maxlength="50">
-                    </div>
-                </div>
-                
-                <label>Nombre(s): *</label>
-                <input type="text" name="nombres" maxlength = "50">
 
-                <label>Correo: *</label>
-                <input type="text" name="correo" maxlength="100">
-
-                <div>
-                    <div>
-                        <label>Contraseña: *</label>
-                        <input type="password" name="contra" maxlength="255">
-                    </div>
-                    <div>
-                        <label>Teléfono: *</label>
-                        <input type="text" name="telefono" maxlength="20">
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Calle: *</label>
-                        <input type="text" name="calle" maxlength="100">
-                    </div>
-                    <div>
-                        <label>No. Ext: *</label>
-                        <input type="text" name="num_ext" maxlength="10">
-                    </div>
-                    <div>
-                        <label>No. Int: </label>
-                        <input type="text" name="num_int" maxlength="10">
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Colonia: *</label>
-                        <input type="text" name="colonia" maxlength="100">
-                    </div>
-                    <div>
-                        <label>Código Postal: </label>
-                        <input type="text" name="cp" maxlength="10">
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Estado: *</label>
-                        <input type="text" name="estado" maxlength="100">
-                    </div>
-                    <div>
-                        <label>Estatus: *</label>
->>>>>>> 374693a (avances y cambios)
-                        <label class="switch">
-                            <input type="hidden" name="estatus" value="0">
-                            <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-<<<<<<< HEAD
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <label style="font-size:14px; font-weight:500; color:#374151;">Puesto:</label><br>
-                    <select name="rol_id" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-                        <option value="">Selecciona un rol</option>
-                        <option value="1">Admin</option>
-                        <option value="2">Gerente</option>
-                        <option value="3">Cajero</option>
-                        <!-- Agrega más opciones según los roles disponibles -->
-                    </select>
-                </div>
-                
-            </div>
-            <div style="display:flex; justify-content:center; gap:18px; margin-top:28px;">
-                <button type="submit" style="background:#f43f5e; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Guardar</button>
-                <button type="button" onclick="window.history.back()" style="background:#b3c428; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Cancelar</button>
-            </div>
-        </form>
-    </div>
-=======
-                <div>
-                    <div>
-                        <label>Puesto: *</label><br>
-                        <select id="id_rol" name="id_rol">
-                            <option value="0">Seleccionar el puesto</option>
-                            <?php foreach ($roles as $rol): ?>
-                                <option value="<?= $rol['id_rol'] ?>">
-                                    <?= htmlspecialchars($rol['nombre_rol']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Numero de empleado: *</label>
-                        <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" readonly>
-                    </div>
-                </div>
-                
-            </div>
-            <div>
-                <button type="submit">Guardar</button>
-                <button type="button" id="btnCancelar">Cancelar</button>
-            </div>
-        </form>
-    </div>
-    <script>
-        // Cuando cambie el select de rol, pedir el siguiente id_empleado
+        // Auto-generate employee number (ORIGINAL LOGIC PRESERVED)
         document.addEventListener('DOMContentLoaded', function () {
             const rolSelect = document.getElementById('id_rol');
             const numInput = document.getElementById('num_empleado');
@@ -540,44 +854,60 @@
                 fetchNext(this.value);
             });
 
-            // Si hay un valor seleccionado al cargar, pedir el siguiente
             if (rolSelect.value) fetchNext(rolSelect.value);
         });
 
-        // Confirmar antes de descartar el borrador y volver atrás
+        // Confirm discard (ORIGINAL LOGIC PRESERVED)
         (function(){
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
+
+                const dark = document.body.classList.contains('dark-mode');
+
                 Swal.fire({
                     title: "¿Descartar cambios?",
                     text: "Se eliminarán los datos ingresados para este empleado. ¿Desea continuar?",
-                    icon: "info",
+                    icon: "warning",
                     showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
+
+                    // FONDO Y TEXTO SEGÚN EL MODO
+                    background: dark ? "#121212" : "#ffffff",
+                    color: dark ? "#f1f5f9" : "#1e293b",
+
+                    //  BOTONES
+                    confirmButtonColor: dark ? "#e11d48" : "#e15871",
+                    cancelButtonColor: dark ? "#475569" : "#6b7280",
+
                     confirmButtonText: "Sí, descartar",
-                    cancelButtonText: "Cancelar"
+                    cancelButtonText: "Cancelar",
+                    reverseButtons: true
                 }).then((result) => {
+
                     if (result.isConfirmed) {
+
                         Swal.fire({
                             title: "Descartado",
                             text: "Los datos fueron descartados.",
                             icon: "success",
+
+                            //  Modo oscuro en el segundo modal también
+                            background: dark ? "#1e293b" : "#ffffff",
+                            color: dark ? "#f1f5f9" : "#1e293b",
+
                             timer: 900,
                             showConfirmButton: false
                         }).then(() => {
                             window.history.back();
                         });
+
                     }
                 });
             }
 
             const btnCancel = document.getElementById('btnCancelar');
-            const btnClose = document.getElementById('btnClose');
             if (btnCancel) btnCancel.addEventListener('click', confirmDiscard);
-            if (btnClose) btnClose.addEventListener('click', confirmDiscard);
+
         })();
     </script>
->>>>>>> 374693a (avances y cambios)
 </body>
 </html>

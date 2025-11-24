@@ -1,496 +1,963 @@
 <?php 
-    require_once __DIR__ . '/../config/db.php';
+// empleados_contenido_enhanced.php - Premium Modern Design with All Improvements
+require_once __DIR__ . '/../config/db.php';
 
-<<<<<<< HEAD
-
-    $busqueda = $_GET['busqueda'] ?? '';
-    $puesto = $_GET['puesto'] ?? '';
-    $orden = $_GET['orden'] ?? 'u.nombre_completo ASC';
-    $vista_actual = $_GET['view'] ?? 'empleados_contenido';
-
-    $sql = "SELECT
-                u.id AS numero,
-                u.nombre_completo AS nombre,
-                u.correo AS correo,
-                u.estatus AS estatus,
-                u.fecha AS fecha_ingreso,
-                r.nombre AS puesto
-            FROM usuarios u LEFT JOIN roles r ON u.rol_id = r.id
-            WHERE 1=1";
-
-    if(!empty($busqueda)) $sql .= " AND (u.nombre_completo LIKE :busqueda OR u.correo LIKE :busqueda)";
-    if(!empty($puesto)) $sql .= " AND u.rol_id = :puesto";
-=======
-    $busqueda = $_GET['busqueda'] ?? '';
-    $puesto = $_GET['puesto'] ?? '';
-    $orden = $_GET['orden'] ?? 'e.nombre ASC';
-    $allowed_order = ['e.nombre ASC', 'e.nombre DESC', '.id_empleado ASC', 'e.id_empleado DESC'];
-    if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
-    $vista_actual = $_GET['view'] ?? 'empleados_contenido';
-
-    $sql = "SELECT
-                e.id_empleado AS numero,
-                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
-                u.correo AS correo,
-                e.estatus AS estatus,
-                e.fecha AS fecha
-            FROM usuarios u 
-            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+// AJAX: Get employee by ID
+if (isset($_GET['action']) && $_GET['action'] === 'getEmpleado') {
+    header('Content-Type: application/json; charset=utf-8');
+    $id = $_GET['id'] ?? '';
+    if (empty($id)) {
+        echo json_encode(['success' => false, 'error' => 'ID inválido']);
+        exit;
+    }
+    
+    $sql = "SELECT e.*, u.correo, r.nombre_rol FROM empleados e  
+            LEFT JOIN usuarios u ON e.id_empleado = u.id_empleado
             LEFT JOIN roles r ON e.id_rol = r.id_rol
-            WHERE 1=1";
-
-    if(!empty($busqueda)) $sql .= " AND (
-                                e.id_empleado LIKE :busqueda
-                                OR e.nombre LIKE :busqueda
-                                OR e.apellido_paterno LIKE :busqueda
-                                OR e.apellido_materno LIKE :busqueda
-                                OR u.correo LIKE :busqueda)";
-    if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
->>>>>>> 374693a (avances y cambios)
-
-    $sql .= " ORDER BY $orden";
-
+            WHERE e.id_empleado = ?";
     $stmt = $pdo->prepare($sql);
-
-    $params = [];
-
-    if(!empty($busqueda)) {
-        $params[':busqueda'] = "%$busqueda%";
+    $stmt->execute([$id]);
+    $empleado = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($empleado) {
+        echo json_encode(['success' => true, 'empleado' => $empleado]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Empleado no encontrado']);
     }
+    exit;
+}
 
-    if(!empty($puesto)) {
-        $params[':puesto'] = $puesto;
-    }
+$busqueda = $_GET['busqueda'] ?? '';
+$puesto = $_GET['puesto'] ?? '';
+$orden = $_GET['orden'] ?? 'e.nombre ASC';
+$allowed_order = ['e.nombre ASC', 'e.nombre DESC', 'e.id_empleado ASC', 'e.id_empleado DESC'];
+if(!in_array($orden, $allowed_order)) $orden = 'e.nombre ASC';
+$vista_actual = $_GET['view'] ?? 'empleados';
 
-    $stmt->execute($params);
-    $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-<<<<<<< HEAD
-    $stmt = $pdo->query("SELECT id AS id_rol, nombre FROM roles");
-    $puestos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-=======
-    $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
-    $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
->>>>>>> 374693a (avances y cambios)
+$sql = "SELECT
+            e.id_empleado AS numero,
+            CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
+            u.correo AS correo,
+            e.estatus AS estatus,
+            e.fecha AS fecha
+        FROM usuarios u 
+        INNER JOIN empleados e ON u.id_empleado = e.id_empleado
+        LEFT JOIN roles r ON e.id_rol = r.id_rol
+        WHERE 1=1";
+
+if(!empty($busqueda)) $sql .= " AND (
+                            e.id_empleado LIKE :busqueda
+                            OR e.nombre LIKE :busqueda
+                            OR e.apellido_paterno LIKE :busqueda
+                            OR e.apellido_materno LIKE :busqueda
+                            OR u.correo LIKE :busqueda)";
+if(!empty($puesto)) $sql .= " AND e.id_rol = :puesto";
+
+$sql .= " ORDER BY $orden";
+
+$stmt = $pdo->prepare($sql);
+
+$params = [];
+
+if(!empty($busqueda)) {
+    $params[':busqueda'] = "%$busqueda%";
+}
+
+if(!empty($puesto)) {
+    $params[':puesto'] = $puesto;
+}
+
+$stmt->execute($params);
+$empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
+$puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empleados</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
-=======
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
->>>>>>> 374693a (avances y cambios)
-    <style>
-        /* --- ESTILOS BASE Y GENERALES --- */
-        body {
-            background: #f9fafb; 
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif; 
-            color: #374151; 
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestión de Empleados</title>
 
-        /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
-        h2 {
-            text-align: center;
-            color: #f43f5e; 
-            margin: 40px auto 25px; 
-            font-weight: 700; 
-            font-size: 28px; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase;
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        /* --- BARRA DE HERRAMIENTAS (TOOLBAR) --- */
-        .toolbar {
-            display: flex;
-            justify-content: center; 
-            align-items: center;
-            margin: 20px auto 30px;
-            width: 90%;
-            max-width: 1000px; 
-            gap: 10px; 
-        }
+  <style>
+    :root {
+      --primary: #b4c24d;
+      --primary-dark: #9fb03d;
+      --secondary: #2d4353;
+      --accent: #e15871;
+      --gray-bg: #eeeeee;
+    }
 
-        .toolbar form {
-            display: flex;
-            flex-grow: 1;
-            gap: 10px;
-            align-items: center;
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f9fafb 0%, #eeeeee 100%);
+      min-height: 100vh;
+    }
 
-        .search-container {
-            flex-grow: 1; 
-            max-width: 500px; 
-            position: relative;
-        }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-        .search-container input[type="text"] {
-            padding: 10px 15px 10px 40px; 
-            border: 1px solid #ddd;
-            border-radius: 8px; 
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 15px;
-<<<<<<< HEAD
-            
-=======
->>>>>>> 374693a (avances y cambios)
-        }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        /* HACER EL ÍCONO CLICKABLE PARA ENVIAR EL FORMULARIO */
-        .search-container .search-icon { 
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af; 
-            cursor: pointer; /* HACEMOS EL ÍCONO CLICKABLE */
-            font-size: 18px;
-            z-index: 10;
-        }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .search-container .clear-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-        }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
 
-        /* Botones de acción (Filtrar/Ordenar) */
-        .toolbar .btn-accion {
-            background: white; 
-            color: #374151; 
-            padding: 10px 18px;
-            border: 1px solid #d1d5db; 
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: background-color 0.2s;
-        }
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    .animate-slideDown { animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .animate-scaleIn { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        .toolbar .btn-accion:hover {
-            background-color: #f3f4f6;
-        }
+    .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+    .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
 
-        /* Botón "Agregar producto" */
-        .btn-agregar {
-            background: #f43f5e; 
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
-        }
+    .custom-checkbox {
+      appearance: none;
+      width: 1.125rem;
+      height: 1.125rem;
+      border: 2px solid #cbd5e1;
+      border-radius: 0.375rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
 
-        .btn-agregar:hover {
-            background-color: #e11d48;
-        }
+    .custom-checkbox:checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
 
-        /* Ocultar/Mostrar los selects nativos */
-        .toolbar form select {
-            display: none; /* Oculto por defecto */
-            position: absolute;
-            z-index: 50;
-            margin-top: 5px; 
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 180px;
-        }
-        .toolbar form button[type="submit"] {
-            display: none;
-        }
-        .select-visible {
-            display: block !important;
-        }
+    .custom-checkbox:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
 
-        /* --- CONTENEDOR DE PRODUCTOS (LA TABLA) --- */
-        .productos-container {
-            width: 90%; 
-            max-width: 1000px; 
-            margin: 0 auto 40px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            overflow: hidden;
-            border: 1px solid #e5e7eb; 
-        }
+    /* Dropdown Premium */
+    .dropdown {
+      position: relative;
+    }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
+    .dropdown-menu {
+      position: absolute;
+      background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      min-width: 340px;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid rgba(180, 194, 77, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
 
-        /* Cabecera de la tabla */
-        thead { 
-            background: #2f455c; 
-            color: white; 
-        }
-        thead th {
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 14px 16px; 
-        }
+    .dropdown-menu.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+    
+    .dropdown-menu select {
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dropdown-menu select:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(180, 194, 77, 0.2);
+    }
 
-        th, td { 
-            padding: 16px; 
-            text-align: left; 
-            border-bottom: none; 
-        }
+    .table-row {
+      transition: all 0.2s ease;
+    }
 
-        tr {
-            border-bottom: 1px solid #eee;
-        }
-        tbody tr:last-child {
-            border-bottom: none;
-        }
+    .table-row:hover {
+      background: rgba(180, 194, 77, 0.04);
+    }
 
-        .btn-editar, .btn-eliminar {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            border: none;
-            color: white;
-            cursor: pointer;
-        }
+    .table-row.selected {
+      background: linear-gradient(90deg, rgba(180, 194, 77, 0.15) 0%, rgba(180, 194, 77, 0.08) 100%);
+      border-left: 3px solid #b4c24d;
+    }
 
-        .btn-editar {
-            background: #f43f5e;
-        }
+    .fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary) 0%, #1e2d38 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(45, 67, 83, 0.3);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 40;
+    }
 
-        .btn-editar:hover {
-            background: #e11d48;
-        }
+    .fab:hover {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 12px 32px rgba(45, 67, 83, 0.4);
+    }
 
-        .btn-eliminar {
-            background: #b6c649;
-        }
+    .hover-lift {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .btn-eliminar:hover {
-            background: #b4c24d;
-        }
+    .hover-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
 
-        .btn-editar {
-            margin-right: 8px;
-            margin-bottom: 3px;
-        }
-    </style>
+    .search-input {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-input:focus {
+      box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.1);
+    }
+
+    .search-input.has-value {
+      border-color: var(--primary);
+      background: rgba(180, 194, 77, 0.02);
+    }
+
+    .empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    
+    .modal-backdrop {
+      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Tema oscuro */
+    /* Textos oscuros en modo oscuro */
+    body.dark-mode .text-gray-500,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-900 {
+        color: #f5f5f5 !important; /* texto claro */
+    }
+    /* Sobrescribir fondos blancos */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+    background-color: #1e1e1e !important;
+}
+body.dark-mode table,
+body.dark-mode thead,
+body.dark-mode tbody,
+body.dark-mode tr,
+body.dark-mode td,
+body.dark-mode th {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+body.dark-mode .divide-gray-200 {
+    border-color: #444 !important;
+}
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+    border-color: #333 !important;
+}
+body.dark-mode span[style*="rgba("] {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+body.dark-mode button[style*="linear-gradient"] {
+    filter: brightness(0.8);
+}
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+body.dark-mode .dropdown-menu {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode .dropdown-menu p,
+body.dark-mode .dropdown-menu select,
+body.dark-mode .dropdown-menu option {
+    color: #ffffff !important;
+    background: #2a2a2a !important;
+}
+body.dark-mode select {
+    background: #2c2c2c !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+/* Botón Eliminar (modo oscuro) */
+body.dark-mode .btn-eliminar {
+    background-color: #b30000 !important;  /* Rojo fuerte */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-eliminar:hover {
+    background-color: #cc0000 !important; /* Rojo más brillante */
+}
+/* Botón Agregar (modo oscuro) */
+body.dark-mode .btn-agregar {
+    background-color: #3ba55d !important; /* Verde moderno */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-agregar:hover {
+    background-color: #46c06c !important;
+}
+
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-add {
+  background-color: #b4c24d !important;
+}
+
+
+
+  </style>
 </head>
-<body>
-    <h2>EMPLEADOS</h2>
+<body class="p-4 md:p-6">
+  <div class="max-w-7xl mx-auto pb-32">
+    
+    <!-- Header -->
+    <div class="mb-8 animate-slideDown">
+      <div class="mb-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Empleados</h1>
+        <p class="text-gray-600 text-base">Administra y organiza tu equipo de trabajo de forma eficiente</p>
+      </div>
 
-    <div class="toolbar">
-        <form method="GET" id="toolbar-form" action="index.php">
-            <input type="hidden" name="view" value="empleados">
-
-            <div class="search-container">
-                <span class="search-icon" onclick="document.getElementById('toolbar-form').submit()">🔍</span>
-                <input type="text" id="busqueda-input" name="busqueda" placeholder="Buscar empleados..."
-                       value="<?= htmlspecialchars($busqueda) ?>"
-                       onkeydown="if(event.key === 'Enter') document.getElementById('toolbar-form').submit();">
-                <span class="clear-icon" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();">✖</span>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Total Empleados</p>
+              <p class="text-3xl font-bold text-gray-900"><?= count($empleados) ?></p>
             </div>
-
-            <div style="position: relative;">
-                <button type="button" class="btn-accion" onclick="toggleSelect(event, 'puesto-select')">
-                    <span class="icon">⚙</span> Filtrar
-                </button>
-
-                <select name="puesto" id="puesto-select" onchange="document.getElementById('toolbar-form').submit()">
-                    <option value="">-- Todos los puestos --</option>
-                    <?php foreach ($puestos as $pu): ?>
-                        <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
-<<<<<<< HEAD
-                            <?= htmlspecialchars($pu['nombre']) ?>
-=======
-                            <?= htmlspecialchars($pu['nombre_rol']) ?>
->>>>>>> 374693a (avances y cambios)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
             </div>
+          </div>
+        </div>
 
-            <div style="position: relative;">
-                <button type="button" class="btn-accion" onclick="toggleSelect(event, 'orden-select')">
-                    <span class="icon">⇅</span> Ordenar
-                </button>
-                <select name="orden" id="orden-select" onchange="document.getElementById('toolbar-form').submit()">
-<<<<<<< HEAD
-                    <option value="u.nombre_completo ASC" <?= ($orden == 'u.nombre_completo ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                    <option value="u.nombre_completo DESC" <?= ($orden == 'u.nombre_completo DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                    <option value="u.correo ASC" <?= ($orden == 'u.correo ASC') ? 'selected' : '' ?>>Correo A-Z</option>
-                    <option value="u.correo DESC" <?= ($orden == 'u.correo DESC') ? 'selected' : '' ?>>Correo Z-A</option>
-=======
-                    <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                    <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                    <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
-                    <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
->>>>>>> 374693a (avances y cambios)
-                </select>
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Activos</p>
+              <p class="text-3xl font-bold" style="color: #b4c24d;"><?= count(array_filter($empleados, fn($e) => $e['estatus'] == 1)) ?></p>
             </div>
-        </form>
+            <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
 
-        <a href="index.php?view=agregar_empleado" class="btn-agregar">
-            <span class="icon">➕</span> Agregar empleado
-        </a>
+        <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-200 border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm font-medium mb-1">Inactivos</p>
+              <p class="text-3xl font-bold text-gray-900"><?= count(array_filter($empleados, fn($e) => $e['estatus'] == 0)) ?></p>
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="productos-container">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 10%;">No.</th>
-<<<<<<< HEAD
-                    <th style="width: 45%">Nombre</th>
-                    <th style="width: 20%">Correo</th>
-                    <th style="width: 30%">Estatus</th>
-=======
-                    <th style="width: 45%">Nombre Completo</th>
-                    <th style="width: 20%">Correo</th>
-                    <th style="width: 30%">Estado</th>
->>>>>>> 374693a (avances y cambios)
-                    <th style="width: 30%">Fecha de Ingreso</th>
-                    <th style="width: 10%"></th>
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slideUp delay-100 border border-gray-100">
+      <form method="GET" action="index.php" id="toolbar-form">
+        <input type="hidden" name="view" value="empleados">
+        
+        <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+          <!-- Search Bar -->
+          <div class="relative flex-1">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input 
+              id="busqueda-input" 
+              name="busqueda"
+              type="text" 
+              placeholder="Buscar por nombre, correo o número..." 
+              value="<?= htmlspecialchars($busqueda) ?>"
+              class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
+            />
+            <button type="button" onclick="document.getElementById('busqueda-input').value=''; document.getElementById('toolbar-form').submit();" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors <?= empty($busqueda) ? 'hidden' : '' ?>">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Filter Dropdown (Puesto) -->
+          <div class="dropdown">
+            <button type="button" id="filterBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              Filtrar
+              <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por puesto</p>
+                <select name="puesto" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
+                  <option value="">-- Todos los puestos --</option>
+                  <?php foreach ($puestos as $pu): ?>
+                    <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
+                      <?= htmlspecialchars($pu['nombre_rol']) ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Dropdown -->
+          <div class="dropdown">
+            <button type="button" id="orderBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              Ordenar
+              <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
+                  <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
+                  <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                  <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
+                  <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Button -->
+          <button type="button" onclick="window.location.href='index.php?view=agregar_empleado'" class="btn-add inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar
+          </button>
+        </div>
+      </form>
+
+      <!-- Bulk Actions -->
+      <div id="bulkActions" class="hidden mt-5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border-2 border-primary/20">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" id="selectAll" class="custom-checkbox" />
+            <span class="text-sm font-semibold text-gray-700">
+              <span id="bulkSelectedCount">0</span> empleado(s) seleccionado(s)
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="bulkDelete()" class="px-5 py-2.5 text-white rounded-lg font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Eliminar
+            </button>
+            <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-slideUp delay-200 border border-gray-100 mb-8">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+            <tr>
+              <th class="px-6 py-4 text-left">
+                <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">No.</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre Completo</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha de Ingreso</th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <?php if (!empty($empleados)): ?>
+              <?php foreach ($empleados as $emp): ?>
+                <tr class="table-row" id="row-<?= $emp['numero'] ?>" data-id="<?= $emp['numero'] ?>">
+                  <td class="px-6 py-4">
+                    <input type="checkbox" class="custom-checkbox row-checkbox" data-id="<?= $emp['numero'] ?>" />
+                  </td>
+                  <td class="px-6 py-4 text-sm font-semibold text-gray-900"><?= htmlspecialchars($emp['numero']) ?></td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
+                        <?= strtoupper(substr($emp['nombre_completo'], 0, 1)) ?>
+                      </div>
+                      <div>
+                        <p class="text-sm font-semibold text-gray-900"><?= htmlspecialchars($emp['nombre_completo']) ?></p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-700"><?= htmlspecialchars($emp['correo']) ?></td>
+                  <td class="px-6 py-4">
+                    <?php if ($emp['estatus'] == 1): ?>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(180, 194, 77, 0.1); color: #b4c24d;">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Activo
+                      </span>
+                    <?php else: ?>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(225, 88, 113, 0.1); color: #e15871;">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        Inactivo
+                      </span>
+                    <?php endif; ?>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600"><?= htmlspecialchars($emp['fecha']) ?></td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="inline-flex gap-2">
+                      <button onclick="openDetalle('<?= $emp['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
+                        Ver
+                      </button>
+                      <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
+                        Editar
+                      </a>
+                      <button onclick="confirmDelete('<?= $emp['numero'] ?>', '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($empleados)): ?>
-                    <?php $isFirst = true; ?>
-                    <?php foreach ($empleados as $emp): ?>
-                        <tr class="<?= $isFirst ? 'first-row' : '' ?>">
-                            <td><?= htmlspecialchars($emp['numero']) ?></td>
-<<<<<<< HEAD
-                            <td><?= htmlspecialchars($emp['nombre']) ?></td>
-=======
-                            <td><?= htmlspecialchars($emp['nombre_completo']) ?></td>
->>>>>>> 374693a (avances y cambios)
-                            <td><?= htmlspecialchars($emp['correo']) ?></td>
-                            <td>
-                                <span style="color: <?= $emp['estatus'] == 1 ? 'green' : 'red' ?>;"><?= $emp['estatus'] == 1 ? 'Activo' : 'Inactivo' ?></span>
-                            </td>
-<<<<<<< HEAD
-                            <td><?= htmlspecialchars($emp['fecha_ingreso']) ?></td>
-                            <td>
-                                <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
-                                <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este empleado?')">🗑︎</a>
-=======
-                            <td><?= htmlspecialchars($emp['fecha']) ?></td>
-                            <td>
-                                <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="btn-editar">✎</a>
-                                <a href="index.php?view=eliminar_empleado&id=<?= $emp['numero'] ?>" class="btn-eliminar" data-id="<?= htmlspecialchars($emp['numero']) ?>">🗑︎</a>
->>>>>>> 374693a (avances y cambios)
-                            </td>
-                        </tr>
-                        <?php $isFirst = false; ?>
-
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px;">No se encontraron empleados.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="7" class="px-6 py-16">
+                  <div class="empty-state">
+                    <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
+                    <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
+                  </div>
+                </td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
         </table>
+      </div>
     </div>
 
-    <script>
-        function toggleSelect(event, selectId) {
-            event.stopPropagation();
-            const select = document.getElementById(selectId);
-            const button = event.currentTarget;
-            
-            // Ocultar todos los demás selects
-            document.querySelectorAll('.toolbar form select').forEach(s => {
-                if (s.id !== selectId) {
-                    s.classList.remove('select-visible');
-                    s.style.display = 'none';
-                }
-            });
+  </div>
 
-            // Toggle del select actual
-            if (select.classList.contains('select-visible')) {
-                select.classList.remove('select-visible');
-                select.style.display = 'none';
-            } else {
-                select.classList.add('select-visible');
-                select.style.top = `${button.offsetHeight + 5}px`;
-                select.style.left = '0';
-                select.style.display = 'block';
+  <!-- FAB Button -->
+  <button class="fab" onclick="window.location.href='index.php?view=agregar_empleado'">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+  </button>
 
-                // Listener para cerrar al hacer clic fuera
-                document.addEventListener('click', function closeSelect(e) {
-                    if (!select.contains(e.target) && e.target !== button) {
-                        select.classList.remove('select-visible');
-                        select.style.display = 'none';
-                        document.removeEventListener('click', closeSelect);
-                    }
-                });
-            }
+  <!-- MODAL VER EMPLEADO (PREMIUM DESIGN) -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden animate-scaleIn">
+      <!-- Header con gradiente -->
+      <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Detalle del Empleado
+        </h3>
+        <button class="text-white/70 hover:text-white text-2xl leading-none transition-colors" onclick="closeDetalle()">&times;</button>
+      </div>
+
+      <div class="p-8 space-y-6">
+        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <!-- Nombre Completo -->
+          <div class="md:col-span-2 group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+              Nombre Completo
+            </p>
+            <p id="d-nombre" class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-1">-</p>
+          </div>
+          
+          <!-- Correo -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Correo Electrónico
+            </p>
+            <p id="d-correo" class="text-base text-gray-700">-</p>
+          </div>
+
+          <!-- Celular -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              Celular
+            </p>
+            <p id="d-celular" class="text-base text-gray-700">-</p>
+          </div>
+
+          <!-- Puesto -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Puesto / Rol
+            </p>
+            <p id="d-puesto" class="text-base text-gray-700">-</p>
+          </div>
+
+          <!-- Estatus -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Estatus
+            </p>
+            <p id="d-estatus" class="text-base font-medium">-</p>
+          </div>
+
+          <!-- Dirección -->
+          <div class="md:col-span-2 group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Dirección Completa
+            </p>
+            <p id="d-direccion" class="text-base text-gray-700 border-b border-gray-100 pb-1">-</p>
+          </div>
+
+          <!-- CP -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Código Postal
+            </p>
+            <p id="d-cp" class="text-base text-gray-700">-</p>
+          </div>
+
+          <!-- Estado -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Estado
+            </p>
+            <p id="d-estado" class="text-base text-gray-700">-</p>
+          </div>
+
+          <!-- Fecha Ingreso -->
+          <div class="group">
+            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              Fecha de Ingreso
+            </p>
+            <p id="d-fecha" class="text-base text-gray-700">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ** REFERENCIAS ** 
+    const modal = document.getElementById('modalDetalle');
+    const detalle = {
+      nombre: document.getElementById('d-nombre'),
+      correo: document.getElementById('d-correo'),
+      celular: document.getElementById('d-celular'),
+      puesto: document.getElementById('d-puesto'),
+      estatus: document.getElementById('d-estatus'),
+      direccion: document.getElementById('d-direccion'),
+      cp: document.getElementById('d-cp'),
+      estado: document.getElementById('d-estado'),
+      fecha: document.getElementById('d-fecha')
+    };
+
+    // Selection state
+    let selectedIds = new Set();
+
+    // Dropdown toggles
+    const filterBtn = document.getElementById('filterBtn');
+    const filterMenu = document.getElementById('filterMenu');
+    const filterIcon = document.getElementById('filterIcon');
+
+    const orderBtn = document.getElementById('orderBtn');
+    const orderMenu = document.getElementById('orderMenu');
+    const orderIcon = document.getElementById('orderIcon');
+
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      filterMenu.classList.toggle('active');
+      filterIcon.style.transform = filterMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+      
+      orderMenu.classList.remove('active');
+      orderIcon.style.transform = 'rotate(0deg)';
+    });
+
+    orderBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      orderMenu.classList.toggle('active');
+      orderIcon.style.transform = orderMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+      
+      filterMenu.classList.remove('active');
+      filterIcon.style.transform = 'rotate(0deg)';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+        filterMenu.classList.remove('active');
+        filterIcon.style.transform = 'rotate(0deg)';
+      }
+      if (!orderMenu.contains(e.target) && !orderBtn.contains(e.target)) {
+        orderMenu.classList.remove('active');
+        orderIcon.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    // BÚSQUEDA EN TIEMPO REAL (exactamente como nueva_venta.php)
+    const searchInput = document.getElementById('busqueda-input');
+    if (searchInput.value.trim()) {
+      searchInput.classList.add('has-value');
+    }
+
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      const rows = document.querySelectorAll('tbody .table-row');
+      
+      // Visual feedback
+      if (searchTerm) {
+        this.classList.add('has-value');
+      } else {
+        this.classList.remove('has-value');
+      }
+      
+      // Filtrar filas en tiempo real
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const numero = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+        const nombre = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
+        const correo = row.querySelector('td:nth-child(4)')?.textContent.toLowerCase() || '';
+        const estado = row.querySelector('td:nth-child(5)')?.textContent.toLowerCase() || '';
+        
+        if (numero.includes(searchTerm) || nombre.includes(searchTerm) || correo.includes(searchTerm) || estado.includes(searchTerm)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
         }
-<<<<<<< HEAD
-=======
+      });
+      
+      // Mostrar/ocultar mensaje de "no se encontraron empleados"
+      if (visibleCount === 0 && searchTerm && rows.length > 0) {
+        let noResultsRow = document.getElementById('noResultsRow');
+        if (!noResultsRow) {
+          noResultsRow = document.createElement('tr');
+          noResultsRow.id = 'noResultsRow';
+          noResultsRow.innerHTML = `
+            <td colspan="7" class="px-6 py-16">
+              <div class="empty-state">
+                <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
+                <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
+              </div>
+            </td>
+          `;
+          document.querySelector('tbody').appendChild(noResultsRow);
+        }
+        noResultsRow.style.display = '';
+      } else {
+        const noResultsRow = document.getElementById('noResultsRow');
+        if (noResultsRow) {
+          noResultsRow.style.display = 'none';
+        }
+      }
+    });
+    // ** FUNCIÓN ABRIR DETALLE CON AJAX **
+    function openDetalle(id) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      // Reset fields
+      detalle.nombre.textContent = 'Cargando...';
+      detalle.correo.textContent = '-';
+      detalle.celular.textContent = '-';
+      detalle.puesto.textContent = '-';
+      detalle.estatus.textContent = '-';
+      detalle.direccion.textContent = '-';
+      detalle.cp.textContent = '-';
+      detalle.estado.textContent = '-';
+      detalle.fecha.textContent = '-';
 
-        // Añadir confirmación con SweetAlert2 para eliminar empleado
-        (function(){
-            function attachDeleteHandlers() {
-                document.querySelectorAll('.btn-eliminar').forEach(btn => {
-                    btn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const href = this.getAttribute('href');
-                        Swal.fire({
-                            title: '¿Estás seguro?',
-                            html: '¿Realmente deseas eliminar este empleado?<br>Esta acción no se puede deshacer.',
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
-                            confirmButtonText: 'Sí, eliminar',
-                            cancelButtonText: 'Cancelar'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Redirigir a la URL que ejecuta la eliminación en el servidor
-                                window.location.href = href;
-                            }
-                        });
-                    });
-                });
-            }
+      const url = `index.php?view=empleados&action=getEmpleado&id=${encodeURIComponent(id)}`;
 
-            // Adjuntar cuando el DOM esté listo
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', attachDeleteHandlers);
-            } else {
-                attachDeleteHandlers();
-            }
-        })();
->>>>>>> 374693a (avances y cambios)
-    </script>
+      fetch(url)
+        .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
+        .then(json => {
+          if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+          const e = json.empleado;
+          
+          // Nombre completo
+          const nombreCompleto = `${e.nombre || ''} ${e.apellido_paterno || ''} ${e.apellido_materno || ''}`.trim();
+          detalle.nombre.textContent = nombreCompleto || '-';
+          
+          detalle.correo.textContent = e.correo || '-';
+          detalle.celular.textContent = e.celular || '-';
+          detalle.puesto.textContent = e.nombre_rol || 'Sin rol asignado';
+          
+          // Estatus con badge
+          if (e.estatus == 1) {
+            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activo</span>';
+          } else {
+            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactivo</span>';
+          }
+
+          // Dirección completa
+          const direccionParts = [
+            e.calle ? `C. ${e.calle}` : '',
+            e.num_ext ? `No. ${e.num_ext}` : '',
+            e.num_int ? `Int. ${e.num_int}` : '',
+            e.colonia ? `Col. ${e.colonia}` : ''
+          ].filter(Boolean);
+          detalle.direccion.textContent = direccionParts.length > 0 ? direccionParts.join(', ') : '-';
+          
+          detalle.cp.textContent = e.cp || '-';
+          detalle.estado.textContent = e.estado || '-';
+          detalle.fecha.textContent = e.fecha || '-';
+        })
+        .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+    }
+    
+    function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    // ** CONFIRMACIÓN Y ELIMINACIÓN CON SWEETALERT **
+    function confirmDelete(id, nombre) {
+      Swal.fire({
+        title: '¿Eliminar empleado?',
+        html: `¿Estás seguro de eliminar a <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteEmpleado(id);
+        }
+      });
+    }
+
+    function deleteEmpleado(id) {
+      fetch(`index.php?view=eliminar_empleado`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({id: id})
+      })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          Swal.fire({
+            title: 'Eliminado',
+            text: 'El empleado ha sido eliminado correctamente',
+            icon: 'success',
+            confirmButtonColor: '#b4c24d',
+            timer: 2000
+          });
+          // Eliminar fila sin recargar usando ID
+          const row = document.getElementById('row-' + id);
+          if (row) {
+             row.remove();
+             // Actualizar contadores si es necesario
+             const totalEl = document.getElementById('totalEmpleados');
+             if(totalEl) totalEl.textContent = parseInt(totalEl.textContent) - 1;
+          } else {
+             // Fallback
+             setTimeout(() => window.location.reload(), 1000);
+          }
+        } else {
+          Swal.fire('Error', json.error || 'No se pudo eliminar el empleado', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Error en el servidor', 'error');
+      });
+    }
+  </script>
 </body>
 </html>

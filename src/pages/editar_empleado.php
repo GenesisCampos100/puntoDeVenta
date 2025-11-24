@@ -1,59 +1,6 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
 
-<<<<<<< HEAD
-    $empleado_id = $_GET['id'] ?? null;
-
-    if($empleado_id) {
-        $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
-        $stmt->execute([$empleado_id]);
-        $empleado_id = $stmt->fetch(PDO::FETCH_ASSOC);  
-    }
-
-    $estatus = (int)($empleado_id['estatus'] ?? 0);
-
-    // Traer los roles
-    $stmt = $pdo->query("SELECT id, nombre FROM roles");
-    $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Obtener el rol actual
-    $rol_actual_id = $empleado_id['rol_id'] ?? '';
-    $rol_actual_nombre = '';
-    foreach ($roles as $rol) {
-        if ($rol['id'] == $rol_actual_id) {
-            $rol_actual_nombre = $rol['nombre'];
-            break;
-        }
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id = $_GET['id'] ?? null;
-        $nombre = $_POST['nombre_completo'];
-        $correo = $_POST['correo'];
-        $telefono = $_POST['telefono'];
-        $direccion = $_POST['direccion'];
-        $estatus = $_POST['estatus'];
-        $rol_id = $_POST['rol_id'];
-        $password = $_POST['password'];
-
-        // Si el campo de contraseña está vacío, no la actualices
-        if (empty($password)) {
-            $stmt = $pdo->prepare("UPDATE usuarios 
-                                SET nombre_completo=?, correo=?, telefono=?, direccion=?, estatus=?, rol_id=? 
-                                WHERE id=?");
-            $stmt->execute([$nombre, $correo, $telefono, $direccion, $estatus, $rol_id, $id]);
-        } else {
-            // Si se escribió una nueva, se vuelve a cifrar
-            $hashed = md5($password);
-            $stmt = $pdo->prepare("UPDATE usuarios 
-                                SET nombre_completo=?, correo=?, telefono=?, direccion=?, estatus=?, rol_id=?, password=? 
-                                WHERE id=?");
-            $stmt->execute([$nombre, $correo, $telefono, $direccion, $estatus, $rol_id, $hashed, $id]);
-        }
-
-        header("Location: index.php?view=empleados");
-        exit;
-=======
     $id_empleado = '';
 
     // Obtener el id del empleado desde GET (al cargar) o desde POST (al enviar el formulario)
@@ -119,7 +66,7 @@
             $apellido_paterno = trim(filter_input(INPUT_POST, 'apellido_p', FILTER_SANITIZE_STRING));
             $apellido_materno = trim(filter_input(INPUT_POST, 'apellido_m', FILTER_SANITIZE_STRING));
 
-            $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
+            $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
             if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno) || !preg_match($regexNombre, $apellido_materno)) {
                 echo json_encode(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
                 exit;
@@ -185,8 +132,8 @@
             $cp = trim(filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_STRING));
             $estado = trim(filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING));
 
-            $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
-            $regexAlfanumerico = "/^[A-Za-z0-9\s]+$/u";  
+            $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
+            $regexAlfanumerico = "/^[A-Za-z0-9\\s]+$/u";  
             $regexCP = "/^[0-9]{5}$/";
 
             $errores = [];
@@ -296,48 +243,218 @@
             echo json_encode(["error" => "Error al actualizar el empleado: " . $e->getMessage(), "icon" => "error"]);
             exit();
         }
->>>>>>> 374693a (avances y cambios)
     }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor de Empleados</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
-=======
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Editar Empleado</title>
+    
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
->>>>>>> 374693a (avances y cambios)
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
     <style>
-        /* --- ESTILOS BASE Y GENERALES --- */
-        body {
-            background: #f9fafb; 
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif; 
-            color: #374151; 
+        :root {
+            --primary: #b4c24d;
+            --primary-dark: #9fb03d;
+            --secondary: #2d4353;
+            --accent: #e15871;
+            --error: #ef4444;
+            --success: #10b981;
+            --text-primary: #1e2d38;
+            --text-tertiary: #64748b;
+            --font: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* --- TÍTULO PRINCIPAL DE LA VISTA --- */
-        h2 {
-            text-align: center;
-            color: #f43f5e; 
-            margin: 40px auto 25px; 
-            font-weight: 700; 
-            font-size: 28px; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase;
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #f9fafb 0%, #eeeeee 100%);
+            min-height: 100vh;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        .animate-in { animation: fadeIn 0.6s ease-out; }
+        .animate-in-delay-1 { animation: slideDown 0.5s ease-out 0.1s both; }
+        .animate-in-delay-2 { animation: slideUp 0.5s ease-out 0.2s both; }
+        .animate-in-delay-3 { animation: slideUp 0.5s ease-out 0.3s both; }
+
+        .form-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .form-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(208, 208, 208, 0.4);
+            background: linear-gradient(135deg, #2d4353 0%, #3a5468 100%);
+        }
+
+        .form-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .form-header p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 0.25rem;
+            font-weight: 400;
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.005em;
+        }
+
+        .form-label .required {
+            color: var(--accent);
+            margin-left: 0.25rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            font-family: var(--font);
+            color: var(--text-primary);
+            background: #f8f8f8;
+            border: 1.5px solid #d8d8d8;
+            border-radius: 10px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            font-weight: 500;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.08);
+        }
+
+        .form-input.error, .form-select.error {
+            border-color: var(--error);
+            background: #fef2f2;
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .form-input.error:focus, .form-select.error:focus {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .switch {
             position: relative;
             display: inline-block;
-            width: 40px;
-            height: 22px;
+            width: 52px;
+            height: 28px;
         }
 
         .switch input {
@@ -349,83 +466,384 @@
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            border-radius: 22px;
-            transition: .4s;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            border-radius: 28px;
+            transition: 0.3s;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 20px;
+            width: 20px;
             left: 4px;
-            top: 4px;
+            bottom: 4px;
             background-color: white;
             border-radius: 50%;
-            transition: .4s;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input:checked + .slider {
-            background-color: #4ade80;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
         }
 
         input:checked + .slider:before {
-            transform: translateX(18px);
+            transform: translateX(24px);
         }
 
+        .switch-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .form-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid rgba(208, 208, 208, 0.4);
+            background: #f5f5f5;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-family: var(--font);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(180, 194, 77, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(180, 194, 77, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-change-password {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-change-password:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+         /* Títulos del formulario (Registro de Empleados) */
+body.dark-mode .form-header h1,
+body.dark-mode .form-header p,
+body.dark-mode .section-title {
+  color: #ffffff !important;
+}
+/* Formularios en modo oscuro */
+body.dark-mode .form-card,
+body.dark-mode .form-body,
+body.dark-mode .section {
+  background-color: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+/* Inputs */
+body.dark-mode .form-input,
+body.dark-mode .form-select {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #444 !important;
+}
+
+/* Placeholders */
+body.dark-mode .form-input::placeholder,
+body.dark-mode .form-select::placeholder {
+  color: #cccccc !important;
+}
+
+/* Labels */
+body.dark-mode .form-label,
+body.dark-mode label {
+  color: #eaeaea !important;
+}
+body.dark-mode .switch-label {
+  color: #eaeaea !important;
+}
+
+body.dark-mode .slider {
+  background-color: #444 !important;
+}
+body.dark-mode .form-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
+}
+/* Botón Guardar Empleado → verde en modo oscuro */
+body.dark-mode .btn-primary {
+  background-color:  #b4c24d  !important; /* verde */
+  color: white !important;
+  border: none !important;
+}
+
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
     </style>
-<<<<<<< HEAD
 </head>
 <body>
-    <h2>Editor de Empleados</h2>
-    <div style="max-width: 600px; margin: 40px auto; background: #fff; padding: 40px 38px 32px 38px; border-radius: 18px; box-shadow: 0 2px 16px rgba(0,0,0,0.10); position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-            <span style="font-size:22px; font-weight:700; color:#b3c428; font-family:'Poppins',sans-serif;">Datos Básicos</span>
-            <span style="font-size:28px; color:#b3c428; cursor:pointer; font-weight:700; line-height:1;" onclick="window.history.back()">&#10005;</span>
+    <div class="form-container animate-in">
+        <div class="form-card">
+            <!-- Header -->
+            <div class="form-header animate-in-delay-1">
+                <h1>Editar Empleado</h1>
+                <p>Actualiza la información del empleado</p>
+            </div>
+
+            <!-- Form -->
+            <form id="editar" action="index.php?view=editar_empleado" method="POST" enctype="multipart/form-data">
+                <div class="form-body">
+                    <!-- Información Personal -->
+                    <div class="section animate-in-delay-2">
+                        <h2 class="section-title">Información Personal</h2>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <input type="text" name="apellido_p" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['apellido_paterno'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Apellido Materno</label>
+                                <input type="text" name="apellido_m" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['apellido_materno'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <input type="text" name="nombres" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['nombre'] ?? '') ?>">
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <input type="email" name="correo" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['correo'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Teléfono<span class="required">*</span></label>
+                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos" value="<?= htmlspecialchars($empleado['celular'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Contraseña</label>
+                                <input id="contra" type="password" name="contra" maxlength="255" class="form-input" placeholder="Dejar vacío para no cambiar" disabled>
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end;">
+                                <button type="button" id="btnCambiarContra" class="btn btn-change-password">Cambiar Contraseña</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="section animate-in-delay-3">
+                        <h2 class="section-title">Dirección</h2>
+                        
+                        <div class="grid-3">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Calle<span class="required">*</span></label>
+                                <input type="text" name="calle" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['calle'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">No. Exterior<span class="required">*</span></label>
+                                <input type="text" name="num_ext" maxlength="10" class="form-input" value="<?= htmlspecialchars($empleado['num_ext'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="form-label">No. Interior</label>
+                                <input type="text" name="num_int" maxlength="10" class="form-input" value="<?= htmlspecialchars($empleado['num_int'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Colonia<span class="required">*</span></label>
+                                <input type="text" name="colonia" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['colonia'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Código Postal</label>
+                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="5 dígitos" value="<?= htmlspecialchars($empleado['cp'] ?? '') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estado<span class="required">*</span></label>
+                            <input type="text" name="estado" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['estado'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <!-- Información Laboral -->
+                    <div class="section animate-in-delay-3">
+                        <h2 class="section-title">Información Laboral</h2>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Puesto<span class="required">*</span></label>
+                                <select id="id_rol" name="id_rol" class="form-select">
+                                    <option value="">Seleccionar el puesto</option>
+                                    <?php foreach ($roles as $rol): ?>
+                                        <?php if ($rol['id_rol'] != $rol_actual_id): ?>
+                                            <option value="<?= $rol['id_rol'] ?>">
+                                                <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                            </option>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Número de Empleado Actual</label>
+                                <input id="actual_empleado" type="text" name="actual_empleado" value="<?= htmlspecialchars($empleado['id_empleado'] ?? '') ?>" class="form-input" readonly>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Nuevo Número de Empleado</label>
+                                <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Estatus</label>
+                                <div class="switch-container">
+                                    <label class="switch">
+                                        <input type="hidden" name="estatus" value="0">
+                                        <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="switch-label">Empleado activo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="form-footer">
+                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="btn-text">Actualizar Empleado</span>
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" enctype="multipart/form-data">
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label style="font-size:14px; font-weight:500; color:#374151;">Nombre:</label>
-                <input type="text" name="nombre_completo" maxlength="50" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;" value="<?= htmlspecialchars($empleado_id['nombre_completo'] ?? '') ?>">
+    </div>
 
-                <label style="font-size:14px; font-weight:500; color:#374151;">E-mail:</label>
-                <input type="email" name="correo" maxlength="100" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;" value="<?= htmlspecialchars($empleado_id['correo'] ?? '') ?>">
-
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Contraseña:</label>
-                        <input type="password" name="password" maxlength="255" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-                    </div>
-                    <div style="flex:1;">
-                        <div style="height: 25px;"></div>
-                        <button style="background:#f43f5e; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Cambiar Contrsañe</button>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; ">Dirección:</label>
-                        <input type="text" name="direccion" maxlength="100" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;" value="<?= htmlspecialchars($empleado_id['direccion'] ?? '') ?>">
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Teléfono:</label>
-                        <input type="text" name="telefono" maxlength="20" style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;" value="<?= htmlspecialchars($empleado_id['telefono'] ?? '') ?>">
-                    </div>
-                    <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                        <label style="font-size:14px; font-weight:500; color:#374151;">Estatus:</label>
-=======
     <script>
+        // Form submission with AJAX (ORIGINAL LOGIC PRESERVED)
         $(document).ready(function() {
             $('#editar').on('submit', function(e) {
                e.preventDefault();
-               
+                
+                // Clear previous errors
+                document.querySelectorAll('.form-input, .form-select').forEach(input => {
+                    input.classList.remove('error');
+                    input.style.animation = 'none';
+                    setTimeout(() => { input.style.animation = ''; }, 10);
+                });
+
+                // Client-side validation for required fields
+                const requiredFields = [
+                    { name: 'apellido_p', label: 'Apellido Paterno' },
+                    { name: 'nombres', label: 'Nombre' },
+                    { name: 'correo', label: 'Correo' },
+                    { name: 'telefono', label: 'Teléfono' },
+                    { name: 'calle', label: 'Calle' },
+                    { name: 'num_ext', label: 'Número Exterior' },
+                    { name: 'colonia', label: 'Colonia' },
+                    { name: 'estado', label: 'Estado' }
+                ];
+
+                let hasErrors = false;
+                const errors = [];
+
+                requiredFields.forEach(field => {
+                    const input = document.querySelector(`[name="${field.name}"]`);
+                    if (input && input.value.trim() === '') {
+                        input.classList.add('error');
+                        hasErrors = true;
+                        errors.push(`El campo ${field.label} es obligatorio`);
+                    }
+                });
+
+                if (hasErrors) {
+                const dark = document.body.classList.contains("dark-mode");
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formulario incompleto',
+                    html: errors.join('<br>'),
+
+                    // Fondo y texto según tema
+                    background: dark ? '#121212' : '#ffffff',
+                    color: dark ? '#f1f5f9' : '#1e293b',
+
+                    // Botón según tema
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: dark ? '#84cc16' : '#b4c24d'
+                });
+
+                return false;
+            }
+
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const btnText = submitBtn.querySelector('.btn-text');
+                const originalText = btnText.textContent;
+                
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
+
                 $.ajax({
-                // Post back to the front controller so the page's POST handler runs
                     url: "index.php?view=editar_empleado",
                     type: "POST",
                     data: $(this).serialize(),
@@ -449,176 +867,37 @@
                                     icon: res.icon || 'error',
                                     showConfirmButton: true
                                 });
+                                submitBtn.disabled = false;
+                                btnText.textContent = originalText;
                             }
                         } catch (e) {
-                            console.error("<?= "Error al procesar JSON" ?>: ", e, response);
+                            console.error("Error al procesar JSON: ", e, response);
                             Swal.fire({
-                                title: '<?= "Error" ?>',
-                                text: '<?= "Ocurrio un error al procesar la respuesta" ?>',
+                                title: 'Error',
+                                text: 'Ocurrió un error al procesar la respuesta',
                                 icon: 'error',
                                 showConfirmButton: true
                             });
+                            submitBtn.disabled = false;
+                            btnText.textContent = originalText;
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         Swal.fire({
-                            title: '<?= "Error de conexión" ?>',
-                            text: '<?= "No se pudo conectar con el servidor" ?>',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor',
                             icon: 'error',
                             showConfirmButton: true
-                        })
+                        });
+                        submitBtn.disabled = false;
+                        btnText.textContent = originalText;
                     }
                 });
             });
         });
-    </script>
-</head>
-<body>
-    <div>
-        <h2>Editor de Empleados</h2>
-    </div>
-    
-    <div>
-        <div>
-            <span>Datos Básicos</span>
-            <span id="btnClose">&#10005;</span>
-        </div>
 
-        <form id="editar" action="index.php?view=editar_empleado" method="POST" enctype="multipart/form-data">
-            <div>
-                <div>
-                    <div>
-                        <label>Apellido Paterno: </label>
-                        <input type="text" name="apellido_p" maxlength="50" value="<?= htmlspecialchars($empleado['apellido_paterno'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label>Apellido Materno: </label>
-                        <input type="text" name="apellido_m" maxlength="50" value="<?= htmlspecialchars($empleado['apellido_materno'] ?? '') ?>">
-                    </div>
-                </div>
-
-                <label>Nombre(s): </label>
-                <input type="text" name="nombres" maxlength="50" value="<?= htmlspecialchars($empleado['nombre'] ?? '') ?>">
-
-                <label>Correo: </label>
-                <input type="text" name="correo" maxlength="100" value="<?= htmlspecialchars($empleado['correo'] ?? '') ?>">
-
-                <div>
-                    <div>
-                        <label>Contraseña: </label>
-                        <!-- Deshabilitado por defecto; se habilita al pulsar el botón "Cambiar Contraseña" -->
-                        <input id="contra" type="password" name="contra" maxlength="255" disabled>
-                    </div>
-                    <div>
-                        <label>Teléfono: </label>
-                        <input type="text" name="telefono" maxlength="20" value="<?= htmlspecialchars($empleado['celular'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <button type="button" id="btnCambiarContra">Cambiar Contraseña</button>
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Calle: </label>
-                        <input type="text" name="calle" maxlength="100" value="<?= htmlspecialchars($empleado['calle'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label>No. Ext: </label>
-                        <input type="text" name="num_ext" maxlength="10" value="<?= htmlspecialchars($empleado['num_ext'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label>No. Int: </label>
-                        <input type="text" name="num_int" maxlength="10" value="<?= htmlspecialchars($empleado['num_int'] ?? '') ?>">
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Colonia: </label>
-                        <input type="text" name="colonia" maxlength="100" value="<?= htmlspecialchars($empleado['colonia'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label>Código Postal: </label>
-                        <input type="text" name="cp" maxlength="10" value="<?= htmlspecialchars($empleado['cp'] ?? '') ?>">
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Estado: </label>
-                        <input type="text" name="estado" maxlength="100" value="<?= htmlspecialchars($empleado['estado'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label>Estatus:</label>
->>>>>>> 374693a (avances y cambios)
-                        <label class="switch">
-                            <input type="hidden" name="estatus" value="0">
-                            <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-<<<<<<< HEAD
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <label style="font-size:14px; font-weight:500; color:#374151;">Puesto:</label><br>
-                    <select name="rol_id" required style="padding:10px 16px; border:1.5px solid #b3c428; border-radius:8px; font-size:17px; width:100%;">
-                        <option value="<?= $rol_actual_id ?>"><?= htmlspecialchars($rol_actual_nombre ?: 'Seleccionar') ?></option>
-                        <?php foreach ($roles as $rol): ?>
-                            <?php if ($rol['id'] != $rol_actual_id): ?>
-                                <option value="<?= $rol['id'] ?>"><?= htmlspecialchars($rol['nombre']) ?></option>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                        <!-- Agrega más opciones según los roles disponibles -->
-                    </select>
-                </div>
-                
-            </div>
-            <div style="display:flex; justify-content:center; gap:18px; margin-top:28px;">
-                <button type="submit" style="background:#f43f5e; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Actualizar</button>
-                <button type="button" onclick="window.history.back()" style="background:#b3c428; color:#fff; font-weight:600; padding:10px 28px; border:none; border-radius:6px; font-size:15px; cursor:pointer;">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</body>
-=======
-                <div>
-                    <div>
-                        <label>Puesto:</label><br>
-                        <select id="id_rol" name="id_rol">
-                            <option value="">Seleccionar el puesto</option>
-                            <?php foreach ($roles as $rol): ?>
-                                <?php if ($rol['id_rol'] != $rol_actual_id): // Oculta el rol actual ?>
-                                    <option value="<?= $rol['id_rol'] ?>">
-                                        <?= htmlspecialchars($rol['nombre_rol']) ?>
-                                    </option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <label>Actual No. Empleado: </label>
-                        <input id="actual_empleado" type="text" name="actual_empleado" value="<?= htmlspecialchars($empleado['id_empleado'] ?? '') ?>" readonly>
-                    </div>
-                    <div>
-                        <label>Nuevo No. Empleado: </label>
-                        <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" readonly>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <button type="submit">Actualizar</button>
-                <button type="button" id="btnCancelar">Cancelar</button>
-            </div>
-        </form>
-    </div>
-    <script>
-        // Cuando cambie el select de rol, pedir el siguiente id_empleado
+        // Auto-generate employee number (ORIGINAL LOGIC PRESERVED)
         document.addEventListener('DOMContentLoaded', function () {
             const rolSelect = document.getElementById('id_rol');
             const numInput = document.getElementById('num_empleado');
@@ -658,7 +937,7 @@
                 fetchNext(rolSelect.value);
             }
 
-            // Lógica para pedir la contraseña del usuario que autoriza (SweetAlert) y, si es correcta, habilitar el input
+            // Change password logic (ORIGINAL LOGIC PRESERVED)
             const btnCambiarContra = document.getElementById('btnCambiarContra');
             const contraInput = document.getElementById('contra');
             if (btnCambiarContra && contraInput) {
@@ -673,7 +952,7 @@
                         return;
                     }
 
-                    // Pedir la contraseña del usuario que autoriza usando el patrón sugerido
+                    // Pedir la contraseña del usuario que autoriza
                     const { value: password } = await Swal.fire({
                         title: 'Ingresa tu contraseña',
                         input: 'password',
@@ -689,9 +968,8 @@
                         cancelButtonText: 'Cancelar'
                     });
 
-                    if (!password) return; // canceló o no ingresó
+                    if (!password) return;
 
-                    // Enviar al servidor para verificar (verify_password.php)
                     try {
                         const resp = await fetch('scripts/verify_password.php', {
                             method: 'POST',
@@ -717,40 +995,59 @@
             }
         });
 
-        // Confirmar antes de descartar el borrador y volver atrás
-        (function(){
+       // Confirm discard (ORIGINAL LOGIC PRESERVED)
+        (function () {
+
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
+
+                const dark = document.body.classList.contains('dark-mode');
+
                 Swal.fire({
                     title: "¿Descartar cambios?",
                     text: "Se eliminarán los datos ingresados para este empleado. ¿Desea continuar?",
-                    icon: "info",
+                    icon: "warning",
                     showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
+
+                    //  FONDO Y TEXTO SEGÚN EL MODO
+                    background: dark ? "#121212" : "#ffffff",
+                    color: dark ? "#f1f5f9" : "#1e293b",
+
+                    //  BOTONES
+                    confirmButtonColor: dark ? "#e11d48" : "#e15871",
+                    cancelButtonColor: dark ? "#475569" : "#6b7280",
+
                     confirmButtonText: "Sí, descartar",
-                    cancelButtonText: "Cancelar"
+                    cancelButtonText: "Cancelar",
+                    reverseButtons: true
                 }).then((result) => {
+
                     if (result.isConfirmed) {
+
                         Swal.fire({
                             title: "Descartado",
                             text: "Los datos fueron descartados.",
                             icon: "success",
+
+                            //  Modo oscuro en el segundo modal también
+                            background: dark ? "#1e293b" : "#ffffff",
+                            color: dark ? "#f1f5f9" : "#1e293b",
+
                             timer: 900,
                             showConfirmButton: false
                         }).then(() => {
                             window.history.back();
                         });
+
                     }
                 });
             }
 
             const btnCancel = document.getElementById('btnCancelar');
-            const btnClose = document.getElementById('btnClose');
             if (btnCancel) btnCancel.addEventListener('click', confirmDiscard);
-            if (btnClose) btnClose.addEventListener('click', confirmDiscard);
+
         })();
+
     </script>
-</body> 
->>>>>>> 374693a (avances y cambios)
+</body>
 </html>
