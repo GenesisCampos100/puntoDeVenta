@@ -260,7 +260,7 @@ function normalizeCategory($name) {
                 
                 <!-- STOCK -->
                 <p class="text-sm mb-3 font-semibold stock-text" style="color: #10b981;">
-                    Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
+                    Stock: <?= count($prod['variantes']) > 0 ? __('depends_on_variant') : $prod['stock'] ?>
                 </p>
                 
                 <!-- VARIANTES -->
@@ -283,7 +283,7 @@ function normalizeCategory($name) {
                 </select>
                 
                 <button class="add-to-cart w-full font-semibold py-3 rounded-xl text-white transition-all hover:shadow-lg" style="background: linear-gradient(135deg, var(--secondary) 0%, #1e3244 100%);">
-                    Agregar al Carrito
+                    <?= __('add_to_cart_button') ?>
                 </button>
             </article>
         <?php endforeach; ?>
@@ -291,9 +291,9 @@ function normalizeCategory($name) {
 </div>
 
 <!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-0 right-0 w-96 h-full bg-white flex flex-col p-5 z-50 animate-slide-right">
+<aside id="cart" class="fixed top-[81px] right-0 w-80 h-[calc(100%-81px)] bg-white shadow-lg flex flex-col p-4 z-50">   
     <div class="flex justify-between items-center mb-5">
-        <h2 class="text-2xl font-bold" style="color: var(--secondary);">Mi Carrito</h2>
+        <h2 class="text-2xl font-bold" style="color: var(--secondary);"><?= __('my_cart') ?></h2>
         <div class="flex gap-2">
             <button id="client-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--secondary);" title="Seleccionar Cliente">👤</button>
             <button id="discount-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--primary);" title="Descuento General">%</button>
@@ -301,42 +301,39 @@ function normalizeCategory($name) {
         </div>
     </div>
     
-    <div id="cliente_info" class="text-sm mb-4">
-        <span class="font-semibold"><?= __('selected_customer_label') ?></span>
-        <span id="nombre_cliente_seleccionado">
-            <?php if (isset($_SESSION['cliente_id'])) : ?>
-                <?php
-                $stmt = $pdo->prepare("SELECT nombre FROM clientes WHERE id_cliente = ?");
-                $stmt->execute([$_SESSION['cliente_id']]);
-                $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
-                echo htmlspecialchars($cliente['nombre']);
-                ?>
-            <?php else : ?>
-                <?= __('no_customer_selected_label') ?>
-            <?php endif; ?>
-        </span>
-        <button id="cambiar_cliente_btn" class="text-blue-500 hover:underline ml-2"><?= __('change_button') ?></button>
-        <?php if (isset($_SESSION['cliente_id'])) : ?>
-            <button id="eliminar_cliente_btn" class="text-red-500 hover:underline ml-2"><?= __('remove_button') ?></button>
-        <?php endif; ?>
+    <div id="cliente_info" class="hidden mb-4 p-4 rounded-xl" style="background: #e0f2fe;">
+        <p class="text-sm font-semibold text-gray-700"><?= __('selected_customer_label') ?></p>
+        <p id="cliente_nombre" class="text-gray-800 font-medium"><?= __('no_customer_selected') ?></p>
+        <div class="flex gap-2 mt-3">
+            <button id="cambiarCliente" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md" style="background: var(--secondary);"><?= __('change_button') ?></button>
+            <button id="eliminarCliente" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700"><?= __('delete_button') ?></button>
+        </div>
+        <input type="hidden" id="cliente_id" value="">
     </div>
     
-    <div class="flex-grow overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="product-grid">
-        <?php
-        $stmt = $pdo->query("SELECT p.id, p.nombre_producto, p.precio_venta, p.imagen_url, v.talla, v.color, v.stock, v.id_variante FROM productos p JOIN variantes v ON p.id = v.id_producto WHERE p.activo = 1");
-        while ($producto = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            echo '<div class="product-card bg-white rounded-lg shadow-md p-4 flex flex-col" data-id-variante="' . $producto['id_variante'] . '" data-nombre="' . htmlspecialchars($producto['nombre_producto']) . '" data-precio="' . $producto['precio_venta'] . '" data-talla="' . htmlspecialchars($producto['talla']) . '" data-color="' . htmlspecialchars($producto['color']) . '">';
-            echo '<img src="../' . htmlspecialchars($producto['imagen_url']) . '" alt="' . htmlspecialchars($producto['nombre_producto']) . '" class="w-full h-32 object-cover mb-4 rounded">';
-            echo '<h3 class="text-lg font-semibold flex-grow">' . htmlspecialchars($producto['nombre_producto']) . '</h3>';
-            echo '<p class="text-gray-500">' . htmlspecialchars($producto['talla']) . ' - ' . htmlspecialchars($producto['color']) . '</p>';
-            echo '<p class="text-xl font-bold mt-2">$' . number_format($producto['precio_venta'], 2) . '</p>';
-            echo '<button class="add-to-cart-btn bg-blue-500 text-white px-4 py-2 rounded mt-4">' . __('add_to_cart') . '</button>';
-            echo '</div>';
-        }
-        ?>
-    </div>
-    <!-- Fin de la cuadrícula de productos -->
-</div>
+    <div id="cart-items" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
+    
+    <form id="checkout-form" class="mt-auto">
+        <input type="hidden" name="id_cliente" id="id_cliente">
+        <div class="border-t-2 pt-4">
+            <div class="flex justify-between text-base mb-2">
+                <span class="font-medium text-gray-600"><?= __('subtotal_label') ?></span>
+                <span id="subtotal" class="font-semibold text-gray-800">$0.00</span>
+            </div>
+            <div class="flex justify-between text-base mb-3">
+                <span class="font-medium text-red-600"><?= __('discount_label') ?></span>
+                <span id="discount" class="font-semibold text-red-600">$0.00</span>
+            </div>
+            <div class="flex justify-between font-bold text-2xl mb-4" style="color: var(--primary);">
+                <span><?= __('total_label') ?></span>
+                <span id="total">$0.00</span>
+            </div>
+            <button type="button" id="pay-btn" class="w-full font-bold py-4 rounded-xl text-white transition-all hover:shadow-xl text-lg" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
+                <?= __('process_sale_button') ?>
+            </button>
+        </div>
+    </form>
+</aside>
 
 <!-- Carrito de Compras -->
 <!-- MODAL CLIENTES -->
@@ -356,7 +353,7 @@ function normalizeCategory($name) {
 <!-- MODAL PAGO -->
 <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-slide">
-        <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--secondary);">Método de Pago</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--secondary);"><?= __('payment_method_title') ?></h2>
         
         <form id="payment-form">
             <input type="hidden" name="cart_data" id="cart-data-input">
@@ -369,47 +366,47 @@ function normalizeCategory($name) {
             <div class="space-y-3 mb-6">
                 <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
                     <input type="radio" name="metodo" value="EFECTIVO" checked class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💵 Efectivo</span>
+                    <span class="text-lg font-medium"><?= __('cash_payment_label') ?></span>
                 </label>
                 
                 <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
                     <input type="radio" name="metodo" value="TARJETA" class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💳 Tarjeta</span>
+                    <span class="text-lg font-medium"><?= __('card_payment_label') ?></span>
                 </label>
                 
                 <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
                     <input type="radio" name="metodo" value="MIXTO" class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💵💳 Pago Mixto</span>
+                    <span class="text-lg font-medium"><?= __('mixed_payment_label') ?></span>
                 </label>
             </div>
             
             <div id="efectivo-section" class="mb-4">
-                <label class="block text-sm font-semibold mb-2">Monto recibido (efectivo):</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('cash_received_label') ?></label>
                 <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="0.00">
             </div>
             
             <div id="tarjeta-section" class="mb-4 hidden">
-                <label class="block text-sm font-semibold mb-2">Monto pagado con tarjeta:</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('card_paid_label') ?></label>
                 <input type="number" step="0.01" id="monto-tarjeta" name="monto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
                 
-                <label class="block text-sm font-semibold mb-2">Referencia / Folio:</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('reference_label') ?></label>
                 <input type="text" id="referencia-tarjeta" name="referencia_tarjeta" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Ingrese referencia">
             </div>
             
             <div id="mixto-section" class="mb-4 hidden">
-                <label class="block text-sm font-semibold mb-2">Efectivo:</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('cash_label') ?></label>
                 <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
                 
-                <label class="block text-sm font-semibold mb-2">Tarjeta:</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('card_label') ?></label>
                 <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
                 
-                <label class="block text-sm font-semibold mb-2">Referencia tarjeta:</label>
+                <label class="block text-sm font-semibold mb-2"><?= __('card_reference_label') ?></label>
                 <input type="text" id="mixto-referencia" name="mixto_referencia" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Folio, referencia, etc.">
             </div>
             
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="cancel-payment" class="px-6 py-3 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-                <button type="submit" id="confirm-payment" class="px-6 py-3 text-white rounded-xl font-semibold transition-all hover:shadow-xl" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">Confirmar</button>
+                <button type="button" id="cancel-payment" class="px-6 py-3 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?= __('cancel_button') ?></button>
+                <button type="submit" id="confirm-payment" class="px-6 py-3 text-white rounded-xl font-semibold transition-all hover:shadow-xl" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);"><?= __('confirm_button') ?></button>
             </div>
         </form>
     </div>
@@ -418,7 +415,7 @@ function normalizeCategory($name) {
 <!-- MODAL DESCUENTO GENERAL -->
 <div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento General</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?= __('general_discount_title') ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
@@ -427,8 +424,8 @@ function normalizeCategory($name) {
             <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?= __('cancel_button') ?></button>
+            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?= __('apply_button') ?></button>
         </div>
     </div>
 </div>
@@ -436,7 +433,7 @@ function normalizeCategory($name) {
 <!-- MODAL DESCUENTO POR PRODUCTO -->
 <div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?= __('product_discount_title') ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
@@ -445,11 +442,23 @@ function normalizeCategory($name) {
             <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?= __('cancel_button') ?></button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?= __('apply_button') ?></button>
         </div>
     </div>
 </div>
+
+<script>
+    const translations = {
+        empty_cart_message: "<?= __('empty_cart_message') ?>",
+        add_products_message: "<?= __('add_products_message') ?>",
+        discount_button: "<?= __('discount_button') ?>",
+        remove_button: "<?= __('remove_button') ?>",
+        sale_registered_message: "<?= __('sale_registered_message') ?>",
+        sale_error_message: "<?= __('sale_error_message') ?>",
+        process_sale_error_message: "<?= __('process_sale_error_message') ?>"
+    };
+</script>
 
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
