@@ -22,5 +22,8 @@
     "gulp-sass": "^6.0.1",
     "sass": "^1.90.0",
     "sharp": "^0.34.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }

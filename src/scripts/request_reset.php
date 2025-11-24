@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
 if (!$email) {
     $_SESSION['error'] = 'Correo inválido';
-    header('Location: ../pages/recuperar_contrasena.html');
+    header('Location: ../pages/recuperar_contrasena.php');
     exit;
 }
 
@@ -46,7 +46,7 @@ $now = time();
 $ipTimes = isset($attempts[$ip]) ? array_filter($attempts[$ip], function($t) use ($now, $windowSeconds) { return ($now - $t) <= $windowSeconds; }) : [];
 if (count($ipTimes) >= $maxAttempts) {
     $_SESSION['error'] = 'Demasiados intentos de recuperación desde tu IP. Intenta de nuevo más tarde.';
-    header('Location: ../pages/recuperar_contrasena.html');
+    header('Location: ../pages/recuperar_contrasena.php');
     exit;
 }
 // anotar intento
@@ -69,7 +69,7 @@ if (!$user || empty($user['id_empleado'])) {
     // Por seguridad, no revelar si el correo existe o si el usuario es un empleado.
     // Se muestra un mensaje genérico para que un atacante no pueda enumerar cuentas de empleados.
     $_SESSION['info'] = 'Si una cuenta de empleado está asociada a este correo, se enviarán instrucciones para restablecer la contraseña.';
-    header('Location: ../pages/recuperar_contrasena.html');
+    header('Location: ../pages/recuperar_contrasena.php');
     exit;
 }
 
@@ -134,7 +134,7 @@ try {
     $host = $_SERVER['HTTP_HOST'];
     $basePath = dirname($_SERVER['REQUEST_URI']); // ej. /PrismaMK2C/src/scripts
     $pagesPath = str_replace('/src/scripts', '/src/pages', $basePath);
-    $resetLink = $protocol . '://' . $host . $pagesPath . '/confirmar_contra.html?token=' . urlencode($token);
+    $resetLink = $protocol . '://' . $host . $pagesPath . '/confirmar_contra.php?token=' . urlencode($token);
 
     $mail->isHTML(true);
     $mail->Subject = 'Recuperación de contraseña';
@@ -155,5 +155,5 @@ try {
 }
 
 $_SESSION['info'] = 'Si existe una cuenta asociada, recibirás un email con instrucciones.';
-header('Location: ../pages/recuperar_contrasena.html');
+header('Location: ../pages/recuperar_contrasena.php');
 exit;
