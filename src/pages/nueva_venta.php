@@ -59,6 +59,7 @@ foreach ($rows as $row) {
             'precio' => $row['producto_precio'] ?: 0,
             'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
+            'talla_default' => $row['producto_talla'] ?: 'N/A',
             'color_default' => $row['producto_color'] ?: 'Sin color',
             'stock' => $row['producto_cantidad'] ?: 0,
         ];
@@ -86,246 +87,185 @@ function normalizeCategory($name) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punto de Venta - Caja</title>
-    
-    <!-- Poppins Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    
-    <style>
-        :root {
-            --primary: #b4c24d;
-            --primary-dark: #9fb03d;
-            --secondary: #2d4353;
-            --accent: #e15871;
-            --bg-gray: #eeeeee;
-            --font: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        body {
-            font-family: var(--font);
-            background: linear-gradient(135deg, #f9fafb 0%, var(--bg-gray) 100%);
-            min-height: 100vh;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .animate-fade { animation: fadeIn 0.5s ease-out; }
-        .animate-slide { animation: slideIn 0.5s ease-out; }
-        .animate-slide-right { animation: slideInRight 0.3s ease-out; }
-        
-        .producto {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .producto:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-        }
-        
-        .category-btn {
-            transition: all 0.25s ease;
-        }
-        
-        .category-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(225, 88, 113, 0.3);
-        }
-        
-        .category-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        }
-        
-        #cart {
-            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
-        }
-        
-        .search-container {
-            position: relative;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 1rem 1.5rem 1rem 3.5rem;
-            font-size: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 4px 16px rgba(180, 194, 77, 0.2);
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punto de Venta - Caja</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  button svg {
+  pointer-events: none;
+}
+</style>
+
 </head>
-<body>
-
-<!-- HEADER CON BÚSQUEDA -->
-<div class="px-6 pt-6 pb-4 animate-fade">
-    <div class="search-container">
-        <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <input type="text" id="search-products" class="search-input" placeholder="Buscar productos por nombre, categoría o código...">
+<body class="bg-gray-50 font-sans">
+<!-- Contenedor principal -->
+<div class="main-content pr-96">
+  <!-- BÚSQUEDA -->
+  <div class="px-6 py-6">
+    <div class="relative max-w-xl mx-auto">
+      <input type="text" id="search-products" placeholder="Buscar productos por nombre, categoría o código..."
+        class="w-full pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-green-500 shadow-sm transition">
+      <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" fill="none"
+        stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
     </div>
-</div>
+  </div>
 
-<!-- CATEGORÍAS -->
-<div class="flex flex-wrap justify-start gap-2 mb-6 px-6 animate-slide">
-    <button data-category="all" class="category-btn active px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-        Todos
-    </button>
+  <!-- CATEGORÍAS -->
+  <div class="px-6 flex flex-wrap gap-2 mb-6">
+    <button data-category="all"
+      class="category-btn bg-pink-500 text-white px-6 py-2 rounded-full font-semibold shadow-md">Todos</button>
     <?php foreach($categorias as $cat): ?>
-        <button data-category="<?= normalizeCategory($cat['nombre']) ?>" class="category-btn px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-            <?= htmlspecialchars($cat['nombre']) ?>
-        </button>
+    <button data-category="<?= normalizeCategory($cat['nombre']) ?>"
+      class="category-btn bg-pink-500 text-white px-6 py-2 rounded-full font-semibold shadow-md">
+      <?= htmlspecialchars($cat['nombre']) ?>
+    </button>
     <?php endforeach; ?>
-</div>
+  </div>
 
-<!-- GRID PRODUCTOS -->
+<!-- PRODUCTOS -->
 <div class="px-6">
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
-    <?php foreach($productos as $prod): 
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="productos-grid">
+    <?php foreach($productos as $prod):
       $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
       $precio = $prod['precio'] ?: 0;
-      $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
+      $variants = $prod['variantes'] ?? [];
+      $variants_json = htmlspecialchars(json_encode($variants, JSON_UNESCAPED_UNICODE), ENT_QUOTES);
+
+      // tallas únicas
+      $sizes = array_unique(array_map(fn($v)=> $v['talla'] ?? $prod['talla_default'], $variants));
+      if (empty($sizes)) $sizes = [$prod['talla_default']];
+
+      // colores de la primera talla
+      $firstSize = $sizes[0];
+      $colors = array_unique(array_map(fn($v)=> $v['color'], array_filter($variants, fn($v)=>($v['talla'] ?? $prod['talla_default'])==$firstSize)));
+      if (empty($colors)) $colors = [$prod['color_default']];
     ?>
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-               data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
-               data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-               data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-               data-price="<?= htmlspecialchars($precio) ?>"
-               data-category="<?= htmlspecialchars($prod['categoria']) ?>"
-               data-stock="<?= $prod['stock'] ?>"
-               data-variants='<?= $variants_json ?>'>
-        
-        <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['nombre']) ?>" class="w-full h-40 object-cover rounded product-image">
-        
-        <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
-        <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
-        <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
+    <article class="producto bg-white rounded-xl shadow-md p-4 flex flex-col items-center hover:shadow-lg transition"
+        data-code="<?= htmlspecialchars($prod['producto_cod_barras'] ?? '') ?>"
+        data-name="<?= htmlspecialchars($prod['nombre'] ?? '') ?>"
+        data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
+        data-price="<?= htmlspecialchars($precio) ?>"
+        data-category="<?= htmlspecialchars($prod['categoria'] ?? '') ?>"
+        data-stock="<?= $prod['stock'] ?? 0 ?>"
+        data-variants='<?= $variants_json ?>'>
 
-        <!-- STOCK MOSTRADO -->
-        <p class="text-sm mt-1 text-green-600 font-semibold stock-text">
-            Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
-        </p>
+      <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" class="w-28 h-28 rounded-full object-cover -mt-10 shadow-sm transition-transform hover:scale-105">
+      <h2 class="text-sm"><?= htmlspecialchars($prod['producto_cod_barras'] ?? '') ?></h2>
+      <h3 class="mt-4 font-semibold text-gray-800 text-lg text-center"><?= htmlspecialchars($prod['nombre'] ?? '') ?></h3>
+      <p class="text-sm text-gray-500"><?= htmlspecialchars($prod['categoria'] ?? '') ?></p>
+      <p class="mt-1 font-bold text-green-500">$<?= number_format($precio,2) ?></p>
+      <p class="stock-text text-sm mt-1 font-medium text-gray-600">Stock: <?= count($variants)>0 ? 'Según variante' : ($prod['stock'] ?? 0) ?></p>
 
-        <select class="variant-size border rounded-lg px-2 py-1 text-sm mt-2 w-full">
-          <?php 
-            $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
-            if (empty($sizes)) $sizes = [$prod['talla_default']];
-            foreach ($sizes as $size): ?>
-              <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-          <?php endforeach; ?>
-        </select>
+      <!-- Select Talla -->
+      <select class="variant-size mt-2 w-full border-gray-200 rounded-lg p-2">
+        <?php foreach($sizes as $size): ?>
+          <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+        <?php endforeach; ?>
+      </select>
 
-        <select class="variant-color border rounded-lg px-2 py-1 text-sm mt-2 w-full">
-          <?php 
-            $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
-            if (empty($colors)) $colors = [$prod['color_default']];
-            foreach ($colors as $color): ?>
-              <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-          <?php endforeach; ?>
-        </select>
+      <!-- Select Color dependiente -->
+      <select class="variant-color mt-2 w-full border-gray-200 rounded-lg p-2">
+        <?php foreach($colors as $color): ?>
+          <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+        <?php endforeach; ?>
+      </select>
 
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
-      </article>
+      <button type="button" class="add-to-cart mt-3 w-full bg-pink-500 text-white rounded-lg py-2 font-semibold hover:bg-pink-600 transition">
+        Agregar
+      </button>
+    </article>
     <?php endforeach; ?>
   </div>
 </div>
 
-<!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-0 right-0 w-96 h-full bg-white flex flex-col p-5 z-50 animate-slide-right">
-    <div class="flex justify-between items-center mb-5">
-        <h2 class="text-2xl font-bold" style="color: var(--secondary);">Mi Carrito</h2>
-        <div class="flex gap-2">
-            <button id="client-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--secondary);" title="Seleccionar Cliente">👤</button>
-            <button id="discount-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--primary);" title="Descuento General">%</button>
-            <button id="clear-cart" class="p-2.5 bg-red-100 text-red-600 rounded-full transition-all hover:bg-red-200" title="Limpiar Carrito">🗑</button>
-        </div>
+
+          </div>
+
+
+<aside id="cart" class="fixed top-0 right-0 w-96 h-full bg-white flex flex-col p-5 z-50 shadow-xl animate-slide-right">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-5 border-b pb-3">
+    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+      🛒 Mi Carrito
+    </h2>
+    <div class="flex gap-2">
+      <button id="client-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110 shadow" style="background: #4ADE80;" title="Seleccionar Cliente">👤</button>
+      <button id="discount-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110 shadow" style="background: #22D3EE;" title="Descuento General">%</button>
+      <button id="clear-cart" class="p-2.5 bg-red-100 text-red-600 rounded-full transition-all hover:bg-red-200 shadow" title="Limpiar Carrito">🗑</button>
     </div>
-    
-    <div id="cliente_info" class="hidden mb-4 p-4 rounded-xl" style="background: #e0f2fe;">
-        <p class="text-sm font-semibold text-gray-700">Cliente seleccionado:</p>
-        <p id="cliente_nombre" class="text-gray-800 font-medium">No hay cliente seleccionado</p>
-        <div class="flex gap-2 mt-3">
-            <button id="cambiarCliente" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md" style="background: var(--secondary);">Cambiar</button>
-            <button id="eliminarCliente" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700">Eliminar</button>
-        </div>
-        <input type="hidden" id="cliente_id" value="">
+  </div>
+
+
+<!-- Cliente compacto con íconos -->
+<div id="cliente_info" class="hidden mb-2 p-2 rounded-xl bg-gray-50 border border-green-200 flex items-center justify-between">
+  <!-- Nombre cliente -->
+  <p id="cliente_nombre" class="text-lg font-medium text-gray-800 truncate max-w-[70%]">No hay cliente seleccionado</p>
+
+  <!-- Botones como íconos -->
+  <div class="flex gap-2">
+    <!-- Cambiar cliente (icono switch) -->
+    <button id="cambiarCliente" class="p-2 bg-green-400 text-white rounded-full hover:bg-green-500 transition" title="Cambiar Cliente">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6M4 10a8 8 0 0116 0 8 8 0 01-16 0z" />
+      </svg>
+    </button>
+
+    <!-- Eliminar cliente -->
+    <button id="eliminarCliente" class="p-2 bg-pink-600 text-white rounded-full hover:bg-pink-700 transition" title="Eliminar Cliente">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <input type="hidden" id="cliente_id" value="">
+</div>
+
+
+
+
+
+  <!-- Items -->
+  <div id="cart-items" class="flex-1 overflow-y-auto space-y-3 mb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+  </div>
+
+  <!-- Totales -->
+  <form id="checkout-form" class="mt-auto">
+    <input type="hidden" name="id_cliente" id="id_cliente">
+    <div class="border-t-2 pt-4 space-y-2">
+      <div class="flex justify-between text-base">
+        <span class="font-medium text-gray-600">Subtotal:</span>
+        <span id="subtotal" class="font-semibold text-gray-800">$0.00</span>
+      </div>
+      <div class="flex justify-between text-base">
+        <span class="font-medium text-red-600">Descuento:</span>
+        <span id="discount" class="font-semibold text-red-600">$0.00</span>
+      </div>
+      <div class="flex justify-between font-bold text-2xl mt-2" style="color: #123163ff;">
+        <span>Total:</span>
+        <span id="total">$0.00</span>
+      </div>
+      <button type="button" id="pay-btn" class="w-full mt-4 py-4 text-white font-bold rounded-xl hover:from-blue-600 hover:to-blue-800 transition-shadow shadow-md hover:shadow-xl" style="background-color: #0A2342;">
+      Procesar Venta
+      </button>
     </div>
-    
-    <div id="cart-items" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
-    
-    <form id="checkout-form" class="mt-auto">
-        <input type="hidden" name="id_cliente" id="id_cliente">
-        <div class="border-t-2 pt-4">
-            <div class="flex justify-between text-base mb-2">
-                <span class="font-medium text-gray-600">Subtotal:</span>
-                <span id="subtotal" class="font-semibold text-gray-800">$0.00</span>
-            </div>
-            <div class="flex justify-between text-base mb-3">
-                <span class="font-medium text-red-600">Descuento:</span>
-                <span id="discount" class="font-semibold text-red-600">$0.00</span>
-            </div>
-            <div class="flex justify-between font-bold text-2xl mb-4" style="color: var(--primary);">
-                <span>Total:</span>
-                <span id="total">$0.00</span>
-            </div>
-            <button type="button" id="pay-btn" class="w-full font-bold py-4 rounded-xl text-white transition-all hover:shadow-xl text-lg" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-                💳 Procesar Venta
-            </button>
-        </div>
-    </form>
+  </form>
 </aside>
+
+
 <!-- MODAL CLIENTES -->
 <div id="modalClientes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
@@ -490,6 +430,7 @@ function normalizeCategory($name) {
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
+<!-- SCRIPTS -->
 <script>
 // BÚSQUEDA EN TIEMPO REAL
 document.getElementById('search-products').addEventListener('input', function(e) {
@@ -533,30 +474,46 @@ document.querySelectorAll('.category-btn').forEach(btn => {
     });
 });
 
-// ACTUALIZAR STOCK SEGÚN VARIANTE
 document.querySelectorAll('.producto').forEach(card => {
     const variants = JSON.parse(card.dataset.variants);
     const sizeSelect = card.querySelector('.variant-size');
     const colorSelect = card.querySelector('.variant-color');
     const stockText = card.querySelector('.stock-text');
-    
-    function updateStock() {
-        if (!variants.length) return;
-        
-        const talla = sizeSelect.value;
-        const color = colorSelect.value;
-        
-        const variante = variants.find(v => v.talla === talla && v.color === color);
-        
-        stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
-    }
-    
-    if (variants.length) {
-        sizeSelect.addEventListener('change', updateStock);
-        colorSelect.addEventListener('change', updateStock);
+
+    function updateColors() {
+        const selectedSize = sizeSelect.value;
+        // Filtrar colores disponibles para la talla seleccionada
+        const availableColors = variants
+            .filter(v => v.talla === selectedSize)
+            .map(v => v.color);
+
+        const uniqueColors = [...new Set(availableColors)];
+        colorSelect.innerHTML = '';
+        uniqueColors.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c;
+            option.textContent = c;
+            colorSelect.appendChild(option);
+        });
+
+        // Después de actualizar colores, actualizar stock
         updateStock();
     }
+
+    function updateStock() {
+        const talla = sizeSelect.value;
+        const color = colorSelect.value;
+        const variante = variants.find(v => v.talla === talla && v.color === color);
+        stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
+    }
+
+    if (variants.length) {
+        sizeSelect.addEventListener('change', updateColors);
+        colorSelect.addEventListener('change', updateStock);
+        updateColors(); // inicializar select de colores según la talla inicial
+    }
 });
+
 
 // BÚSQUEDA DE CLIENTES
 $('#buscarCliente').on('input', function() {

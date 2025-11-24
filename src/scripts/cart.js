@@ -86,49 +86,61 @@ function updateCart() {
         return;
     }
 
-    cart.forEach((item, index) => {
-        const itemDiscount = getItemDiscountAmount(item);
-        const itemTotal = (parseFloat(item.price)||0) * (parseInt(item.quantity)||0) - itemDiscount;
+cart.forEach((item, index) => {
+    const itemDiscount = getItemDiscountAmount(item);
+    const itemTotal = (parseFloat(item.price)||0) * (parseInt(item.quantity)||0) - itemDiscount;
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'relative flex items-center justify-between bg-white shadow-md rounded-2xl p-3 mb-3 w-full';
-        wrapper.innerHTML = `
-            ${itemDiscount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">-$${itemDiscount.toFixed(2)}</span>` : ''}
-            <div class="flex items-center gap-3 w-full">
-                <img src="${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover">
-                <div class="flex flex-col w-full">
-                    <div class="flex justify-between items-center">
-                        <p class="font-semibold truncate text-gray-800">${item.name}</p>
-                        <div class="flex gap-2">
-                            <button class="discount-btn text-blue-600 hover:underline text-sm">Descuento</button>
-                            <button class="remove-btn text-red-600 hover:underline text-sm">Eliminar</button>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">Talla: ${item.size}, Color: ${item.color}</p>
-                    <div class="flex w-full mt-2 items-center">
-                        <div class="flex items-center gap-2 justify-start w-1/2">
-                            <button class="decrease-btn bg-gray-200 px-2 py-1 rounded-lg">−</button>
-                            <input type="number" class="quantity-input font-medium w-16 text-center border rounded px-2 py-1" min="1" value="${item.quantity}">
-                            <button class="increase-btn bg-gray-200 px-2 py-1 rounded-lg">+</button>
-                        </div>
-                        <div class="flex justify-end items-center w-1/2">
-                            <p class="font-semibold text-lg text-gray-700">$${itemTotal.toFixed(2)}</p>
-                        </div>
-                    </div>
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative flex items-start justify-between bg-white shadow-sm hover:shadow-lg rounded-2xl p-3 mb-3 w-full max-w-[450px] transition-shadow duration-200';
+    wrapper.innerHTML = `
+    ${itemDiscount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow">-$${itemDiscount.toFixed(2)}</span>` : ''}
+    <div class="flex items-start gap-3 w-full">
+        <img src="${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover shadow-sm flex-shrink-0">
+        <div class="flex flex-col w-full min-w-0">
+            <div class="flex justify-between items-start">
+                <p class="font-semibold text-gray-800 text-base line-clamp-2 flex-1 min-w-0">${item.name}</p>
+                <div class="flex gap-2 mt-1 flex-shrink-0">
+                    <!-- Botón Descuento más grande -->
+                    <button class="discount-btn p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition" title="Descuento">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8"/>
+                        </svg>
+                    </button>
+                    <!-- Botón Eliminar más grande -->
+                    <button class="remove-btn p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition" title="Eliminar">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
-        `;
+            <p class="text-sm text-gray-500 mt-1 truncate">Talla: <span class="font-medium">${item.size}</span>, Color: <span class="font-medium">${item.color}</span></p>
+            <div class="flex w-full mt-2 items-center justify-between">
+                <div class="flex items-center gap-1">
+                    <button class="decrease-btn bg-gray-200 px-2 py-0.5 rounded-lg hover:bg-gray-300 transition">−</button>
+                    <input type="number" class="quantity-input font-medium w-14 text-center border rounded px-2 py-1" min="1" value="${item.quantity}">
+                    <button class="increase-btn bg-gray-200 px-2 py-0.5 rounded-lg hover:bg-gray-300 transition">+</button>
+                </div>
+                <div class="flex justify-end items-end w-1/2 mt-2">
+                    <p class="font-bold text-lg md:text-xl text-gray-700">$${itemTotal.toFixed(2)}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
 
-        // events
-        wrapper.querySelector('.increase-btn').addEventListener('click', () => { item.quantity++; saveCart(); });
-        wrapper.querySelector('.decrease-btn').addEventListener('click', () => { if(item.quantity>1)item.quantity--; saveCart(); });
-        const qtyInput = wrapper.querySelector('.quantity-input');
-        qtyInput.addEventListener('change', () => { item.quantity = Math.max(1, parseInt(qtyInput.value)||1); saveCart(); });
-        wrapper.querySelector('.remove-btn').addEventListener('click', () => { cart.splice(index,1); saveCart(); });
-        wrapper.querySelector('.discount-btn').addEventListener('click', () => { window.openProductDiscountModal(index, item.discount || 0); });
+    // Eventos
+    wrapper.querySelector('.increase-btn').addEventListener('click', () => { item.quantity++; saveCart(); });
+    wrapper.querySelector('.decrease-btn').addEventListener('click', () => { if(item.quantity>1)item.quantity--; saveCart(); });
+    const qtyInput = wrapper.querySelector('.quantity-input');
+    qtyInput.addEventListener('change', () => { item.quantity = Math.max(1, parseInt(qtyInput.value)||1); saveCart(); });
+    wrapper.querySelector('.remove-btn').addEventListener('click', () => { cart.splice(index,1); saveCart(); });
+    wrapper.querySelector('.discount-btn').addEventListener('click', () => { window.openProductDiscountModal(index, item.discount || 0); });
 
-        cartContainer.appendChild(wrapper);
-    });
+    cartContainer.appendChild(wrapper);
+});
+
+
 
     recalcTotals();
 }
