@@ -1,9 +1,13 @@
 <?php
 // src/pages/productos_contenido.php
-// Versión corregida y funcional — Inventario (productos + variantes + filtros AJAX)
-
+// Versión Premium Refactorizada - Estilo React/Moderno
+// Mantiene TODA la lógica de backend intacta.
 
 require_once __DIR__ . "/../config/db.php";
+
+// -----------------------
+// LÓGICA PHP (INTACTA)
+// -----------------------
 
 // 1. Mapeo para prevenir errores de SQL Injection y columna inválida
 $mapOrder = [
@@ -11,30 +15,22 @@ $mapOrder = [
     'nom_desc'   => 'p.nom_producto DESC',
     'precio_asc' => 'p.precio ASC',
     'precio_desc' => 'p.precio DESC',
-    // Fallback si no viene nada o viene algo inválido
     'p.nom_producto ASC' => 'p.nom_producto ASC'
 ];
 
-// Obtener el valor del GET y mapearlo, o usar el default seguro
 $orden_get = $_GET['orden'] ?? 'nom_asc';
 $orden_sql = $mapOrder[$orden_get] ?? $mapOrder['nom_asc'];
-
-// --- Parámetros GET (fallback igual que tenías) ---
 $busqueda = $_GET['busqueda'] ?? '';
 $categoria = $_GET['categoria'] ?? '';
 $orden = $_GET['orden'] ?? 'p.nom_producto ASC';
 $vista_actual = $_GET['view'] ?? 'productos_contenido';
 
-// -----------------------
-// CONSULTAS INICIALES (para renderizar la página inicialmente)
-// -----------------------
-// Estas consultas sirven solo para el render inicial (si deseas pre-cargar).
-// La carga dinámica de la tabla se hace vía AJAX a ../api/inventario_api.php?action=filtrar
+// Consulta Inicial
 $sql = "SELECT 
+            p.cod_barras,
             p.cod_barras AS id_producto,
-            p.cod_barras AS producto_cod_barras,
-            p.nom_producto AS producto_nombre,
-            p.imagen AS producto_imagen,
+            p.nom_producto,
+            p.imagen,
             p.marca,
             p.descripcion,
             c.nombre AS categoria,
@@ -43,7 +39,7 @@ $sql = "SELECT
             p.sku,
             p.cantidad_min,
             p.costo,
-            p.precio AS precio_unitario,
+            p.precio,
             p.id_categoria,
             (SELECT COUNT(*) FROM variantes v2 WHERE v2.cod_barras = p.cod_barras) AS tiene_variante,
             IFNULL(p.is_active,1) AS is_active
@@ -63,12 +59,12 @@ if (!empty($categoria)) $params[':categoria'] = $categoria;
 $stmt->execute($params);
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// variantes (pre-carga)
+// Variantes (pre-carga)
 $variantesStmt = $pdo->query("
     SELECT 
         v.cod_barras AS id_producto,
-        v.id_variante AS id,
-        v.sku AS cod_barras,
+        v.id_variante,
+        v.sku,
         v.talla,
         v.color,
         v.cantidad,
@@ -84,779 +80,272 @@ foreach ($variantesRaw as $v) {
     $variantesPorProducto[$v['id_producto']][] = $v;
 }
 
-// categorías (para filtro)
+// Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
+$totalProductos = count($productos);
+$stockBajo = 0;
+foreach($productos as $p) {
+    if($p['cantidad'] <= $p['cantidad_min']) $stockBajo++;
+}
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Productos — Inventario</title>
+<!-- Dependencias -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/lucide@0.257.0/dist/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/lucide@0.257.0/dist/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-   <style>
-    /* Definición de la Paleta de Colores en CSS Variables */
-    :root {
-        --color-primary: #2d4353; /* Azul Oscuro */
-        --color-success: #b4c24d; /* Verde Oliva */
-        --color-alert: #e15871; /* Rosa/Rojo Suave */
-        --color-background-subtle: #eeeeee; /* Gris Claro */
-    }
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+    .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
     
-    /* Clases de utilidad de color PERSONALIZADAS */
-    .bg-primary { background-color: var(--color-primary); }
-    .text-primary { color: var(--color-primary); }
-    .hover\:bg-primary-dark:hover { background-color: #243747; }
-    
-    .bg-success { background-color: var(--color-success); }
-    .text-success { color: var(--color-success); }
-    .bg-success\/20 { background-color: rgba(180, 194, 77, 0.2); } /* Nuevo: Para stock suficiente */
-    .hover\:bg-success\/90:hover { background-color: rgba(180, 194, 77, 0.9); }
-    
-    .text-alert { color: var(--color-alert); }
-    .bg-alert\/10 { background-color: rgba(225, 88, 113, 0.1); }
-    .hover\:bg-alert\/20:hover { background-color: rgba(225, 88, 113, 0.2); }
-    .bg-alert\/20 { background-color: rgba(225, 88, 113, 0.2); } /* Nuevo: Para stock agotado */
-    .border-alert\/50 { border-color: rgba(225, 88, 113, 0.5); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-
-    /* Estilos globales y de estado */
-    body { font-family: 'Poppins', sans-serif; }
-    .product-inactive { opacity: 0.7; background-color: #fcfcfc; }
-
-    /* Estilos de transición para la tabla */
-    .variant-group.hidden {
-        display: none !important;
-    }
+    .search-input:focus { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
+    .has-value { border-color: #3b82f6; background: #eff6ff; }
     
-    /* Nota: Se ELIMINÓ todo el código CSS que contenía Media Queries, table-layout: fixed, y anchos porcentuales. */
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>
 
-    <body class="bg-background-subtle text-[#0f172a]">
-    
-    <div class="max-w-7xl mx-auto p-4 lg:pt-8">
-    
-    <div class="bg-white shadow-lg rounded-xl p-4 flex flex-col lg:flex-row gap-4 lg:items-center justify-between border-b border-gray-100 mb-6">
+<div class="max-w-7xl mx-auto p-4 md:p-8 pb-24">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-slideUp">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Inventario</h1>
+            <p class="text-gray-500 mt-1">Administra tu catálogo y existencias</p>
+        </div>
         
-        <div class="flex items-center gap-3 w-full lg:w-3/5">
-            <div class="relative w-full">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="busqueda" type="text" placeholder="Buscar producto por nombre o SKU..." 
-                        value="<?= htmlspecialchars($busqueda) ?>"
-                        class="pl-10 pr-10 py-2.5 w-full rounded-full border border-gray-200 focus:ring-2 focus:ring-success/50 focus:border-success/80 transition duration-150"/>
-                <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-alert hidden">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+        <div class="flex gap-4">
+            <!-- Stat Card: Total -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[160px]">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="package" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Total</p>
+                    <p class="text-2xl font-bold text-gray-900" id="totalProductos"><?= $totalProductos ?></p>
+                </div>
             </div>
-
-            <div id="tabs" class="ml-2 inline-flex bg-background-subtle rounded-full p-1 shadow-inner flex-shrink-0">
-                <button data-status="activo" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200 
-                    <?= ($status === 'activo' || empty($status)) ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
-                    Activos
-                </button>
-                <button data-status="descatalogado" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition duration-200
-                    <?= ($status === 'descatalogado') ? 'bg-white text-primary shadow' : 'text-gray-600 hover:text-primary' ?>">
-                    Descatalogados
-                </button>
-            </div>
-        </div>
-
-        <div class="flex gap-3 items-center w-full lg:w-auto flex-shrink-0">
-            <select id="categoria" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
-                <option value="">Todas las categorías</option>
-                <?php foreach ($categorias as $cat): ?>
-                    <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($cat['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <select id="orden" class="rounded-full border border-gray-200 px-4 py-2.5 bg-white text-sm focus:ring-success/50 focus:border-success/80 transition duration-150">
-                <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A → Z)</option>
-                <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z → A)</option>
-                <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio ↑</option>
-                <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio ↓</option>
-            </select>
-
-            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success text-white font-semibold transition duration-200 hover:bg-primary-dark shadow-md">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Agregar
-            </button>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-2xl shadow-xl overflow-x-auto productos-container">
-    <div class="relative"> 
-        <table id="productos-table" class="w-full border-collapse min-w-max">
-            <thead class="bg-primary text-white sticky top-0 z-10">
-                <tr class="divide-x divide-primary/30">
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider w-auto min-w-[280px]">Producto</th>
-                    
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24 min-w-[96px]">Stock</th>
-                    
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-32 min-w-[128px] hidden sm:table-cell">Categoría</th>
-                    
-                    <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-28 min-w-[112px]">Precio</th>
-                    
-                    <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider w-44 min-w-[176px]">Acciones</th>
-                </tr>
-            </thead> 
-
-            <tbody id="tabla-productos" class="divide-y divide-gray-200">
-                <?php if (!empty($productos)): ?>
-                    <?php foreach ($productos as $producto):
-                        // Variables y preparación de datos
-                        $pid = htmlspecialchars($producto['id_producto']);
-                        $nombre = htmlspecialchars($producto['producto_nombre']);
-                        $sku = htmlspecialchars($producto['producto_cod_barras']);
-                        // ** Clave para la lógica: $tieneVariantes **
-                        $tieneVariantes = $producto['tiene_variante'] > 0 && !empty($variantesPorProducto[$producto['id_producto']]);
-                        $cantidad = (int)($producto['cantidad'] ?? 0);
-                        $cantidad_min = (int)($producto['cantidad_min'] ?? 0);
-                        $is_active = (int)($producto['is_active'] ?? 1);
-                        
-                        // Lógica de Color Condicional para Stock
-                        if ($cantidad > $cantidad_min) {
-                            $stockClass = 'bg-success/20 text-success'; // Suficiente (Verde Oliva)
-                        } elseif ($cantidad > 0 && $cantidad <= $cantidad_min) {
-                            $stockClass = 'bg-orange-100 text-orange-700 font-bold border border-orange-300'; // Mínimo (Naranja)
-                        } else {
-                            $stockClass = 'bg-alert/20 text-alert font-bold border border-alert/50'; // Agotado/Bajo (Rosa/Rojo Suave)
-                        }
-                        
-                        $imagen = !empty($producto['producto_imagen']) ? "uploads/".htmlspecialchars($producto['producto_imagen']) : "../uploads/sin-imagen.png";
-                        $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
-                    ?>
-                    
-                    <tr class="producto-row hover:bg-gray-50/80 transition duration-200 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'product-inactive opacity-60'; ?>" 
-                        id="product-row-<?= $pid ?>"
-                        data-product-id="<?= $pid ?>"
-                        data-details="<?= $jsonProducto ?>">
-
-                        <td class="px-6 py-3 align-middle w-auto">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 shadow-sm">
-                                    <img src="<?= $imagen ?>" class="w-full h-full object-cover" alt="<?= $nombre ?>">
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-semibold text-gray-900 text-sm line-clamp-2"><?= $nombre ?></div>
-                                    <div class="text-xs text-gray-500 mt-0.5">SKU: <code class="bg-gray-100 px-1.5 py-0.5 rounded"><?= $sku ?></code></div>
-                                </div>
-                                
-                                <?php if ($tieneVariantes): ?>
-                                    <button class="toggle-variants flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-primary/10 text-primary transition duration-150 ml-2" 
-                                            data-target-id="variants-<?= $pid ?>" 
-                                            title="Ver variantes">
-                                        <i data-lucide="chevron-down" class="arrow-icon h-5 w-5"></i>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-
-                        <td class="px-4 py-3 align-middle text-center w-24">
-                            <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $stockClass ?>">
-                                <?= $cantidad ?> unid.
-                            </span>
-                        </td>
-
-                        <td class="px-4 py-3 align-middle text-center text-sm text-gray-600 w-32 hidden sm:table-cell">
-                            <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                                <?= htmlspecialchars($producto['categoria']) ?>
-                            </span>
-                        </td>
-
-                        <td class="px-4 py-3 align-middle text-center font-bold text-gray-900 text-sm w-28">
-                            $<?= number_format($producto['precio_unitario'], 2) ?>
-                        </td>
-                        
-                        <td class="px-6 py-3 align-middle text-center w-44">
-                            <div class="flex items-center justify-center gap-2">
-                                
-                                <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" data-details='<?= $jsonProducto ?>' title="Ver detalles">
-                                    <i data-lucide="eye" class="h-5 w-5"></i>
-                                </button>
-                                
-                                <?php if (!$tieneVariantes): ?>
-                                    <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
-                                        onclick="openMovimientoModal('<?= $pid ?>','producto','<?= addslashes($nombre) ?>', false)"
-                                        title="Ajustar stock">
-                                        <i data-lucide="settings" class="h-5 w-5"></i>
-                                    </button>
-                                <?php endif; ?>
-                                
-                                <button class="toggle-active inline-flex items-center justify-center w-9 h-9 rounded-lg <?= $is_active ? 'bg-alert/10 text-alert hover:bg-alert/20' : 'bg-success/10 text-success hover:bg-success/20' ?> transition duration-150 shadow-sm" 
-                                        data-id="<?= $pid ?>" 
-                                        data-type="producto" 
-                                        data-active="<?= $is_active ? 'true' : 'false' ?>"
-                                        title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>">
-                                    <?php if ($is_active): ?>
-                                        <i data-lucide="power" class="h-5 w-5"></i>
-                                    <?php else: ?>
-                                        <i data-lucide="check-circle" class="h-5 w-5"></i>
-                                    <?php endif; ?>
-                                </button>
-                                
-                                <?php if ($tieneVariantes): ?>
-                                    <div class="w-9 h-9"></div> 
-                                <?php endif; ?>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <?php if ($tieneVariantes): ?>
-                        <tr id="variants-<?= $pid ?>" class="variant-group hidden transition-all duration-300">
-                            <td colspan="5" class="p-0">
-                                <div class="bg-gray-50 border-t-2 border-gray-200">
-                                    <table class="w-full min-w-max">
-                                        <tbody class="divide-y divide-gray-200">
-                                            <?php foreach ($variantesPorProducto[$producto['id_producto']] as $var):
-                                                $vsku = htmlspecialchars($var['cod_barras']);
-                                                $vcant = (int)($var['cantidad'] ?? 0);
-                                                $vcant_min = (int)($var['cantidad_min'] ?? 0);
-                                                
-                                                // Lógica de Color Condicional para Stock de Variante
-                                                if ($vcant > $vcant_min) {
-                                                    $vstockClass = 'bg-success/20 text-success'; 
-                                                } elseif ($vcant > 0 && $vcant <= $vcant_min) {
-                                                    $vstockClass = 'bg-orange-100 text-orange-700 font-bold border border-orange-300';
-                                                } else {
-                                                    $vstockClass = 'bg-alert/20 text-alert font-bold border border-alert/50';
-                                                }
-
-                                                $jsonVar = htmlspecialchars(json_encode($var + ['producto_nombre' => $producto['producto_nombre'], 'categoria' => $producto['categoria'], 'id_producto' => $producto['id_producto']]), ENT_QUOTES, 'UTF-8');
-                                            ?>
-                                                <tr class="hover:bg-gray-100 transition duration-150">
-                                                    
-                                                    <td class="px-6 py-3 align-middle text-left w-auto">
-                                                        <div class="text-sm font-medium text-gray-900 ml-16">
-                                                            Talla: <span class="text-primary font-bold"><?= htmlspecialchars($var['talla'] ?: '—') ?></span> 
-                                                            | Color: <span class="text-primary font-bold"><?= htmlspecialchars($var['color'] ?: '—') ?></span>
-                                                        </div>
-                                                        <div class="text-xs text-gray-500 mt-0.5 ml-16">SKU: <code class="bg-white px-1.5 py-0.5 rounded"><?= $vsku ?></code></div>
-                                                    </td>
-
-                                                    <td class="px-4 py-3 align-middle text-center w-24">
-                                                        <span id="stock-<?= $vsku ?>" data-min="<?= $vcant_min ?>" class="inline-block px-3 py-1 rounded-full text-xs font-bold <?= $vstockClass ?>">
-                                                            <?= $vcant ?> unid.
-                                                        </span>
-                                                    </td>
-
-                                                    <td class="px-4 py-3 align-middle text-center w-32 hidden sm:table-cell"></td>
-
-                                                    <td class="px-4 py-3 align-middle text-center font-bold text-gray-900 text-sm w-28">
-                                                        $<?= number_format($var['precio'] ?? 0, 2) ?>
-                                                    </td>
-
-                                                    <td class="px-6 py-3 align-middle text-center w-44">
-                                                        <div class="flex items-center justify-center gap-2">
-                                                            
-                                                            <button class="btn-ajuste inline-flex items-center justify-center w-9 h-9 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition duration-150 shadow-sm" 
-                                                                onclick="openMovimientoModal('<?= htmlspecialchars($vsku) ?>','variante','<?= addslashes($producto['producto_nombre'] . ' - ' . ($var['talla'] ?? '')) ?>', false)"
-                                                                title="Ajustar stock">
-                                                                <i data-lucide="settings" class="h-5 w-5"></i>
-                                                            </button>
-                                                            
-                                                            <button class="open-modal-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition duration-150 shadow-sm" 
-                                                                    data-details='<?= $jsonVar ?>'
-                                                                    title="Ver detalle">
-                                                                <i data-lucide="eye" class="h-5 w-5"></i>
-                                                            </button>
-                                                            
-                                                            <div class="w-9 h-9"></div> 
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="5" class="p-12 text-center">
-                            <div class="flex flex-col items-center gap-2">
-                                <i data-lucide="package-search" class="h-16 w-16 text-gray-300"></i>
-                                <p class="text-gray-500 font-medium">No se encontraron productos que coincidan con los filtros.</p>
-                                <button onclick="window.location.reload();" class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-150">Refrescar Búsqueda</button>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-<!-- DETALLE MODAL -->
-<div id="modal" class="hidden fixed inset-0 flex items-center justify-center z-[1000] bg-[#2d4353]/80 p-4">
-    <div class="bg-white p-6 sm:p-8 rounded-xl w-full max-w-2xl relative shadow-2xl text-[#2d4353]">
-        <button class="absolute top-2 right-3 sm:top-4 sm:right-5 text-[#2d4353] text-3xl font-bold cursor-pointer" onclick="cerrarModal()">✖</button>
-
-        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 border-b border-[#eeeeee] pb-4 sm:pb-6 mb-4 sm:mb-6">
-            <div class="w-32 h-44 sm:w-36 sm:h-52 bg-[#f7f7f7] rounded-lg overflow-hidden flex-shrink-0 border-2 border-[#eeeeee] mx-auto sm:mx-0">
-                <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover">
-            </div>
-
-            <div class="flex-grow text-center sm:text-left">
-                <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-[#2d4353]" id="modal-nombre"></h3>
-                <div class="text-gray-600 text-sm mb-1 sm:mb-2">Categoría <span id="modal-categoria"></span></div>
-                <div class="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-5">Código de barras: <span id="modal-codigo"></span></div>
-
-                <div class="bg-[#f0f4db] p-3 sm:p-4 rounded-lg border-l-4 border-[#b4c24d] text-left">
-                    <span class="text-sm text-gray-600 block">Precio de Venta</span>
-                    <span class="text-3xl sm:text-4xl font-bold text-[#2d4353]">$<span id="modal-precio"></span></span>
-                    <small class="text-xs text-gray-500 block">IVA %16 incluido</small>
+            
+            <!-- Stat Card: Stock Bajo -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[160px]">
+                <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Stock Bajo</p>
+                    <p class="text-2xl font-bold text-gray-900"><?= $stockBajo ?></p>
                 </div>
             </div>
         </div>
-
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-5 mb-6">
-             <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
-                 <span class="text-sm text-gray-600 block">Costo unitario</span>
-                 <span class="text-xl sm:text-2xl font-bold text-[#2d4353]">$<span id="modal-costo"></span></span>
-                 <small class="text-xs text-gray-500 block">Precio sin margen</small>
-             </div>
-
-             <div class="flex-1 p-4 rounded-lg bg-[#f7f7f7] border border-[#eeeeee]">
-                 <span class="text-sm text-gray-600 block">Existencias</span>
-                 <span class="text-xl sm:text-2xl font-bold text-[#2d4353]"><span id="modal-stock"></span> unidades</span>
-                 <small class="text-xs text-gray-500 block">Mínimo de stock: <span id="modal-stock-min"></span></small>
-             </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row justify-end gap-3">
-            <button id="modal-btn-eliminar" class="px-5 py-3 rounded-lg font-semibold text-white bg-[#e15871]" data-id="" data-type="" onclick="confirmarEliminar(this)">
-                🗑️ Eliminar
-            </button>
-            <a id="modal-btn-editar" class="px-5 py-3 rounded-lg font-semibold bg-[#b4c24d] text-[#2d4353]">✏️ Editar</a>
-        </div>
-
     </div>
-</div>
 
-<!-- Confirm modal eliminar -->
-<div id="confirmModal" class="hidden fixed inset-0 flex items-center justify-center z-[9999] bg-[#2d4353]/80 p-4">
-  <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm w-full text-[#2d4353]">
-    <h3 class="text-lg font-semibold mb-4 text-[#2d4353]">Confirmar eliminación</h3>
-    <p class="text-gray-600 mb-6" id="confirmMessage">¿Seguro que deseas eliminar?</p>
-    <div class="flex justify-center gap-4">
-      <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-[#eeeeee] text-[#2d4353] hover:bg-[#dddddd] w-1/2">Cancelar</button>
-      <button id="confirmBtn" class="px-4 py-2 rounded-lg bg-[#e15871] text-white w-1/2">Eliminar</button>
+    <!-- Toolbar Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-6 animate-slideUp delay-100">
+        <div class="flex flex-col lg:flex-row gap-5 items-center justify-between">
+            
+            <!-- Search & Tabs -->
+            <div class="flex flex-col md:flex-row gap-4 w-full lg:w-2/3 items-center">
+                <!-- Search Bar -->
+                <div class="relative w-full md:w-1/2 group">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                    <input id="busqueda" type="text" placeholder="Buscar por nombre, código o SKU..." 
+                           value="<?= htmlspecialchars($busqueda) ?>"
+                           class="search-input w-full pl-12 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white outline-none transition-all duration-200 font-medium text-gray-700 placeholder-gray-400">
+                    <button id="clear-search" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition-colors p-1 rounded-full hover:bg-red-50">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex bg-gray-100 p-1.5 rounded-xl w-full md:w-auto">
+                    <button data-status="activo" class="tab-btn active flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white text-gray-900">
+                        Activos
+                    </button>
+                    <button data-status="descatalogado" class="tab-btn flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all">
+                        Descatalogados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters & Actions -->
+            <div class="flex flex-wrap md:flex-nowrap gap-3 w-full lg:w-auto justify-end">
+                <select id="categoria" class="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none cursor-pointer hover:bg-gray-50 transition-all">
+                    <option value="">Todas las categorías</option>
+                    <?php foreach ($categorias as $cat): ?>
+                        <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cat['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <select id="orden" class="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none cursor-pointer hover:bg-gray-50 transition-all hidden md:block">
+                    <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A-Z)</option>
+                    <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z-A)</option>
+                    <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio: Menor</option>
+                    <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio: Mayor</option>
+                </select>
+
+                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span class="hidden sm:inline">Nuevo Producto</span>
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-/* ==========================
-   CONFIGURACIÓN
-   ========================== */
-const API_URL = '/puntoDeVenta/src/api/inventario_api.php';
-const $tablaCuerpo = $("#tabla-productos");
-const $barraBusqueda = $("#busqueda");
-const $selectCategoria = $("#categoria");
-const $selectOrden = $("#orden");
-const $tabsButtons = $("#tabs .tab-btn");
-const $clearSearchBtn = $("#clear-search");
-
-// Helper debounce
-function debounce(fn, wait=300){
-    let t;
-    return function(...args){
-        clearTimeout(t);
-        t = setTimeout(()=> fn.apply(this, args), wait);
-    };
-}
-
-/* ==========================
-   FUNCIÓN CENTRAL: Cargar productos vía AJAX
-   ========================== */
-function cargarProductos() {
-    const activeTab = $("#tabs .tab-activa").data("status") || "activo";
-    const params = {
-        action: "filtrar",
-        busqueda: $barraBusqueda.val() || '',
-        categoria: $selectCategoria.val() || '',
-        orden: $selectOrden.val() || 'nom_asc',
-        tab: activeTab
-    };
-
-    $.ajax({
-        url: API_URL,
-        method: "GET",
-        data: params,
-        // *** IMPORTANTE: Especificar que esperas JSON ***
-        dataType: "json", 
-        
-        beforeSend: function() {
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500">Cargando productos...</td></tr>`);
-        },
-        success: function(res) {
-            // Verifica si el resultado es nulo o si la respuesta es HTML (no JSON)
-            if (typeof res !== 'object' || res === null) {
-                // Si la respuesta no es un objeto JSON, muestra el contenido crudo
-                const rawContent = (typeof res === 'string' && res.length > 0) ? res.substring(0, 100) + '...' : 'Respuesta no JSON o vacía';
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error de formato: ${rawContent}</td></tr>`);
-                console.error("Respuesta no es JSON:", res);
-                return;
-            }
-
-            if (res.success) {
-                $tablaCuerpo.html(res.html);
-                // Reactivar lucide
-                try { if (window.lucide) lucide.createIcons(); } catch(e){}
-            } else {
-                // Muestra el mensaje de error del servidor PHP
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error del API: ${res.message || 'Error desconocido'}</td></tr>`);
-                console.error("Error lógico del API:", res.message, res);
-            }
-        },
-        error: function(xhr, status, err) {
-            console.error("AJAX error:", status, err, xhr.responseText);
-            // Muestra un mensaje detallado del error de comunicación
-            const httpStatus = xhr.status || 'N/A';
-            const errorMsg = `Error HTTP ${httpStatus}. Revisa la consola para el detalle del servidor.`;
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">${errorMsg}</td></tr>`);
-        }
-    });
-}
-
-/* ==========================
-   Eventos: búsqueda, filtros y tabs
-   ========================== */
-$barraBusqueda.on("input", debounce(function(){
-    const val = $(this).val().trim();
-    if (val.length) $clearSearchBtn.show(); else $clearSearchBtn.hide();
-    cargarProductos();
-}, 350));
-
-$clearSearchBtn.on("click", function(){
-    $barraBusqueda.val('');
-    $(this).hide();
-    cargarProductos();
-});
-
-$selectCategoria.on("change", cargarProductos);
-$selectOrden.on("change", cargarProductos);
-
-// Tabs
-$tabsButtons.on("click", function(){
-    $tabsButtons.removeClass("tab-activa bg-blue-500 text-white");
-    $(this).addClass("tab-activa bg-blue-500 text-white");
-    cargarProductos();
-});
-
-/* ==========================
-   Botón agregar producto
-   ========================== */
-$("#btnAgregarProducto").on("click", function(){
-    // Si quieres abrir página de agregar:
-    window.location.href = "index.php?view=agregar_producto";
-});
-
-/* ==========================
-   Delegación de eventos para filas renderizadas por AJAX
-   ========================== */
-
-// 1. Ver detalles (Botón: .btn-detalle)
-// Llama al API para obtener detalles completos y historial, luego abre el modal.
-$(document).on("click", ".btn-detalle", function(e){
-    e.preventDefault();
-    const $btn = $(this);
-    const id = $btn.data('id');
-    const tipo = $btn.data('tipo'); // 'producto' o 'variante'
-    const nombre = $btn.data('nombre');
-    
-    // Llama a la nueva función que hace el AJAX y luego abre el modal.
-    fetchDetalle(id, tipo, nombre);
-});
-
-// 2. Ajuste de stock (Botón: .btn-ajuste)
-$(document).on("click", ".btn-ajuste", function(){
-    const $btn = $(this);
-    const id = $btn.data("id");
-    const nombre = $btn.data("nombre");
-    const tipo = $btn.data("tipo"); // 'producto' o 'variante'
-    const isVar = tipo === 'variante';
-
-    // openMovimientoModal(cod_entidad, type, nombre, hasVariantes)
-    openMovimientoModal(id, tipo, nombre, isVar);
-});
-
-// 3. Toggle activo/inactivo (Botón: .btn-toggle)
-// CRÍTICO: Se cambia el selector de .toggle-active a .btn-toggle 
-// y el atributo de data-active a data-estado.
-$(document).on("click", ".btn-toggle", function(e){
-    e.preventDefault();
-    const $btn = $(this);
-    const id = $btn.data("id");
-    // Usamos 'data-estado' que generaste en el PHP (0 o 1)
-    const currentStatus = parseInt($btn.data("estado"), 10);
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    const nombre = $btn.data("nombre");
-
-    const accion = newStatus === 1 ? 'activar' : 'descatalogar';
-
-    Swal.fire({
-        title: `¿Confirmar ${accion} "${nombre}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, continuar',
-        cancelButtonText: 'Cancelar'
-    }).then(result => {
-        if (!result.isConfirmed) return;
-        $.post(API_URL, { action: "toggle_activo", id: id, status: newStatus }, function(res){
-            if (res.success) {
-                Swal.fire('Hecho', res.message || 'Estado cambiado', 'success');
-                cargarProductos(); // Recargar para actualizar la tabla
-            } else {
-                Swal.fire('Error', res.message || 'No se pudo cambiar', 'error');
-            }
-        }, "json").fail(() => {
-            Swal.fire('Error', 'No se pudo conectar al servidor', 'error');
-        });
-    });
-});
-
-
-/* ==========================
-   Modal: abrir con data-details (robusto)
-   ========================== */
-function openCustomModalFromJSON(obj) {
-    if (!obj) return;
-    const isVariant = !!(obj.id_variante || obj.sku && (obj.talla !== undefined || obj.color !== undefined));
-
-    const productName = obj.producto_nombre || obj.nom_producto || 'Sin nombre';
-    $("#modal-nombre").text(productName);
-    $("#modal-categoria").text(obj.categoria || obj.nombre_categoria || 'Sin categoría');
-    $("#modal-codigo").text(obj.cod_barras || obj.producto_cod_barras || obj.sku || 'N/A');
-
-    const imageKey = obj.imagen || obj.producto_imagen || null;
-    $("#modal-img").attr('src', imageKey ? ("uploads/" + imageKey) : "../uploads/sin-imagen.png");
-
-    const precio = (typeof obj.precio !== 'undefined' && obj.precio !== null) ? parseFloat(obj.precio).toFixed(2)
-                 : (typeof obj.precio_unitario !== 'undefined' ? parseFloat(obj.precio_unitario).toFixed(2) : '—');
-    const costo = (typeof obj.costo !== 'undefined' && obj.costo !== null) ? parseFloat(obj.costo).toFixed(2) : '—';
-    const stock = (typeof obj.cantidad !== 'undefined') ? obj.cantidad : '—';
-    const stockMin = (typeof obj.cantidad_min !== 'undefined') ? obj.cantidad_min : '—';
-
-    $("#modal-precio").text(precio);
-    $("#modal-costo").text(costo);
-    $("#modal-stock").text(stock);
-    $("#modal-stock-min").text(stockMin);
-
-    const $btnEliminar = $("#modal-btn-eliminar");
-    const $btnEditar = $("#modal-btn-editar");
-
-    if (isVariant) {
-        const idVar = obj.id_variante ?? obj.sku;
-        $btnEditar.attr('href', `index.php?view=editar_variante&id=${encodeURIComponent(idVar)}&prod_cod_barras=${encodeURIComponent(obj.id_producto ?? obj.cod_barras)}`);
-        $btnEliminar.attr('data-id', idVar).attr('data-type','variante');
-    } else {
-        const idProd = obj.id_producto ?? obj.producto_cod_barras ?? obj.cod_barras;
-        $btnEditar.attr('href', `index.php?view=editar_producto&id=${encodeURIComponent(idProd)}`);
-        $btnEliminar.attr('data-id', idProd).attr('data-type','producto');
-    }
-
-    $("#modal").fadeIn(120).removeClass('hidden').css('display','flex');
-}
-
-function cerrarModal(){
-    $("#modal").fadeOut(120, function(){ $(this).addClass('hidden'); });
-}
-
-
-/**
- * Llama al API para obtener detalles completos (incluyendo historial).
- * Una vez obtenidos, usa openCustomModalFromJSON(obj) para mostrarlo.
- */
-function fetchDetalle(id, tipo, nombre) {
-    // Puedes mostrar un spinner o mensaje de carga aquí
-    
-    $.ajax({
-        url: API_URL,
-        method: 'GET',
-        // Asegúrate de que tu inventario_api.php tiene el 'case fetch_historial'
-        data: { action: 'fetch_historial', id: id, type: tipo }, 
-        dataType: 'json',
-        success: function(res) {
-            if (res.success && res.data) {
-                // Combina los datos de respuesta con un fallback para el nombre
-                const fullObj = { 
-                    ...res.data, 
-                    historial: res.historial,
-                    // Asegura que la función modal tenga el nombre si el API falla en devolverlo
-                    nom_producto: res.data.nom_producto || nombre,
-                    producto_nombre: res.data.producto_nombre || nombre,
-                };
-                
-                // Abre el modal utilizando tu función existente
-                openCustomModalFromJSON(fullObj);
-
-                // NOTA: Si tu modal requiere que el historial se renderice por separado, 
-                // aquí deberás llamar a esa función (ej: renderizarHistorial(res.historial))
-                
-            } else {
-                Swal.fire('Error', res.message || `No se encontraron detalles para ${nombre}.`, 'error');
-            }
-        },
-        error: function() {
-            Swal.fire('Error', 'Falla de comunicación al obtener los detalles.', 'error');
-        }
-    });
-}
-
-/* ==========================
-   Confirmación eliminación
-   ========================== */
-let deleteId = null;
-let deleteType = null;
-
-function confirmarEliminar(element) {
-    deleteId = $(element).attr('data-id');
-    deleteType = $(element).attr('data-type');
-
-    if (!deleteId || !deleteType) return console.error("Falta id o tipo.");
-
-    $("#confirmMessage").text('¿Estás seguro de que quieres eliminar? Esta acción no se puede deshacer.');
-    $("#confirmModal").removeClass('hidden').fadeIn(120).css('display','flex');
-}
-
-$("#cancelBtn").on("click", function(){
-    $("#confirmModal").fadeOut(120, function(){ $(this).addClass('hidden'); });
-});
-
-$("#confirmBtn").on("click", function(){
-    if (!deleteId || !deleteType) return;
-    // Redirige a tu script de eliminación (si tienes uno)
-    window.location.href = `pages/productos_eliminar.php?type=${encodeURIComponent(deleteType)}&id=${encodeURIComponent(deleteId)}`;
-});
-
-/* ==========================
-   Ajuste de stock (prompt simple con fetch)
-   ========================== */
-function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
-    Swal.fire({
-        title: `Ajuste: ${nombre}`,
-        input: 'number',
-        inputLabel: 'Cantidad (positivo para entrada, negativo para salida)',
-        inputPlaceholder: 'Ej. 10 o -5',
-        showCancelButton: true,
-        preConfirm: (value) => {
-            if (value === '' || value === null || isNaN(value)) {
-                Swal.showValidationMessage('Ingresa una cantidad válida');
-            } else return parseInt(value,10);
-        }
-    }).then(res => {
-        if (!res.isConfirmed) return;
-        const cantidad = parseInt(res.value,10);
-        const fd = new FormData();
-        fd.append('cod_entidad', cod_entidad);
-        fd.append('cantidad', cantidad);
-        fd.append('ajusteEsVariante', (type === 'variante') ? 'true' : 'false');
-
-        fetch(API_URL + '?action=ajustar_stock', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('Hecho', data.message || 'Ajuste registrado', 'success');
-                    if (typeof data.nuevo_stock !== 'undefined') {
-                        const target = document.getElementById('stock-' + cod_entidad);
-                        if (target) {
-                            target.textContent = data.nuevo_stock + ' unid.';
-                            const min = parseInt(target.dataset.min || -1,10);
-                            if (min >= 0 && data.nuevo_stock <= min) {
-                                target.classList.remove('bg-green-50','text-green-800');
-                                target.classList.add('bg-red-100','text-red-600');
-                            } else {
-                                target.classList.remove('bg-red-100','text-red-600');
-                                target.classList.add('bg-green-50','text-green-800');
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-slideUp delay-200">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-productos" class="divide-y divide-gray-100">
+                    <?php 
+                        // Renderizado Inicial PHP
+                        if (!empty($productos)) {
+                            foreach ($productos as $producto) {
+                                // Ajuste de claves para compatibilidad con partial
+                                $producto['nombre_categoria'] = $producto['categoria'];
+                                
+                                include __DIR__ . '/../api/product_row.partial.php';
+                                
+                                if (($producto['tiene_variante'] > 0) && isset($variantesPorProducto[$producto['id_producto']])) {
+                                    echo '<tr id="variants-' . $producto['id_producto'] . '" class="hidden transition-all duration-300 ease-in-out bg-gray-50/50">';
+                                    echo '<td colspan="5" class="p-0 border-t-0">';
+                                    echo '<div class="px-4 py-3 bg-gray-50 border-y border-gray-100 shadow-inner">';
+                                    echo '<table class="w-full">';
+                                    echo '<tbody class="divide-y divide-gray-200/50">';
+                                    foreach ($variantesPorProducto[$producto['id_producto']] as $var) {
+                                        $var['producto_nombre'] = $producto['nom_producto'];
+                                        $var['categoria'] = $producto['categoria'];
+                                        $var['id_producto'] = $producto['id_producto'];
+                                        include __DIR__ . '/../api/variant_row.partial.php';
+                                    }
+                                    echo '</tbody></table></div></td></tr>';
+                                }
                             }
+                        } else {
+                            echo '<tr><td colspan="5" class="px-6 py-16 text-center text-gray-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <i data-lucide="search-x" class="w-8 h-8 text-gray-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-1">No se encontraron productos</h3>
+                                        <p class="text-sm text-gray-500">Intenta ajustar los filtros o tu búsqueda</p>
+                                    </div>
+                                  </td></tr>';
                         }
-                    }
-                } else {
-                    Swal.fire('Error', data.message || 'No se pudo registrar', 'error');
-                }
-            }).catch(err => {
-                console.error(err);
-                Swal.fire('Error', 'Falla de conexión', 'error');
-            });
-    });
-}
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-/* ==========================
-   Inicialización al cargar la página
-   ========================== */
-$(document).ready(function(){
-    // mostrar icono clear si hay texto inicial
-    if ($barraBusqueda.val().trim().length > 0) $clearSearchBtn.show();
-    // carga inicial por AJAX (garantiza que los filtros funcionen siempre)
-    cargarProductos();
+</div>
 
-    // Inicializar lucide para los iconos estáticos del servidor
-    try { if (window.lucide) lucide.createIcons(); } catch(e){}
-});
-</script>
+<!-- Modal Detalles (Premium) -->
+<div id="modalDetalle" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 animate-fadeIn">
+        
+        <!-- Modal Header Image -->
+        <div class="relative h-64 bg-gray-100 group">
+            <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-md transition-all border border-white/10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <span id="modal-categoria" class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-xs font-bold uppercase tracking-wider mb-2 border border-white/10"></span>
+                <h3 id="modal-nombre" class="text-2xl font-bold leading-tight shadow-sm"></h3>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <!-- Price Section -->
+            <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-6">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Precio de Venta</p>
+                    <p class="text-4xl font-bold text-gray-900 tracking-tight">$<span id="modal-precio"></span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Costo</p>
+                    <p class="text-lg font-medium text-gray-500">$<span id="modal-costo"></span></p>
+                </div>
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="barcode" class="w-4 h-4 text-blue-500"></i>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Código / SKU</p>
+                    </div>
+                    <p id="modal-codigo" class="font-mono text-gray-900 font-bold text-sm truncate"></p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="box" class="w-4 h-4 text-orange-500"></i>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Existencias</p>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="modal-stock" class="text-xl font-bold text-gray-900"></span>
+                        <span class="text-xs text-gray-400 font-medium">Min: <span id="modal-stock-min"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <a id="modal-btn-editar" href="#" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold text-center transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Editar
+                </a>
+                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación Eliminación -->
+<div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100 animate-fadeIn text-center">
+        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 ring-8 ring-red-50/50">
+            <i data-lucide="alert-circle" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
+        <p id="confirmMessage" class="text-gray-500 mb-8 leading-relaxed">Esta acción eliminará el producto permanentemente y no se puede deshacer.</p>
+        <div class="flex gap-3">
+            <button id="cancelBtn" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
+            <button id="confirmBtn" class="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg hover:shadow-red-500/30 transition">Eliminar</button>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggleButtons = document.querySelectorAll('.toggle-variants');
-
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evita que se dispare el evento del row padre si lo hubiese.
-                
-                const targetId = button.getAttribute('data-target-id');
-                const targetRow = document.getElementById(targetId);
-                const arrowIcon = button.querySelector('.arrow-icon');
-
-                if (targetRow.classList.contains('hidden')) {
-                    // Abrir
-                    targetRow.classList.remove('hidden');
-                    arrowIcon.classList.add('rotate-180');
-                    
-                    // Animación de opacidad (opcional, si las filas internas lo soportan)
-                    setTimeout(() => {
-                        targetRow.style.opacity = '1';
-                    }, 50);
-
-                } else {
-                    // Cerrar
-                    targetRow.style.opacity = '0'; // Animación de fade-out
-                    
-                    setTimeout(() => {
-                        targetRow.classList.add('hidden');
-                        arrowIcon.classList.remove('rotate-180');
-                    }, 300); // Coincide con la duración de la transición
-                }
-            });
-        });
-        
-        // Agregar funcionalidad para que hacer clic en la fila principal (si tiene variantes) también haga el toggle
-        document.querySelectorAll('.product-parent').forEach(row => {
-            row.addEventListener('click', (e) => {
-                const productId = row.getAttribute('data-product-id');
-                const toggleButton = document.querySelector(`.toggle-variants[data-target-id="variants-${productId}"]`);
-                if (toggleButton) {
-                    toggleButton.click();
-                }
-            });
-        });
-    });
+    // Configuración Global para JS
+    // Usamos ruta relativa a la raíz para evitar problemas de CORS/Protocolo (HTTP vs HTTPS)
+    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
+    console.log("API URL Configurada:", BASE_URL);
 </script>
-
-</body>
-</html>
+<script src="js/productos.js?v=<?= time() ?>"></script>
