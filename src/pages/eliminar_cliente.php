@@ -1,26 +1,54 @@
 <?php
-require_once __DIR__ . "/../config/db.php"; 
+require_once __DIR__ . "/../config/db.php";
 
-$id_cliente = $_GET['id'] ?? null;
+// Limpiar cualquier salida previa
+while (ob_get_level()) ob_end_clean();
 
-if ($id_cliente) {
-    $id = $conexion->real_escape_string($id_cliente);
+// Configurar cabecera JSON
+header('Content-Type: application/json; charset=utf-8');
 
-    $sql = "DELETE FROM clientes WHERE id_cliente = '$id'";
-
-    if ($conexion->query($sql) === TRUE) {
-        // Redirige al listado principal con un mensaje de éxito (si es implementado en clientes_contenido)
-        header("Location: index.php?view=clientes_contenido&status=deleted"); 
-        exit();
-    } else {
-        // En un POS real, aquí manejarías el error (p. ej., si el cliente tiene ventas asociadas)
-        echo "<div class='p-8 bg-rose-100 text-rose-500 rounded-lg max-w-lg mx-auto mt-10'>Error al eliminar el cliente: " . $conexion->error . "</div>";
-        echo '<div class="text-center mt-4"><a href="index.php?view=clientes_contenido" class="px-4 py-2 bg-gray-200 rounded-md">Volver</a></div>';
-    }
-} else {
-    header("Location: index.php?view=clientes_contenido"); 
-    exit();
+// Verificar método POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+    exit;
 }
 
-$conexion->close();
+// Obtener datos del cuerpo (JSON) o POST normal
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+$id = $data['id'] ?? $_POST['id'] ?? null;
+
+// Validar ID
+if (!$id || !is_numeric($id) || $id <= 0) {
+    echo json_encode(['success' => false, 'error' => 'ID de cliente inválido']);
+    exit;
+}
+
+$id = (int)$id;
+
+try {
+    // Verificar si existe el cliente
+    $stmtCheck = $pdo->prepare("SELECT id_cliente FROM clientes WHERE id_cliente = ?");
+    $stmtCheck->execute([$id]);
+    if (!$stmtCheck->fetch()) {
+        echo json_encode(['success' => false, 'error' => 'Cliente no encontrado']);
+        exit;
+    }
+
+    // Ejecutar eliminación
+    $stmt = $pdo->prepare("DELETE FROM clientes WHERE id_cliente = ?");
+    if ($stmt->execute([$id])) {
+        echo json_encode(['success' => true, 'message' => 'Cliente eliminado correctamente']);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'No se pudo eliminar el cliente']);
+    }
+
+} catch (Exception $e) {
+    // Log del error real para el admin
+    error_log("Error al eliminar cliente $id: " . $e->getMessage());
+    // Mensaje genérico para el usuario
+    echo json_encode(['success' => false, 'error' => 'Error interno al procesar la solicitud']);
+}
+exit;
 ?>

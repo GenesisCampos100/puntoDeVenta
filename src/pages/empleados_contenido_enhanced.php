@@ -5,8 +5,8 @@ require_once __DIR__ . '/../config/db.php';
 // AJAX: Get employee by ID
 if (isset($_GET['action']) && $_GET['action'] === 'getEmpleado') {
     header('Content-Type: application/json; charset=utf-8');
-    $id = $_GET['id'] ?? '';
-    if (empty($id)) {
+    $id = intval($_GET['id'] ?? 0);
+    if ($id <= 0) {
         echo json_encode(['success' => false, 'error' => 'ID inválido']);
         exit;
     }
@@ -463,7 +463,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <tbody class="bg-white divide-y divide-gray-200">
             <?php if (!empty($empleados)): ?>
               <?php foreach ($empleados as $emp): ?>
-                <tr class="table-row" id="row-<?= $emp['numero'] ?>" data-id="<?= $emp['numero'] ?>">
+                <tr class="table-row" data-id="<?= $emp['numero'] ?>">
                   <td class="px-6 py-4">
                     <input type="checkbox" class="custom-checkbox row-checkbox" data-id="<?= $emp['numero'] ?>" />
                   </td>
@@ -499,13 +499,13 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                   <td class="px-6 py-4 text-sm text-gray-600"><?= htmlspecialchars($emp['fecha']) ?></td>
                   <td class="px-6 py-4 text-right">
                     <div class="inline-flex gap-2">
-                      <button onclick="openDetalle('<?= $emp['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
+                      <button onclick="openDetalle(<?= $emp['numero'] ?>)" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
                         Ver
                       </button>
                       <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
                         Editar
                       </a>
-                      <button onclick="confirmDelete('<?= $emp['numero'] ?>', '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
+                      <button onclick="confirmDelete(<?= $emp['numero'] ?>, '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
                         Eliminar
                       </button>
                     </div>
@@ -539,101 +539,41 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     </svg>
   </button>
 
-  <!-- MODAL VER EMPLEADO (PREMIUM DESIGN) -->
-  <div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+  <!-- MODAL VER EMPLEADO -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden animate-scaleIn">
-      <!-- Header con gradiente -->
-      <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-          <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          Detalle del Empleado
-        </h3>
-        <button class="text-white/70 hover:text-white text-2xl leading-none transition-colors" onclick="closeDetalle()">&times;</button>
+    <div class="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden animate-scaleIn">
+      <div class="p-4 border-b flex items-center justify-between">
+        <h3 class="text-lg font-semibold" id="modal-title">Detalle del empleado</h3>
+        <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none px-3" onclick="closeDetalle()">&times;</button>
       </div>
 
-      <div class="p-8 space-y-6">
-        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <!-- Nombre Completo -->
-          <div class="md:col-span-2 group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-              Nombre Completo
-            </p>
-            <p id="d-nombre" class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-1">-</p>
+      <div class="p-6 space-y-4">
+        <div id="detalle-contenido" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-500">Nombre</p>
+            <p id="d-nombre" class="font-medium text-gray-900">-</p>
           </div>
-          
-          <!-- Correo -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Correo Electrónico
-            </p>
-            <p id="d-correo" class="text-base text-gray-700">-</p>
+          <div>
+            <p class="text-sm text-gray-500">Correo</p>
+            <p id="d-correo" class="font-medium text-gray-900">-</p>
           </div>
+          <div>
+            <p class="text-sm text-gray-500">Puesto</p>
+            <p id="d-puesto" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Estado</p>
+            <p id="d-estado" class="font-medium text-gray-900">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Fecha de Ingreso</p>
+            <p id="d-fecha" class="font-medium text-gray-900">-</p>
+          </div>
+        </div>
 
-          <!-- Celular -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              Celular
-            </p>
-            <p id="d-celular" class="text-base text-gray-700">-</p>
-          </div>
-
-          <!-- Puesto -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Puesto / Rol
-            </p>
-            <p id="d-puesto" class="text-base text-gray-700">-</p>
-          </div>
-
-          <!-- Estatus -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Estatus
-            </p>
-            <p id="d-estatus" class="text-base font-medium">-</p>
-          </div>
-
-          <!-- Dirección -->
-          <div class="md:col-span-2 group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              Dirección Completa
-            </p>
-            <p id="d-direccion" class="text-base text-gray-700 border-b border-gray-100 pb-1">-</p>
-          </div>
-
-          <!-- CP -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Código Postal
-            </p>
-            <p id="d-cp" class="text-base text-gray-700">-</p>
-          </div>
-
-          <!-- Estado -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Estado
-            </p>
-            <p id="d-estado" class="text-base text-gray-700">-</p>
-          </div>
-
-          <!-- Fecha Ingreso -->
-          <div class="group">
-            <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              Fecha de Ingreso
-            </p>
-            <p id="d-fecha" class="text-base text-gray-700">-</p>
-          </div>
+        <div class="flex items-center justify-end gap-3">
+          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg text-white font-semibold" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">Ver más</a>
         </div>
       </div>
     </div>
@@ -645,13 +585,10 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     const detalle = {
       nombre: document.getElementById('d-nombre'),
       correo: document.getElementById('d-correo'),
-      celular: document.getElementById('d-celular'),
       puesto: document.getElementById('d-puesto'),
-      estatus: document.getElementById('d-estatus'),
-      direccion: document.getElementById('d-direccion'),
-      cp: document.getElementById('d-cp'),
       estado: document.getElementById('d-estado'),
-      fecha: document.getElementById('d-fecha')
+      fecha: document.getElementById('d-fecha'),
+      btnVerMas: document.getElementById('btnVerMas')
     };
 
     // Selection state
@@ -713,7 +650,6 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       }
       
       // Filtrar filas en tiempo real
-      let visibleCount = 0;
       rows.forEach(row => {
         const numero = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
         const nombre = row.querySelector('td:nth-child(3)')?.textContent.toLowerCase() || '';
@@ -722,54 +658,123 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         
         if (numero.includes(searchTerm) || nombre.includes(searchTerm) || correo.includes(searchTerm) || estado.includes(searchTerm)) {
           row.style.display = '';
-          visibleCount++;
         } else {
           row.style.display = 'none';
         }
       });
-      
-      // Mostrar/ocultar mensaje de "no se encontraron empleados"
-      if (visibleCount === 0 && searchTerm && rows.length > 0) {
-        let noResultsRow = document.getElementById('noResultsRow');
-        if (!noResultsRow) {
-          noResultsRow = document.createElement('tr');
-          noResultsRow.id = 'noResultsRow';
-          noResultsRow.innerHTML = `
-            <td colspan="7" class="px-6 py-16">
-              <div class="empty-state">
-                <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
-              </div>
-            </td>
-          `;
-          document.querySelector('tbody').appendChild(noResultsRow);
-        }
-        noResultsRow.style.display = '';
-      } else {
-        const noResultsRow = document.getElementById('noResultsRow');
-        if (noResultsRow) {
-          noResultsRow.style.display = 'none';
-        }
-      }
     });
+
+    // Checkbox selection logic
+    function updateBulkActions() {
+      const bulkActions = document.getElementById('bulkActions');
+      const count = selectedIds.size;
+      
+      if (count > 0) {
+        bulkActions.classList.remove('hidden');
+        document.getElementById('bulkSelectedCount').textContent = count;
+      } else {
+        bulkActions.classList.add('hidden');
+      }
+    }
+
+    function updateRowSelection() {
+      document.querySelectorAll('.table-row').forEach(row => {
+        const id = parseInt(row.dataset.id);
+        if (selectedIds.has(id)) {
+          row.classList.add('selected');
+        } else {
+          row.classList.remove('selected');
+        }
+      });
+    }
+
+    // Select all checkboxes
+    document.getElementById('selectAll')?.addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      if (this.checked) {
+        checkboxes.forEach(cb => {
+          selectedIds.add(parseInt(cb.dataset.id));
+          cb.checked = true;
+        });
+      } else {
+        selectedIds.clear();
+        checkboxes.forEach(cb => cb.checked = false);
+      }
+      document.getElementById('selectAllHeader').checked = this.checked;
+      updateBulkActions();
+      updateRowSelection();
+    });
+
+    document.getElementById('selectAllHeader')?.addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      if (this.checked) {
+        checkboxes.forEach(cb => {
+          selectedIds.add(parseInt(cb.dataset.id));
+          cb.checked = true;
+        });
+      } else {
+        selectedIds.clear();
+        checkboxes.forEach(cb => cb.checked = false);
+      }
+      document.getElementById('selectAll').checked = this.checked;
+      updateBulkActions();
+      updateRowSelection();
+    });
+
+    // Individual checkbox selection
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      cb.addEventListener('change', function() {
+        const id = parseInt(this.dataset.id);
+        if (this.checked) {
+          selectedIds.add(id);
+        } else {
+          selectedIds.delete(id);
+          document.getElementById('selectAll').checked = false;
+          document.getElementById('selectAllHeader').checked = false;
+        }
+        updateBulkActions();
+        updateRowSelection();
+      });
+    });
+
+    // Clear selection
+    function clearSelection() {
+      selectedIds.clear();
+      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+      document.getElementById('selectAll').checked = false;
+      document.getElementById('selectAllHeader').checked = false;
+      updateBulkActions();
+      updateRowSelection();
+    }
+
+    // Bulk delete function
+    function bulkDelete() {
+      const count = selectedIds.size;
+      const ids = Array.from(selectedIds);
+      
+      Swal.fire({
+        title: '¿Eliminar empleados seleccionados?',
+        html: `¿Estás seguro de eliminar <strong>${count}</strong> empleado(s)?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar todos',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const idsParam = ids.join(',');
+          window.location.href = `index.php?view=eliminar_empleados_multiple&ids=${idsParam}`;
+        }
+      });
+    }
+
     // ** FUNCIÓN ABRIR DETALLE CON AJAX **
     function openDetalle(id) {
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      
-      // Reset fields
       detalle.nombre.textContent = 'Cargando...';
-      detalle.correo.textContent = '-';
-      detalle.celular.textContent = '-';
-      detalle.puesto.textContent = '-';
-      detalle.estatus.textContent = '-';
-      detalle.direccion.textContent = '-';
-      detalle.cp.textContent = '-';
-      detalle.estado.textContent = '-';
-      detalle.fecha.textContent = '-';
 
       const url = `index.php?view=empleados&action=getEmpleado&id=${encodeURIComponent(id)}`;
 
@@ -778,34 +783,12 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         .then(json => {
           if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
           const e = json.empleado;
-          
-          // Nombre completo
-          const nombreCompleto = `${e.nombre || ''} ${e.apellido_paterno || ''} ${e.apellido_materno || ''}`.trim();
-          detalle.nombre.textContent = nombreCompleto || '-';
-          
+          detalle.nombre.textContent = `${e.nombre || ''} ${e.apellido_paterno || ''} ${e.apellido_materno || ''}`.trim();
           detalle.correo.textContent = e.correo || '-';
-          detalle.celular.textContent = e.celular || '-';
-          detalle.puesto.textContent = e.nombre_rol || 'Sin rol asignado';
-          
-          // Estatus con badge
-          if (e.estatus == 1) {
-            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activo</span>';
-          } else {
-            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactivo</span>';
-          }
-
-          // Dirección completa
-          const direccionParts = [
-            e.calle ? `C. ${e.calle}` : '',
-            e.num_ext ? `No. ${e.num_ext}` : '',
-            e.num_int ? `Int. ${e.num_int}` : '',
-            e.colonia ? `Col. ${e.colonia}` : ''
-          ].filter(Boolean);
-          detalle.direccion.textContent = direccionParts.length > 0 ? direccionParts.join(', ') : '-';
-          
-          detalle.cp.textContent = e.cp || '-';
-          detalle.estado.textContent = e.estado || '-';
+          detalle.puesto.textContent = e.nombre_rol || '-';
+          detalle.estado.textContent = e.estatus == 1 ? 'Activo' : 'Inactivo';
           detalle.fecha.textContent = e.fecha || '-';
+          detalle.btnVerMas.href = `index.php?view=detalle_empleado&id=${encodeURIComponent(id)}`;
         })
         .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
     }
@@ -826,48 +809,8 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
-          deleteEmpleado(id);
+          window.location.href = `index.php?view=eliminar_empleado&id=${id}`;
         }
-      });
-    }
-
-    function deleteEmpleado(id) {
-      fetch(`index.php?view=eliminar_empleado`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({id: id})
-      })
-      .then(r => r.json())
-      .then(json => {
-        if (json.success) {
-          Swal.fire({
-            title: 'Eliminado',
-            text: 'El empleado ha sido eliminado correctamente',
-            icon: 'success',
-            confirmButtonColor: '#b4c24d',
-            timer: 2000
-          });
-          // Eliminar fila sin recargar usando ID
-          const row = document.getElementById('row-' + id);
-          if (row) {
-             row.remove();
-             // Actualizar contadores si es necesario
-             const totalEl = document.getElementById('totalEmpleados');
-             if(totalEl) totalEl.textContent = parseInt(totalEl.textContent) - 1;
-          } else {
-             // Fallback
-             setTimeout(() => window.location.reload(), 1000);
-          }
-        } else {
-          Swal.fire('Error', json.error || 'No se pudo eliminar el empleado', 'error');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'Error en el servidor', 'error');
       });
     }
   </script>
