@@ -65,6 +65,7 @@ class ProductoModelo {
         $orden = $params['orden'] ?? 'nom_asc';
         // Los valores booleanos deben venir de forma limpia desde el controlador
         $mostrar_inactivos = $params['mostrar_inactivos'] ?? false; 
+        
 
         $where = [];
         $values = [];

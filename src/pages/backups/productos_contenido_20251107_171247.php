@@ -455,49 +455,67 @@ function cerrarModal(){ document.querySelector("#modal").classList.add("hidden")
 // ===========================
 let ajusteCod="";
 
-function openAjusteModal(cod, type = "producto", name = "", isVar = false) {
-    ajusteCod = cod;
-    ajusteType = type;
-    ajusteIsVar = isVar;
+function openAjusteModal(cod_entidad, type, name) {
 
-    document.querySelector("#ajuste-content").innerHTML = `
-      <label class="text-sm">Cantidad a ajustar:</label>
-      <input id="ajuste-cantidad" type="number" class="mt-1 w-full border rounded p-2">
+    Swal.fire({
+        title: `Ajustar stock`,
+        html: `
+        <div class="flex flex-col gap-4">
+            <div>
+                <label class="font-semibold block mb-1 text-[#2d4353]">Cantidad</label>
+                <input id="swal-input-cantidad" type="number" class="swal2-input w-full" placeholder="Ej. 5 o -5">
+            </div>
 
-      <label class="text-sm mt-3">Motivo:</label>
-      <textarea id="ajuste-motivo" class="w-full border rounded p-2"></textarea>
+            <div>
+                <label class="font-semibold block mb-1 text-[#2d4353]">Motivo</label>
+                <textarea id="swal-input-motivo" class="swal2-textarea w-full" placeholder="Describa el motivo"></textarea>
+            </div>
 
-      <button onclick="submitAjuste()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded">
-        Confirmar ajuste
-      </button>
-    `;
+            <div id="historial" class="max-h-60 overflow-auto rounded-md border border-[#eeeeee] p-3 bg-white text-left">
+                Cargando historial...
+            </div>
+        </div>
+        `,
+        width: "650px",   // Más ancho que alto
+        confirmButtonText: 'Confirmar Ajuste',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar',
+        background: "#ffffff",
+        customClass: {
+            popup: 'rounded-2xl'
+        },
 
-    document.querySelector("#ajusteModal").classList.remove("hidden");
-}
+        didOpen: () => {
+            // Obtener historial
+            fetch(`src/api/inventario_api.php?action=historial&cod_entidad=${cod_entidad}&es_variante=${type === 'variante' ? 1 : 0}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById("historial").innerHTML = renderHistorial(data.data || []);
+            });
+        },
 
-function closeAjusteModal() {
-    document.querySelector("#ajusteModal").classList.add("hidden");
-}
+        preConfirm: () => {
+            const cantidad = parseInt(document.getElementById("swal-input-cantidad").value,10);
+            const motivo = document.getElementById("swal-input-motivo").value.trim();
 
-function submitAjuste() {
-    const cantidad = parseInt(document.querySelector("#ajuste-cantidad").value, 10);
-    const motivo = document.querySelector("#ajuste-motivo").value;
+            if (isNaN(cantidad) || cantidad === 0) {
+                Swal.showValidationMessage("La cantidad debe ser distinta de 0.");
+                return false;
+            }
+            if (motivo === "") {
+                Swal.showValidationMessage("Debe indicar un motivo.");
+                return false;
+            }
 
-    const fd = new FormData();
-    fd.append("cod_entidad", ajusteCod);
-    fd.append("cantidad", cantidad);
-    fd.append("motivo", motivo);
-    fd.append("ajusteEsVariante", ajusteIsVar ? "true" : "false");
-
-    fetch(API_URL + "?action=ajustar_stock", {
-        method: "POST",
-        body: fd
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (!res.success) {
-            return Swal.fire("Error", res.message, "error");
+            return { cantidad, motivo };
         }
+    }).then(result => {
+        if (result.isConfirmed) {
+            handleAjusteSubmit(cod_entidad, type, result.value.cantidad, result.value.motivo);
+        }
+    });
+}
+}
 
         Swal.fire("OK", res.message, "success");
         closeAjusteModal();

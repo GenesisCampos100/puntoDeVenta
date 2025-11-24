@@ -17,7 +17,16 @@ require_once __DIR__ . '/../config/translation.php';
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../styles/login.css">
+    <!-- include the script -->
+    <script src="{PATH}/alertify.min.js"></script>
+
+    <!-- include the style -->
+    <link rel="stylesheet" href="{PATH}/alertify.min.css" />
+    <!-- include a theme -->
+    <link rel="stylesheet" href="{PATH}/themes/default.min.css" />
+        
+    <!-- <link rel="stylesheet" href="../styles/login.css"> -->
+    
 </head>
 
 <body class="fondo_login">
@@ -52,11 +61,21 @@ require_once __DIR__ . '/../config/translation.php';
 
             <div class="formulario "> <!--Inicio formulario-->
                 <div class="login-logo">
-                    <img src="../imagenesDev/logo2.png">
+                    <img src="../../public/img/logo2.png">
                 </div>
                 <h2><?php echo __('login_welcome'); ?></h2>
 
-                    <form id="loginFormulario" action="../scripts/validar_login.php" method="post">
+                <H1 class="login-titulo">Tu punto de venta favorito</H1>
+                <?php if (!empty($_SESSION['error'])): ?>
+    <div class="alert alert-danger" 
+         style="text-align:center; background:#f8d7da; color:#842029; padding:10px; border-radius:8px; margin:10px 0;">
+        <?= htmlspecialchars($_SESSION['error']); ?>
+    </div>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
+
+                <form id="loginFormulario" action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
@@ -116,9 +135,8 @@ require_once __DIR__ . '/../config/translation.php';
 
         </section> <!--Fin de login-->
 
-                <script src="../scripts/show_password.js"></script>
-                <script src="../scripts/alertaslogin_y_mostrarcontra.js"></script>
-
+        <script src="../scripts/show_password.js"></script>
+        <script src="../scripts/alertaslogin_y_mostrarcontra.js"></script>
     </main>
 
     <!-- Modal de Éxito -->

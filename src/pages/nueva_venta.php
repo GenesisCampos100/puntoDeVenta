@@ -2,7 +2,26 @@
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/translation.php";
 
-// ✅ Traer productos con sus variantes (según la nueva BD)
+// Búsqueda de cliente (AJAX)
+if (isset($_GET['buscar_cliente'])) {
+    $texto = $_GET['buscar_cliente'];
+    $sql = $pdo->prepare("
+        SELECT id_cliente, 
+               CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+               celular
+        FROM clientes
+        WHERE nombre LIKE ? 
+           OR apellido_paterno LIKE ?
+           OR apellido_materno LIKE ?
+        LIMIT 20
+    ");
+    $like = "%$texto%";
+    $sql->execute([$like, $like, $like]);
+    echo json_encode($sql->fetchAll(PDO::FETCH_ASSOC));
+    exit;
+}
+
+// Traer productos con variantes
 $sql = "SELECT 
             p.cod_barras AS producto_cod_barras,
             p.nom_producto AS producto_nombre,
@@ -11,9 +30,7 @@ $sql = "SELECT
             p.talla AS producto_talla,
             p.color AS producto_color,
             p.precio AS producto_precio,
-            p.costo AS producto_costo,
             p.cantidad AS producto_cantidad,
-            p.cantidad_min AS producto_cantidad_min,
             c.nombre AS categoria,
             v.id_variante AS id_variante,
             v.cod_barras AS variante_cod_barras,
@@ -21,9 +38,7 @@ $sql = "SELECT
             v.color AS variante_color,
             v.imagen AS variante_imagen,
             v.precio AS variante_precio,
-            v.costo AS variante_costo,
-            v.cantidad AS variante_cantidad,
-            v.cantidad_min AS variante_cantidad_min
+            v.cantidad AS variante_cantidad
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
@@ -32,334 +47,575 @@ $sql = "SELECT
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Agrupar productos con sus variantes
+// Agrupar productos con variantes
 $productos = [];
 foreach ($rows as $row) {
     $codigo = $row['producto_cod_barras'];
-    
-    // Si el producto no existe aún en el arreglo, se agrega
     if (!isset($productos[$codigo])) {
         $productos[$codigo] = [
-    'producto_cod_barras' => $codigo,
-    'nombre' => $row['producto_nombre'],
-    'descripcion' => $row['descripcion'],
-    'imagen' => $row['producto_imagen'],
-    'precio' => $row['producto_precio'] ?: 0,
-    'costo' => $row['producto_costo'] ?: 0,
-    'cantidad' => $row['producto_cantidad'] ?: 0,
-    'cantidad_min' => $row['producto_cantidad_min'] ?: 0,
-    'categoria' => $row['categoria'] ?? 'Sin categoría',
-    'variantes' => [],
-    'talla_default' => $row['producto_talla'] ?: 'Única',
-    'color_default' => $row['producto_color'] ?: 'Sin color',
-];
-
+            'producto_cod_barras' => $codigo,
+            'nombre' => $row['producto_nombre'],
+            'descripcion' => $row['descripcion'],
+            'imagen' => $row['producto_imagen'],
+            'precio' => $row['producto_precio'] ?: 0,
+            'categoria' => $row['categoria'] ?? 'Sin categoría',
+            'variantes' => [],
+            'talla_default' => $row['producto_talla'] ?: 'Única',
+            'color_default' => $row['producto_color'] ?: 'Sin color',
+            'stock' => $row['producto_cantidad'] ?: 0,
+        ];
     }
-
-    // Si tiene variantes, las agregamos al producto
     if ($row['id_variante'] !== null) {
         $productos[$codigo]['variantes'][] = [
-    'id' => (int)$row['id_variante'],
-    'cod_barras' => $row['variante_cod_barras'],
-    'talla' => $row['variante_talla'],
-    'color' => $row['variante_color'],
-    'precio' => $row['variante_precio'],
-    'imagen' => $row['variante_imagen'],
-    'cantidad' => $row['variante_cantidad'] ?: 0,
+            'id' => (int)$row['id_variante'],
+            'cod_barras' => $row['variante_cod_barras'],
+            'talla' => $row['variante_talla'],
+            'color' => $row['variante_color'],
+            'precio' => $row['variante_precio'],
+            'imagen' => $row['variante_imagen'],
+            'cantidad' => $row['variante_cantidad'] ?: 0,
         ];
     }
 }
 
-// ✅ Traer categorías
+// Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Función para normalizar nombres de categoría
 function normalizeCategory($name) {
     return strtolower(trim(preg_replace('/\s+/', '', $name)));
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
-<title><?= __('new_sale_title') ?></title>
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta - Caja</title>
+    
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #b4c24d;
+            --primary-dark: #9fb03d;
+            --secondary: #2d4353;
+            --accent: #e15871;
+            --bg-gray: #eeeeee;
+            --font: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #f9fafb 0%, var(--bg-gray) 100%);
+            min-height: 100vh;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-fade { animation: fadeIn 0.5s ease-out; }
+        .animate-slide { animation: slideIn 0.5s ease-out; }
+        .animate-slide-right { animation: slideInRight 0.3s ease-out; }
+        
+        .producto {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .producto:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .category-btn {
+            transition: all 0.25s ease;
+        }
+        
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(225, 88, 113, 0.3);
+        }
+        
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+        
+        #cart {
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            font-size: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(180, 194, 77, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+    </style>
 </head>
-<body class="bg-gray-0">
+<body>
 
-<!-- FILTROS DE CATEGORÍA -->
-<div class="flex flex-wrap justify-start gap-2 mb-8 px-6">
-  <button data-category="all" class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
-    <?= __('all_categories') ?>
-  </button>
-  <?php foreach($categorias as $cat): ?>
-    <button data-category="<?= normalizeCategory($cat['nombre']) ?>" 
-            class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
-      <?= htmlspecialchars($cat['nombre']) ?>
+<!-- HEADER CON BÚSQUEDA -->
+<div class="px-6 pt-6 pb-4 animate-fade">
+    <div class="search-container">
+        <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="search-products" class="search-input" placeholder="Buscar productos por nombre, categoría o código...">
+    </div>
+</div>
+
+<!-- CATEGORÍAS -->
+<div class="flex flex-wrap justify-start gap-2 mb-6 px-6 animate-slide">
+    <button data-category="all" class="category-btn active px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
+        Todos
     </button>
-  <?php endforeach; ?>
+    <?php foreach($categorias as $cat): ?>
+        <button data-category="<?= normalizeCategory($cat['nombre']) ?>" class="category-btn px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
+            <?= htmlspecialchars($cat['nombre']) ?>
+        </button>
+    <?php endforeach; ?>
 </div>
 <!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
-  <!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
-  <?php foreach($productos as $prod): ?>
-    <?php 
-      // ✅ Convertir variantes a JSON para JS
-      $variantes = json_encode($prod['variantes'] ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT);
-
-      // ✅ Obtener tallas y colores (usando las claves correctas)
-      $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'], $prod['variantes'])));
-      $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'], $prod['variantes'])));
-
-      // ✅ Si no hay variantes, usamos los valores por defecto
-      if (empty($sizes)) $sizes = [$prod['talla_default']];
-      if (empty($colors)) $colors = [$prod['color_default']];
-
-      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
-      $precio = $prod['precio'] ?: 0;
-    ?>
-    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-    data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
-    data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-    data-img="../src/uploads/<?= htmlspecialchars($prod['imagen'] ?? 'sin-imagen.png') ?>"
-    data-price="<?= htmlspecialchars($prod['precio']) ?>"
-    data-category="<?= htmlspecialchars($prod['categoria']) ?>"
-    data-variants='<?= json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE) ?>'>
-
-
-
-      <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
-           alt="<?= htmlspecialchars($prod['nombre']) ?>" 
-           class="w-full h-40 object-cover rounded product-image">
-
-      <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
-      <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
-      <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
-
-      <!-- Selects de talla y color -->
-      <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-        <?php foreach ($sizes as $size): ?>
-          <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+<div class="px-6 pb-24">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
+        <?php foreach($productos as $prod): 
+            $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
+            $precio = $prod['precio'] ?: 0;
+            $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
+        ?>
+            <article class="producto bg-white shadow-lg rounded-2xl p-4 text-center animate-slide"
+                     data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
+                     data-name="<?= htmlspecialchars($prod['nombre']) ?>"
+                     data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
+                     data-price="<?= htmlspecialchars($precio) ?>"
+                     data-category="<?= htmlspecialchars($prod['categoria']) ?>"
+                     data-stock="<?= $prod['stock'] ?>"
+                     data-variants='<?= $variants_json ?>'>
+                
+                <div class="relative overflow-hidden rounded-xl mb-3">
+                    <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
+                         alt="<?= htmlspecialchars($prod['nombre']) ?>" 
+                         class="w-full h-48 object-cover rounded-xl product-image">
+                </div>
+                
+                <h3 class="font-semibold text-gray-800 text-base mb-1"><?= htmlspecialchars($prod['nombre']) ?></h3>
+                <p class="text-gray-500 text-sm mb-2"><?= htmlspecialchars($prod['categoria']) ?></p>
+                <p class="text-xl font-bold price mb-2" style="color: var(--primary);">$<?= number_format($precio, 2) ?></p>
+                
+                <!-- STOCK -->
+                <p class="text-sm mb-3 font-semibold stock-text" style="color: #10b981;">
+                    Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
+                </p>
+                
+                <!-- VARIANTES -->
+                <select class="variant-size border-2 rounded-lg px-3 py-2 text-sm mb-2 w-full focus:border-primary focus:outline-none">
+                    <?php 
+                        $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
+                        if (empty($sizes)) $sizes = [$prod['talla_default']];
+                        foreach ($sizes as $size): ?>
+                        <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <select class="variant-color border-2 rounded-lg px-3 py-2 text-sm mb-3 w-full focus:border-primary focus:outline-none">
+                    <?php 
+                        $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
+                        if (empty($colors)) $colors = [$prod['color_default']];
+                        foreach ($colors as $color): ?>
+                        <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <button class="add-to-cart w-full font-semibold py-3 rounded-xl text-white transition-all hover:shadow-lg" style="background: linear-gradient(135deg, var(--secondary) 0%, #1e3244 100%);">
+                    Agregar al Carrito
+                </button>
+            </article>
         <?php endforeach; ?>
-      </select>
-
-      <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-        <?php foreach ($colors as $color): ?>
-          <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full"><?= __('add_to_cart') ?></button>
-    </article>
-  <?php endforeach; ?>
-</div>
-
+    </div>
 </div>
 
 <!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-[81px] right-0 w-80 h-[calc(100%-81px)] bg-white shadow-lg flex flex-col p-4 z-50">
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-lg font-bold"><?= __('order_title') ?></h2>
-    <div class="flex gap-2">
-      <button id="discount-btn" class="bg-yellow-300 p-2 text-white rounded-full hover:bg-yellow-400">%</button>
-      <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">🗑</button>
+<aside id="cart" class="fixed top-0 right-0 w-96 h-full bg-white flex flex-col p-5 z-50 animate-slide-right">
+    <div class="flex justify-between items-center mb-5">
+        <h2 class="text-2xl font-bold" style="color: var(--secondary);">Mi Carrito</h2>
+        <div class="flex gap-2">
+            <button id="client-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--secondary);" title="Seleccionar Cliente">👤</button>
+            <button id="discount-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--primary);" title="Descuento General">%</button>
+            <button id="clear-cart" class="p-2.5 bg-red-100 text-red-600 rounded-full transition-all hover:bg-red-200" title="Limpiar Carrito">🗑</button>
+        </div>
     </div>
-  </div>
-
-  <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
-
-  <form id="checkout-form" method="POST" action="scripts/procesar_venta.php" class="mt-4">
-    <input type="hidden" name="cart_data" id="cart-data">
-    <div class="border-t pt-4 mt-4">
-      <div class="flex justify-between text-sm">
-        <span><?= __('subtotal') ?></span><span id="subtotal">$0.00</span>
-      </div>
-      <div class="flex justify-between text-sm text-red-500">
-        <span><?= __('discount') ?></span><span id="discount">$0.00</span>
-      </div>
-      <div class="flex justify-between font-bold text-lg mt-2">
-        <span><?= __('total') ?></span><span id="total">$0.00</span>
-      </div>
-     <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-      <?= __('pay_button') ?>
-    </button>
-
-    <!-- Botón oculto para enviar el formulario 
-    <button type="submit" id="submit-checkout" class="hidden"></button>-->
-    </div>
-  </form>
-</aside>
-
-<!-- ========================= -->
-<!-- MODAL: Selección de pago -->
-<!-- ========================= -->
-<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
-    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center"><?= __('payment_method_title') ?></h2>
     
-    <form id="payment-form" method="POST" action="../src/scripts/procesar_venta.php">
-      <input type="hidden" name="cart_data" id="cart-data-input">
-      <div class="space-y-3 mb-6">
-        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
-          <span><?= __('cash_payment') ?> 💵</span>
-        </label>
-      </div>
-      <div class="flex justify-end gap-3">
-        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"><?= __('cancel') ?></button>
-        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700"><?= __('confirm') ?></button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-<!-- MODAL DESCUENTO GLOBAL -->
-<div id="discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
-    <h2 class="text-lg font-bold mb-3"><?= __('general_discount_title') ?></h2>
-
-    <div class="flex gap-2 mb-3">
-      <select id="discount-type" class="border rounded-lg p-2 w-1/3 text-center">
-        <option value="percent">%</option>
-        <option value="amount">$</option>
-      </select>
-      <input type="number" id="discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
+    <div id="cliente_info" class="text-sm mb-4">
+        <span class="font-semibold"><?= __('selected_customer_label') ?></span>
+        <span id="nombre_cliente_seleccionado">
+            <?php if (isset($_SESSION['cliente_id'])) : ?>
+                <?php
+                $stmt = $pdo->prepare("SELECT nombre FROM clientes WHERE id_cliente = ?");
+                $stmt->execute([$_SESSION['cliente_id']]);
+                $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+                echo htmlspecialchars($cliente['nombre']);
+                ?>
+            <?php else : ?>
+                <?= __('no_customer_selected_label') ?>
+            <?php endif; ?>
+        </span>
+        <button id="cambiar_cliente_btn" class="text-blue-500 hover:underline ml-2"><?= __('change_button') ?></button>
+        <?php if (isset($_SESSION['cliente_id'])) : ?>
+            <button id="eliminar_cliente_btn" class="text-red-500 hover:underline ml-2"><?= __('remove_button') ?></button>
+        <?php endif; ?>
     </div>
-
-    <div class="flex justify-end gap-2">
-      <button id="close-discount" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1"><?= __('cancel') ?></button>
-      <button id="apply-discount" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1"><?= __('apply') ?></button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DESCUENTO INDIVIDUAL -->
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
-    <h2 class="text-lg font-bold mb-3"><?= __('product_discount_title') ?></h2>
-
-    <div class="flex gap-2 mb-3">
-      <select id="product-discount-type" class="border rounded-lg p-2 w-1/3 text-center">
-        <option value="percent">%</option>
-        <option value="amount">$</option>
-      </select>
-      <input type="number" id="product-discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button id="product-discount-close" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1"><?= __('cancel') ?></button>
-      <button id="product-discount-apply" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1"><?= __('apply') ?></button>
-    </div>
-  </div>
-</div>
-
-<script>
-document.getElementById("pay-btn").addEventListener("click", () => {
-  const cart = localStorage.getItem("cart");
-  if (!cart || JSON.parse(cart).length === 0) {
-    alert("<?= __('cart_empty_alert') ?>");
-    return;
-  }
-
-  // Asignamos el carrito al campo oculto
-  document.getElementById("cart-data").value = cart;
-
-  // Enviamos el formulario
-  document.getElementById("submit-checkout").click();
-
-  // Limpia carrito al finalizar (opcional)
-  // localStorage.removeItem("cart");
-});
-</script>
-
-<script>
-document.getElementById("pay-btn").addEventListener("click", () => {
-  const cart = localStorage.getItem("cart");
-  if (!cart || JSON.parse(cart).length === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-
-  // Asignamos el carrito al campo oculto
-  document.getElementById("cart-data").value = cart;
-
-  // Enviamos el formulario
-  document.getElementById("submit-checkout").click();
-
-  // Limpia carrito al finalizar (opcional)
-  // localStorage.removeItem("cart");
-});
-</script>
-
-
-
-<script>
-// Filtrado de productos por categoría
-document.addEventListener('DOMContentLoaded', () => {
-  const buttons = document.querySelectorAll('.category-btn');
-  const productos = document.querySelectorAll('.producto');
-
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const selectedCat = btn.dataset.category.toLowerCase().trim();
-
-      productos.forEach(prod => {
-        const prodCat = prod.dataset.category.toLowerCase().trim();
-        if (selectedCat === 'all' || prodCat === selectedCat) {
-          prod.style.display = 'block';
-        } else {
-          prod.style.display = 'none';
+    
+    <div class="flex-grow overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="product-grid">
+        <?php
+        $stmt = $pdo->query("SELECT p.id, p.nombre_producto, p.precio_venta, p.imagen_url, v.talla, v.color, v.stock, v.id_variante FROM productos p JOIN variantes v ON p.id = v.id_producto WHERE p.activo = 1");
+        while ($producto = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            echo '<div class="product-card bg-white rounded-lg shadow-md p-4 flex flex-col" data-id-variante="' . $producto['id_variante'] . '" data-nombre="' . htmlspecialchars($producto['nombre_producto']) . '" data-precio="' . $producto['precio_venta'] . '" data-talla="' . htmlspecialchars($producto['talla']) . '" data-color="' . htmlspecialchars($producto['color']) . '">';
+            echo '<img src="../' . htmlspecialchars($producto['imagen_url']) . '" alt="' . htmlspecialchars($producto['nombre_producto']) . '" class="w-full h-32 object-cover mb-4 rounded">';
+            echo '<h3 class="text-lg font-semibold flex-grow">' . htmlspecialchars($producto['nombre_producto']) . '</h3>';
+            echo '<p class="text-gray-500">' . htmlspecialchars($producto['talla']) . ' - ' . htmlspecialchars($producto['color']) . '</p>';
+            echo '<p class="text-xl font-bold mt-2">$' . number_format($producto['precio_venta'], 2) . '</p>';
+            echo '<button class="add-to-cart-btn bg-blue-500 text-white px-4 py-2 rounded mt-4">' . __('add_to_cart') . '</button>';
+            echo '</div>';
         }
-      });
-    });
-  });
-});
+        ?>
+    </div>
+    <!-- Fin de la cuadrícula de productos -->
+</div>
 
-// Actualizar colores según talla seleccionada
-document.querySelectorAll('.producto').forEach(prod => {
-  const sizeSelect = prod.querySelector('.variant-size');
-  const colorSelect = prod.querySelector('.variant-color');
-  const variants = JSON.parse(prod.dataset.variants || '[]');
+<!-- Carrito de Compras -->
+<!-- MODAL CLIENTES -->
+<div id="modalClientes" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+        <h2 class="text-xl font-bold mb-4"><?= __('modal_select_customer_title') ?></h2>
+        <input type="text" id="busquedaCliente" class="w-full p-2 border rounded mb-4" placeholder="<?= __('search_customer_placeholder_new_sale') ?>">
+        <div id="listaClientes" class="max-h-64 overflow-y-auto">
+            <!-- Los clientes se cargarán aquí -->
+        </div>
+        <div class="flex justify-end mt-4">
+            <button id="cerrarModalClientes" class="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2"><?= __('cancel') ?></button>
+        </div>
+    </div>
+</div>
 
-  if (!variants.length) return;
+<!-- MODAL PAGO -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-slide">
+        <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--secondary);">Método de Pago</h2>
+        
+        <form id="payment-form">
+            <input type="hidden" name="cart_data" id="cart-data-input">
+            <input type="hidden" id="cliente-input" name="id_cliente" value="">
+            <input type="hidden" name="descuento_general" id="descuento-general-input">
+            <input type="hidden" name="tipo_descuento_general" id="descuento-general-type">
+            <input type="hidden" name="subtotal" id="subtotal-input">
+            <input type="hidden" name="total" id="total-input">
+            
+            <div class="space-y-3 mb-6">
+                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
+                    <input type="radio" name="metodo" value="EFECTIVO" checked class="payment-method w-5 h-5">
+                    <span class="text-lg font-medium">💵 Efectivo</span>
+                </label>
+                
+                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
+                    <input type="radio" name="metodo" value="TARJETA" class="payment-method w-5 h-5">
+                    <span class="text-lg font-medium">💳 Tarjeta</span>
+                </label>
+                
+                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
+                    <input type="radio" name="metodo" value="MIXTO" class="payment-method w-5 h-5">
+                    <span class="text-lg font-medium">💵💳 Pago Mixto</span>
+                </label>
+            </div>
+            
+            <div id="efectivo-section" class="mb-4">
+                <label class="block text-sm font-semibold mb-2">Monto recibido (efectivo):</label>
+                <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="0.00">
+            </div>
+            
+            <div id="tarjeta-section" class="mb-4 hidden">
+                <label class="block text-sm font-semibold mb-2">Monto pagado con tarjeta:</label>
+                <input type="number" step="0.01" id="monto-tarjeta" name="monto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
+                
+                <label class="block text-sm font-semibold mb-2">Referencia / Folio:</label>
+                <input type="text" id="referencia-tarjeta" name="referencia_tarjeta" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Ingrese referencia">
+            </div>
+            
+            <div id="mixto-section" class="mb-4 hidden">
+                <label class="block text-sm font-semibold mb-2">Efectivo:</label>
+                <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
+                
+                <label class="block text-sm font-semibold mb-2">Tarjeta:</label>
+                <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
+                
+                <label class="block text-sm font-semibold mb-2">Referencia tarjeta:</label>
+                <input type="text" id="mixto-referencia" name="mixto_referencia" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Folio, referencia, etc.">
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" id="cancel-payment" class="px-6 py-3 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+                <button type="submit" id="confirm-payment" class="px-6 py-3 text-white rounded-xl font-semibold transition-all hover:shadow-xl" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">Confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-  const colorMap = {};
-  variants.forEach(v => {
-    if (!colorMap[v.size]) colorMap[v.size] = [];
-    if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
-  });
+<!-- MODAL DESCUENTO GENERAL -->
+<div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento General</h2>
+        <div class="flex gap-3 mb-5">
+            <select id="discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
+                <option value="percent">%</option>
+                <option value="amount">$</option>
+            </select>
+            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+        </div>
+        <div class="flex justify-end gap-3">
+            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+        </div>
+    </div>
+</div>
 
-  const updateColors = () => {
-    const validColors = colorMap[sizeSelect.value] || [];
-    colorSelect.innerHTML = '';
-    validColors.forEach(color => {
-      const opt = document.createElement('option');
-      opt.value = color;
-      opt.textContent = color;
-      colorSelect.appendChild(opt);
-    });
-  };
+<!-- MODAL DESCUENTO POR PRODUCTO -->
+<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
+        <div class="flex gap-3 mb-5">
+            <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
+                <option value="percent">%</option>
+                <option value="amount">$</option>
+            </select>
+            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+        </div>
+        <div class="flex justify-end gap-3">
+            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+        </div>
+    </div>
+</div>
 
-  sizeSelect.addEventListener('change', updateColors);
-  updateColors();
-});
-</script>
-
-<script>
-  const translations = {
-    cart_empty_title: "<?= __('cart_empty_title') ?>",
-    cart_empty_subtitle: "<?= __('cart_empty_subtitle') ?>",
-    discount_btn: "<?= __('discount_btn') ?>",
-    remove_btn: "<?= __('remove_btn') ?>",
-    size_label: "<?= __('size_label') ?>",
-    color_label: "<?= __('color_label') ?>",
-    added_to_cart: "<?= __('added_to_cart') ?>",
-  };
-</script>
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
+
+<script>
+// BÚSQUEDA EN TIEMPO REAL
+document.getElementById('search-products').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const products = document.querySelectorAll('.producto');
+    
+    products.forEach(product => {
+        const name = product.dataset.name.toLowerCase();
+        const category = product.dataset.category.toLowerCase();
+        const code = product.dataset.code.toLowerCase();
+        
+        if (name.includes(searchTerm) || category.includes(searchTerm) || code.includes(searchTerm)) {
+            product.style.display = '';
+        } else {
+            product.style.display = 'none';
+        }
+    });
+});
+
+// FILTRO POR CATEGORÍA
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const category = this.dataset.category;
+        const products = document.querySelectorAll('.producto');
+        
+        products.forEach(product => {
+            if (category === 'all') {
+                product.style.display = '';
+            } else {
+                const productCategory = product.dataset.category.toLowerCase().replace(/\s+/g, '');
+                if (productCategory === category) {
+                    product.style.display = '';
+                } else {
+                    product.style.display = 'none';
+                }
+            }
+        });
+    });
+});
+
+// ACTUALIZAR STOCK SEGÚN VARIANTE
+document.querySelectorAll('.producto').forEach(card => {
+    const variants = JSON.parse(card.dataset.variants);
+    const sizeSelect = card.querySelector('.variant-size');
+    const colorSelect = card.querySelector('.variant-color');
+    const stockText = card.querySelector('.stock-text');
+    
+    function updateStock() {
+        if (!variants.length) return;
+        
+        const talla = sizeSelect.value;
+        const color = colorSelect.value;
+        
+        const variante = variants.find(v => v.talla === talla && v.color === color);
+        
+        stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
+    }
+    
+    if (variants.length) {
+        sizeSelect.addEventListener('change', updateStock);
+        colorSelect.addEventListener('change', updateStock);
+        updateStock();
+    }
+});
+
+// BÚSQUEDA DE CLIENTES
+$('#buscarCliente').on('input', function() {
+    const searchTerm = $(this).val().toLowerCase();
+    $('#tablaClientes tr').each(function() {
+        const rowText = $(this).text().toLowerCase();
+        $(this).toggle(rowText.includes(searchTerm));
+    });
+});
+
+// SELECCIONAR CLIENTE
+$(document).on('click', '.seleccionarCliente', function() {
+    const id = $(this).data('id');
+    const nombre = $(this).data('nombre');
+    window.guardarCliente(id, nombre);
+    $('#modalClientes').addClass('hidden');
+});
+
+// ABRIR/CERRAR MODAL CLIENTES
+$('#client-btn').click(() => $('#modalClientes').removeClass('hidden').addClass('flex'));
+$('#cerrar-modal-cliente').click(() => $('#modalClientes').addClass('hidden').removeClass('flex'));
+
+$(document).ready(function() {
+        // --- MANEJO DEL MODAL DE CLIENTES ---
+
+        // Abrir modal para cambiar/seleccionar cliente
+        $('#cambiar_cliente_btn').on('click', function() {
+            $('#modalClientes').removeClass('hidden');
+            cargarClientes();
+        });
+
+        // Cerrar modal
+        $('#cerrarModalClientes').on('click', function() {
+            $('#modalClientes').addClass('hidden');
+        });
+
+        // Búsqueda de clientes en tiempo real
+        $('#busquedaCliente').on('keyup', function() {
+            cargarClientes($(this).val());
+        });
+
+        // Función para cargar clientes vía AJAX
+        function cargarClientes(terminoBusqueda = '') {
+            $.ajax({
+                url: '../scripts/buscar_clientes.php',
+                type: 'GET',
+                data: {
+                    term: terminoBusqueda
+                },
+                dataType: 'json',
+                success: function(clientes) {
+                    let html = '<table class="w-full text-left"><thead><tr><th class="p-2"><?= __('customer_col') ?></th><th class="p-2"><?= __('phone_col') ?></th><th class="p-2"><?= __('actions_col') ?></th></tr></thead><tbody>';
+                    if (clientes.length > 0) {
+                        clientes.forEach(function(cliente) {
+                            html += `<tr>
+                                <td class="p-2">${cliente.nombre}</td>
+                                <td class="p-2">${cliente.telefono}</td>
+                                <td class="p-2"><button class="seleccionar-cliente-btn bg-blue-500 text-white px-3 py-1 rounded" data-id="${cliente.id_cliente}" data-nombre="${cliente.nombre}"><?= __('select_button') ?></button></td>
+                            </tr>`;
+                        });
+                    } else {
+                        html += `<tr><td colspan="3" class="text-center p-4"><?= __('no_customers_found') ?></td></tr>`;
+                    }
+                    html += '</tbody></table>';
+                    $('#listaClientes').html(html);
+                },
+                error: function() {
+                    $('#listaClientes').html('<p>Error al cargar los clientes.</p>');
+                }
+            });
+        }
+
+        // Seleccionar un cliente del modal
+        $(document).on('click', '.seleccionar-cliente-btn', function() {
+            const id = $(this).data('id');
+            const nombre = $(this).data('nombre');
+            
+            // Guardar en sesión y actualizar vista
+            $.ajax({
+                url: '../scripts/guardar_cliente.php',
+                type: 'POST',
+                data: {
+                    id_cliente: id
+                },
+                success: function() {
+                    $('#nombre_cliente_seleccionado').text(nombre);
+                    $('#modalClientes').addClass('hidden');
+                },
+                error: function() {
+                    alert('Error al seleccionar el cliente.');
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>
