@@ -224,42 +224,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
             exit();
         }
-
-        // Consulta para insertar el empleado
-        $sql = "INSERT INTO empleados 
-            (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
-            VALUES
-            (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            'id_empleado' => $id_empleado,
-            'nombre' => $nombre,
-            'apellido_paterno' => $apellido_paterno,
-            'apellido_materno' => $apellido_materno,
-            'celular' => $telefono,
-            'calle' => $calle,
-            'num_ext' => $num_ext,
-            'num_int' => $num_int,
-            'colonia' => $colonia,
-            'cp' => $cp,
-            'estado' => $estado,
-            'estatus' => $estatus,
-            'id_rol' => $id_rol
-        ]);
-
-        // Consulta para insertar el usuario asociado al empleado
-        $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
-            VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
-        $stmt_2 = $pdo->prepare($sql_2);
-        $stmt_2->execute([
-            'id_usuario' => NULL,
-            'correo' => $correo,
-            'contrasena' => $hash,
-            'id_empleado' => $id_empleado
-        ]);
-        
-        echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
-        exit();
     } catch (Exception $e) {
         echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
         exit();

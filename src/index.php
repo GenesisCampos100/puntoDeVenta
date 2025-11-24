@@ -53,6 +53,9 @@ $views = [
     'empleados' => __DIR__ . "/pages/empleados_contenido.php",
     'productos' => __DIR__ . "/pages/productos_contenido.php",
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
+    'agregar_proveedor' => __DIR__ . "/pages/agregar_proveedor.php",
+    'editar_proveedor' => __DIR__ . "/pages/editar_proveedor.php",
+    'eliminar_proveedor' => __DIR__ . "/pages/eliminar_proveedor.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
@@ -75,6 +78,21 @@ if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
     isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    if (file_exists($contenido)) {
+        include $contenido;
+        exit;
+    }
+}
+
+// Si viene una petición GET con el parámetro `action`, asumimos que
+// es una llamada AJAX para obtener JSON desde la misma vista. Incluir
+// la vista directamente sin el layout para evitar que el layout
+// ya haya impreso HTML (DOCTYPE) antes del JSON.
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+    isset($_GET['action']) &&
+    !empty($_GET['action'])
 ) {
     if (file_exists($contenido)) {
         include $contenido;
