@@ -1,4 +1,4 @@
-// cart.js - manejo del carrito y UI lateral
+// cart.js - manejo del carrito y UI lateral (con variantes y modal clientes integrados)
 document.addEventListener('DOMContentLoaded', () => {
 
 const STORAGE_KEY = 'cart';
@@ -159,7 +159,56 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
     });
 });
 
-// cliente: cambiar/eliminar
+// --------------------
+// VARIANTES: actualizar stock según selección (moved here)
+// --------------------
+function attachVariantHandlers() {
+    document.querySelectorAll('.producto').forEach(card => {
+        // evitar reinyectar listeners si ya existen
+        if (card.dataset._variantsAttached === '1') return;
+
+        let variants = [];
+        try { variants = JSON.parse(card.dataset.variants || '[]'); } catch(e) { variants = []; }
+
+        const sizeSelect = card.querySelector('.variant-size');
+        const colorSelect = card.querySelector('.variant-color');
+        const stockText = card.querySelector('.stock-text');
+
+        function updateStock() {
+            if (!variants.length) {
+                // si no hay variantes, mostrar stock del producto si existe el atributo data-stock
+                if (stockText) {
+                    const baseStock = card.dataset.stock ?? '';
+                    stockText.textContent = baseStock !== '' ? `Stock: ${baseStock}` : '';
+                }
+                return;
+            }
+            const talla = sizeSelect ? sizeSelect.value : '';
+            const color = colorSelect ? colorSelect.value : '';
+            const variante = variants.find(v => {
+                const vt = (v.talla || '').toString();
+                const vc = (v.color || '').toString();
+                return vt === (talla || '') && vc === (color || '');
+            });
+            if (stockText) stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
+        }
+
+        if (sizeSelect) sizeSelect.addEventListener('change', updateStock);
+        if (colorSelect) colorSelect.addEventListener('change', updateStock);
+
+        // marcar para no volver a adjuntar
+        card.dataset._variantsAttached = '1';
+        // actualizar al cargar
+        updateStock();
+    });
+}
+
+// ejecutar attach al inicio y después de posibles cambios dinámicos
+attachVariantHandlers();
+
+// --------------------
+// cliente: cambiar/eliminar y modal cliente (moved cliente modal handlers here)
+// --------------------
 document.addEventListener('click', (e) => {
   if (e.target && e.target.id === 'eliminarCliente') {
     localStorage.removeItem(CLIENT_KEY);
@@ -168,8 +217,54 @@ document.addEventListener('click', (e) => {
   }
   if (e.target && e.target.id === 'cambiarCliente') {
     const modal = document.getElementById('modalClientes');
-    if (modal) { modal.classList.remove('hidden'); }
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
   }
+});
+
+// abrir modal cliente desde botón del header/carrito (si existe botón con id client-btn)
+const clientBtn = document.getElementById('client-btn');
+if (clientBtn) {
+    clientBtn.addEventListener('click', () => {
+        const modal = document.getElementById('modalClientes');
+        if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    });
+}
+
+// cerrar modal cliente
+const cerrarModalBtn = document.getElementById('cerrar-modal-cliente');
+if (cerrarModalBtn) {
+    cerrarModalBtn.addEventListener('click', () => {
+        const modal = document.getElementById('modalClientes');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    });
+}
+
+// búsqueda dentro del modal (filtro de filas) - vanilla JS
+const buscarClienteInput = document.getElementById('buscarCliente');
+if (buscarClienteInput) {
+    buscarClienteInput.addEventListener('input', () => {
+        const q = buscarClienteInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#tablaClientes tbody tr, #tablaClientes tr');
+        rows.forEach(row => {
+            const text = (row.textContent || '').toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+        });
+    });
+}
+
+// seleccionar cliente desde la tabla (delegación)
+document.addEventListener('click', (e) => {
+    const sel = e.target.closest && e.target.closest('.seleccionarCliente');
+    if (sel) {
+        const id = sel.dataset.id ?? sel.getAttribute('data-id');
+        const nombre = sel.dataset.nombre ?? sel.getAttribute('data-nombre');
+        const telefono = sel.dataset.telefono ?? sel.getAttribute('data-telefono') ?? '';
+        if (id && nombre) {
+            window.guardarCliente(id, nombre, telefono);
+        }
+        const modal = document.getElementById('modalClientes');
+        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    }
 });
 
 // exponer guardarCliente globalmente
@@ -254,6 +349,13 @@ document.addEventListener('processPayment', async (e)=>{
         console.error('Error fetch procesar_venta:', err);
         alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
     }
+});
+
+// cerrar modales con Escape (mejora)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
+  }
 });
 
 updateCart();
