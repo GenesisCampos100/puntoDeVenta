@@ -495,7 +495,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
                                         <button
-                                            onclick="window.location.href='index.php?view=compra_proveedor=<?= urlencode($pr['numero']) ?>'"
+                                            onclick="window.location.href='index.php?view=nueva_compra&proveedor=<?= urlencode($pr['numero']) ?>'"
                                             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-shadow"
                                             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 18px rgba(31, 64, 24, 0.12);">
                                             <!-- Shopping bag icon -->
@@ -525,8 +525,8 @@
                                         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo proveedor</p>
                                     </div>
                                 </td>
                             </tr>
@@ -732,7 +732,7 @@
                             <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
                             <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
                         </div>
                         </td>
