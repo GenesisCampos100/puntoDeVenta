@@ -33,7 +33,7 @@ if ($view === 'empleados' && $action === 'getEmpleado') {
 }
 
 // 🟢 Lógica de eliminación (sin layout)
-if ($view === 'eliminar_empleado' || $view === 'eliminar_empleados_multiple' || $view === 'eliminar_cliente' || $view === 'eliminar_clientes_multiple') {
+if ($view === 'eliminar_empleado' || $view === 'eliminar_empleados_multiple' || $view === 'eliminar_cliente' || $view === 'eliminar_clientes_multiple' || $view === 'eliminar_producto' || $view === 'editar_producto_modal') {
     include __DIR__ . "/pages/" . $view . ".php";
     exit;
 }
@@ -51,12 +51,17 @@ $views = [
     'empleados' => __DIR__ . "/pages/empleados_contenido.php",
     'productos' => __DIR__ . "/pages/productos_contenido.php",
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
+    'agregar_proveedor' => __DIR__ . "/pages/agregar_proveedor.php",
+    'editar_proveedor' => __DIR__ . "/pages/editar_proveedor.php",
+    'eliminar_proveedor' => __DIR__ . "/pages/eliminar_proveedor.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
     'eliminar_empleado' => __DIR__ . "/pages/eliminar_empleado.php",
     'editar_empleado' => __DIR__ . "/pages/editar_empleado.php",
     'editar_producto' => __DIR__ . "/pages/editar_producto.php",
+    'eliminar_producto' => __DIR__ . "/pages/eliminar_producto.php",
+    'editar_producto_modal' => __DIR__ . "/pages/editar_producto_modal.php",
     'editar_variante' => __DIR__ . "/pages/editar_variante.php",
     'eliminar_empleados_multiple' => __DIR__ . "/pages/eliminar_empleados_multiple.php",
 ];
@@ -71,6 +76,17 @@ if (
     $_SERVER['REQUEST_METHOD'] === 'POST' &&
     isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+) {
+    if (file_exists($contenido)) {
+        include $contenido;
+        exit;
+    }
+}
+
+if (
+    $_SERVER['REQUEST_NETHOD'] === 'GET' && 
+    isset($_GET['action']) &&
+    !empty($_GET['action'])
 ) {
     if (file_exists($contenido)) {
         include $contenido;

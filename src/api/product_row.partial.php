@@ -79,34 +79,31 @@ $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
     </td>
     
     <td class="px-6 py-4 text-right">
-        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button class="open-modal-btn p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" 
+        <div class="inline-flex gap-2">
+            <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
                     title="Ver Detalles"
                     data-details='<?= $jsonProducto ?>'>
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                Ver
             </button>
             
             <?php if (!$tieneVariantes): ?>
-                <button class="btn-ajuste p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
+                <button class="btn-ajuste px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
                     title="Ajustar Stock"
                     data-id="<?= $pid ?>"
                     data-type="producto"
                     data-nombre="<?= htmlspecialchars($nombre) ?>">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    Ajustar
                 </button>
             <?php endif; ?>
             
-            <button class="toggle-active p-2 rounded-lg transition-all <?= $is_active ? 'text-gray-400 hover:text-red-600 hover:bg-red-50' : 'text-green-600 bg-green-50 hover:bg-green-100' ?>" 
+            <button class="toggle-active px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 <?= $is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' ?>" 
                     title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
                     data-id="<?= $pid ?>" 
                     data-type="producto" 
                     data-active="<?= $is_active ? 'true' : 'false' ?>">
-                <?php if ($is_active): ?>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                <?php else: ?>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <?php endif; ?>
+                <?= $is_active ? 'Descatalogar' : 'Activar' ?>
             </button>
         </div>
     </td>
 </tr>
+
