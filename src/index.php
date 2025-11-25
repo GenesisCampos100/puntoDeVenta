@@ -1,4 +1,5 @@
 <?php
+// 🚀 Iniciar salida antes de cualquier texto
 ob_start();
 session_start();
 
@@ -9,8 +10,10 @@ header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 // Si no hay login, mándalo al login
+// ⚙️ Verificar sesión correctamente
 if (!isset($_SESSION['usuario_id'])) {
-    header("Locati n: pages/login.php");
+    // ⚠️ Asegurar que no haya espacios o salida antes del header
+    header("Location: pages/login.php");
     exit;
 }
 
@@ -66,8 +69,10 @@ $views = [
     'eliminar_empleados_multiple' => __DIR__ . "/pages/eliminar_empleados_multiple.php",
 ];
 
-// Si no existe vista → 404
-$contenido = $views[$view] ?? __DIR__ . "/pages/404.php";
+// 🔐 Si la vista no existe, mostrar 404
+$contenido = array_key_exists($view, $views)
+    ? $views[$view]
+    : __DIR__ . "/pages/404.php";
     
 // Si es una petición AJAX (XMLHttpRequest) y viene por POST, incluir
 // directamente la vista para que los endpoints que devuelven JSON
@@ -83,8 +88,17 @@ if (
     }
 }
 
+<<<<<<< HEAD
 if (
     $_SERVER['REQUEST_NETHOD'] === 'GET' && 
+=======
+// Si viene una petición GET con el parámetro `action`, asumimos que
+// es una llamada AJAX para obtener JSON desde la misma vista. Incluir
+// la vista directamente sin el layout para evitar que el layout
+// ya haya impreso HTML (DOCTYPE) antes del JSON.
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+>>>>>>> testing
     isset($_GET['action']) &&
     !empty($_GET['action'])
 ) {
@@ -94,7 +108,11 @@ if (
     }
 }
 
+<<<<<<< HEAD
 // Cargar layout normal
+=======
+// ✅ Incluir el layout (NO debe imprimir antes del header)
+>>>>>>> testing
 include __DIR__ . "/layout.php";
 
 ob_end_flush();

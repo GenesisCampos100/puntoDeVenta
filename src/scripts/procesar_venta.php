@@ -130,14 +130,16 @@ try {
 
     $pdo->commit();
 
+    // Devolver JSON para que el frontend (fetch) lo procese correctamente
     echo json_encode([
-        'status' => 'success',
+        'success' => true,
         'message' => 'Venta registrada correctamente.',
         'id_venta' => $id_venta,
-        'subtotal' => number_format($subtotal,2),
-        'descuento_general' => number_format($descuento_general_final,2),
-        'total' => number_format($total,2)
+        'subtotal' => number_format($subtotal, 2),
+        'descuento_general' => number_format($descuento_general_final, 2),
+        'total' => number_format($total, 2)
     ]);
+    exit;
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

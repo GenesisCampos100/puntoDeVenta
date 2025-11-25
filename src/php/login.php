@@ -70,6 +70,6 @@ session_start();
         
         
     </main>
-
+    <script >
 </body>
 </html>

@@ -34,52 +34,47 @@
 
             console.log('[login.js] response JSON', data);
 
-                if (data && data.success) {
-                    // En lugar de redirigir directamente, muestra el modal
-                    showSuccessModal(data.redirect);
-                } else {
-                    const msg = data && data.message ? data.message : 'Error al iniciar sesión, contraseña o correo incorrectos';
-                    showErrorModal(msg);
-                }
-            } catch (err) {
-                console.error('[login.js] fetch error', err);
-                showErrorModal('Error de red. Intenta de nuevo.');
+            if (data && data.success) {
+                // En lugar de redirigir directamente, muestra el modal
+                showSuccessModal(data.redirect);
+            } else {
+                const msg = data && data.message ? data.message : 'Error al iniciar sesión, contraseña o correo incorrectos';
+                showErrorModal(msg);
             }
-        });
-    })();
+        } catch (err) {
+            console.error('[login.js] fetch error', err);
+            showErrorModal('Error de red. Intenta de nuevo.');
+        }
+    });
+})();
 
-    function showErrorModal(message) {
-        const modal = document.getElementById('errorModal');
-        const messageElement = document.getElementById('errorMessage');
-        const closeButton = document.getElementById('closeErrorModal');
+function showErrorModal(message) {
+    const modal = document.getElementById('errorModal');
+    const messageElement = document.getElementById('errorMessage');
+    const closeButton = document.getElementById('closeErrorModal');
 
-        if (!modal || !messageElement || !closeButton) return;
+    if (!modal || !messageElement || !closeButton) return;
 
-        messageElement.textContent = message;
-        modal.classList.add('visible');
+    messageElement.textContent = message;
+    modal.classList.add('visible');
 
-        closeButton.onclick = () => modal.classList.remove('visible');
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('visible');
-            }
-        };
-    }
-
-    function showSuccessModal(redirectUrl) {
-        const modal = document.getElementById('successModal');
-        if (!modal) return;
-
-        modal.classList.add('visible');
-
-        // Esperar 2 segundos y luego redirigir
-        setTimeout(() => {
-            window.location.href = redirectUrl;
-        }, 2000);
-    }
-// Ejecutar la inicialización inmediatamente si el DOM ya está listo, o esperar al evento
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLoginScripts);
-} else {
-    initLoginScripts();
+    closeButton.onclick = () => modal.classList.remove('visible');
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('visible');
+        }
+    };
 }
+
+function showSuccessModal(redirectUrl) {
+    const modal = document.getElementById('successModal');
+    if (!modal) return;
+
+    modal.classList.add('visible');
+
+    // Esperar 2 segundos y luego redirigir
+    setTimeout(() => {
+        window.location.href = redirectUrl;
+    }, 2000);
+}
+

@@ -497,7 +497,11 @@
 
                         <div class="form-group">
                             <label class="form-label">Empresa<span class="required">*</span></label>
+<<<<<<< HEAD
                             <input type="text" name="empresa" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['empresa'] ?? '')?>">
+=======
+                            <input type="text" name="empresa" maxlength="50" class="form-input" value="<?= tr_content(htmlspecialchars($proveedor['empresa'] ?? '')) ?>">
+>>>>>>> testing
                         </div>
 
                         <div class="form-group">

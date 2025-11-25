@@ -56,11 +56,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
             $direccion = trim(($r['calle'] ?? '') . ' ' . ($r['num_ext'] ?? '') . ' ' . ($r['num_int'] ?? '') . ' ' . ($r['colonia'] ?? '') . ' ' . ($r['cp'] ?? '') . ' ' . ($r['estado'] ?? ''));
             return [
                 'id_cliente' => $r['id_cliente'],
-                'nombre' => $displayName,
+                'nombre' => tr_content($displayName),
                 'celular' => $r['celular'] ?? '',
                 'correo' => $r['correo'] ?? '',
-                'direccion' => $direccion,
-                'estado' => $r['estado'] ?? '',
+                'direccion' => tr_content($direccion),
+                'estado' => tr_content($r['estado'] ?? ''),
                 'inicial' => strtoupper(substr($r['nombre'], 0, 1))
             ];
         }, $rows);
@@ -87,7 +87,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Clientes</title>
+  <title><?= __('customers_management') ?></title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
@@ -104,8 +104,6 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
   </script>
   
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <style>
     :root {
       --primary: #b4c24d;
@@ -223,7 +221,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
       width: 3.5rem;
       height: 3.5rem;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--secondary) 0%, #1e2d38 100%);
+      background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -301,14 +299,15 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
   </style>
 </head>
+
 <body class="p-4 md:p-6">
   <div class="max-w-7xl mx-auto pb-32">
     
     <!-- Header -->
     <div class="mb-8 animate-slideDown">
       <div class="mb-6">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Clientes</h1>
-        <p class="text-gray-600 text-base">Administra y organiza tu base de clientes de forma eficiente</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('customers_management') ?></h1>
+        <p class="text-gray-600 text-base"><?= __('customers_subtitle') ?></p>
       </div>
 
       <!-- Stats Cards -->
@@ -316,21 +315,20 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Total Clientes</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('total_customers') ?></p>
               <p id="totalClientes" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a4 4 0 11-8 0 4 4 0 018 0z"/>
               </svg>
             </div>
           </div>
         </div>
-
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Seleccionados</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('selected') ?></p>
               <p id="selectedCount" class="text-3xl font-bold" style="color: #b4c24d;">0</p>
             </div>
             <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
@@ -340,16 +338,15 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
           </div>
         </div>
-
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-200 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Resultados</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('results') ?></p>
               <p id="filteredCount" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11"/>
               </svg>
             </div>
           </div>
@@ -357,37 +354,35 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slideUp delay-100 border border-gray-100">
-      <form method="GET" action="index.php" id="toolbar-form">
-        <input type="hidden" name="view" value="clientes">
-        
-        <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-          <!-- Search Bar -->
-          <div class="relative flex-1">
+    <!-- Toolbar -->
+    <div class="mb-6 animate-slideDown delay-100">
+      <form id="toolbar-form" class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Search -->
+        <div class="relative w-full md:w-1/2 lg:w-1/3">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
             <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <input 
               id="searchInput" 
               type="text" 
-              placeholder="Buscar por nombre, correo o teléfono..." 
+              placeholder="<?= __('search_customer_placeholder') ?>" 
               class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
             />
             <button type="button" id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
+        </div>
 
-          <!-- Order Dropdown -->
-          <div class="dropdown">
-            <button type="button" id="orderBtn" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 text-gray-700 font-semibold hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+        <div class="flex items-center gap-3">
+          <!-- Order Button -->
+          <div class="relative">
+            <button type="button" id="orderBtn" class="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
-              Ordenar
+              <?= __('sort') ?>
               <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -395,10 +390,10 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?= __('sort_by') ?></p>
                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                  <option value="nombre ASC" <?= ($orden == 'nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                  <option value="nombre DESC" <?= ($orden == 'nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                  <option value="nombre ASC" <?= ($orden == 'nombre ASC') ? 'selected' : '' ?>><?= __('name_az') ?></option>
+                  <option value="nombre DESC" <?= ($orden == 'nombre DESC') ? 'selected' : '' ?>><?= __('name_za') ?></option>
                 </select>
               </div>
             </div>
@@ -409,7 +404,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Agregar
+            <?= __('add_customer') ?>
           </button>
         </div>
       </form>
@@ -420,7 +415,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="flex items-center gap-3">
             <input type="checkbox" id="selectAll" class="custom-checkbox" />
             <span class="text-sm font-semibold text-gray-700">
-              <span id="bulkSelectedCount">0</span> cliente(s) seleccionado(s)
+              <span id="bulkSelectedCount">0</span> <?= __('customers_selected') ?>
             </span>
           </div>
           <div class="flex gap-2">
@@ -428,10 +423,10 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              Eliminar
+              <?= __('delete') ?>
             </button>
             <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
-              Cancelar
+              <?= __('cancel') ?>
             </button>
           </div>
         </div>
@@ -447,26 +442,26 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
               <th class="px-6 py-4 text-left">
                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">#</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Celular</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Dirección</th>
-              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('hash_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('name_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('phone_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('email_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('address_col') ?></th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?= __('actions_col') ?></th>
             </tr>
           </thead>
           <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+            <!-- Rows will be injected by JS -->
           </tbody>
         </table>
       </div>
-
-      <!-- Empty State -->
+      
       <div id="emptyState" class="hidden empty-state">
         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
         </svg>
-        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron clientes</h3>
-        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo cliente</p>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2"><?= __('no_customers_found') ?></h3>
+        <p class="text-gray-500"><?= __('try_adjusting_filters_or_add') ?></p>
       </div>
     </div>
 
@@ -474,20 +469,17 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   <!-- FAB -->
   <button class="fab" onclick="window.location.href='index.php?view=agregar_cliente'">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-    </svg>
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
   </button>
 
-  <!-- MODAL (PREMIUM DESIGN) -->
-  <div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="absolute inset-0 modal-backdrop" onclick="closeDetalle()"></div>
+  <!-- Modal Detalle -->
+  <div id="modalDetalle" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4">
     <div class="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden animate-slideUp">
       <!-- Header con gradiente -->
       <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
         <h3 class="text-xl font-bold text-white flex items-center gap-2">
           <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          Detalle del Cliente
+          <?= __('customer_details') ?>
         </h3>
         <button class="text-white/70 hover:text-white text-2xl leading-none transition-colors" onclick="closeDetalle()">&times;</button>
       </div>
@@ -498,7 +490,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="md:col-span-2 group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-              Nombre Completo
+              <?= __('full_name') ?>
             </p>
             <p id="d-nombre" class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-1">-</p>
           </div>
@@ -507,7 +499,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Correo Electrónico
+              <?= __('email_address') ?>
             </p>
             <p id="d-correo" class="text-base text-gray-700">-</p>
           </div>
@@ -516,7 +508,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              Celular
+              <?= __('phone_col') ?>
             </p>
             <p id="d-celular" class="text-base text-gray-700">-</p>
           </div>
@@ -525,7 +517,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="md:col-span-2 group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              Dirección Completa
+              <?= __('full_address') ?>
             </p>
             <p id="d-direccion" class="text-base text-gray-700 border-b border-gray-100 pb-1">-</p>
           </div>
@@ -534,7 +526,7 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Código Postal
+              <?= __('zip_code') ?>
             </p>
             <p id="d-cp" class="text-base text-gray-700">-</p>
           </div>
@@ -543,14 +535,14 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Estado
+              <?= __('state') ?>
             </p>
             <p id="d-estado" class="text-base text-gray-700">-</p>
           </div>
         </div>
 
         <div class="flex items-center justify-end gap-3">
-          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg btn-primary">Ver más</a>
+          <a id="btnVerMas" href="" data-id="" class="px-4 py-2 rounded-lg btn-primary"><?= __('view_more') ?></a>
         </div>
       </div>
     </div>
@@ -747,13 +739,13 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td class="px-6 py-4 text-right">
               <div class="inline-flex gap-2">
                 <button onclick="openDetalle(${cliente.id_cliente})" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  Ver
+                  <?= __('view') ?>
                 </button>
                 <button onclick="window.location.href='index.php?view=editar_cliente&id=${cliente.id_cliente}'" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                  Editar
+                  <?= __('edit') ?>
                 </button>
                 <button onclick="confirmDelete(${cliente.id_cliente}, '${escapeHtml(displayName).replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                  Eliminar
+                  <?= __('delete') ?>
                 </button>
               </div>
             </td>
@@ -805,14 +797,14 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     function confirmDelete(id, nombre) {
       Swal.fire({
-        title: '¿Eliminar cliente?',
-        html: `¿Estás seguro de eliminar a <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        title: '<?= __('confirm_delete_customer_title') ?>',
+        html: `<?= __('confirm_delete_customer_text') ?> <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500"><?= __('action_cannot_be_undone') ?></span>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#e15871',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: '<?= __('yes_delete') ?>',
+        cancelButtonText: '<?= __('cancel') ?>',
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -831,32 +823,32 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
       .then(json => {
         if (json.success) {
           Swal.fire({
-            title: 'Eliminado',
-            text: 'El cliente ha sido eliminado correctamente',
+            title: '<?= __('deleted') ?>',
+            text: '<?= __('customer_deleted_successfully') ?>',
             icon: 'success',
             confirmButtonColor: '#b4c24d',
             timer: 2000
           });
           performSearch();
         } else {
-          Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+          Swal.fire('<?= __('error') ?>', json.error || '<?= __('could_not_delete') ?>', 'error');
         }
       })
-      .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
+      .catch(() => Swal.fire('<?= __('error') ?>', '<?= __('server_error') ?>', 'error'));
     }
 
     function bulkDelete() {
       const count = selectedIds.size;
       
       Swal.fire({
-        title: '¿Eliminar clientes seleccionados?',
-        html: `¿Estás seguro de eliminar <strong>${count}</strong> cliente(s)?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        title: '<?= __('confirm_delete_multiple_title') ?>',
+        html: `<?= __('confirm_delete_multiple_text') ?> <strong>${count}</strong> <?= __('customers_suffix') ?><br><span class="text-sm text-gray-500"><?= __('action_cannot_be_undone') ?></span>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#e15871',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar todos',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: '<?= __('yes_delete_all') ?>',
+        cancelButtonText: '<?= __('cancel') ?>',
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -870,8 +862,8 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           .then(json => {
             if (json.success) {
               Swal.fire({
-                title: 'Eliminados',
-                text: `${json.count} cliente(s) eliminado(s) correctamente`,
+                title: '<?= __('deleted_multiple') ?>',
+                text: `${json.count} <?= __('customers_deleted_successfully') ?>`,
                 icon: 'success',
                 confirmButtonColor: '#b4c24d',
                 timer: 2000
@@ -879,10 +871,10 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
               clearSelection();
               performSearch();
             } else {
-              Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+              Swal.fire('<?= __('error') ?>', json.error || '<?= __('could_not_delete') ?>', 'error');
             }
           })
-          .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
+          .catch(() => Swal.fire('<?= __('error') ?>', '<?= __('server_error') ?>', 'error'));
         }
       });
     }
@@ -902,24 +894,24 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     function openDetalle(id) {
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      detalle.nombre.textContent = 'Cargando...';
+      detalle.nombre.textContent = '<?= __('loading') ?>...';
 
       const url = `index.php?view=clientes&action=getCliente&id=${encodeURIComponent(id)}`;
 
       fetch(url)
         .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
         .then(json => {
-          if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+          if (!json.success) { Swal.fire('<?= __('error') ?>', json.error || '<?= __('could_not_get_info') ?>', 'error'); closeDetalle(); return; }
           const c = json.cliente;
           detalle.nombre.textContent = `${c.nombre || ''} ${c.apellido_paterno || ''} ${c.apellido_materno || ''}`;
           detalle.correo.textContent = c.correo || '-';
           detalle.celular.textContent = c.celular || '-';
-          detalle.direccion.textContent = [c.calle, c.num_ext, c.num_int, c.colonia].filter(Boolean).join(' ') || '-';
+          detalle.direccion.textContent = c.direccion || '-';
           detalle.cp.textContent = c.cp || '-';
           detalle.estado.textContent = c.estado || '-';
           detalle.btnVerMas.href = `index.php?view=detalle_cliente&id=${encodeURIComponent(id)}`;
         })
-        .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+        .catch(err => { console.error(err); Swal.fire('<?= __('error') ?>','<?= __('error_loading_data') ?>: '+err.message,'error'); closeDetalle(); });
     }
     
     function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
