@@ -1,13 +1,14 @@
 <?php
 // reportes_contenido.php
 // Módulo de Estadísticas y Dashboard Premium
+require_once __DIR__ . '/../config/translation.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes y Estadísticas</title>
+    <title><?= __('reports_title') ?></title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,22 +88,28 @@
         <!-- Header & Filters -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div>
-                <h1 class="text-3xl font-bold text-secondary flex items-center gap-3">
-                    <i data-lucide="bar-chart-2" class="w-8 h-8 text-primary"></i>
-                    Reportes y Estadísticas
-                </h1>
-                <p class="text-gray-500 mt-2 text-sm">Análisis financiero y rendimiento del negocio en tiempo real.</p>
+                <div class="flex items-center gap-4">
+                    <h1 class="text-3xl font-bold text-secondary flex items-center gap-3">
+                        <i data-lucide="bar-chart-2" class="w-8 h-8 text-primary"></i>
+                        <?= __('reports_heading') ?>
+                    </h1>
+                    <a href="http://localhost/PrismaMK2C/src/index.php?view=productos" class="inline-flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg bg-primary text-white hover:bg-secondary transition-colors shadow-sm" title="<?= __('productos') ?>">
+                        <i data-lucide="package" class="w-4 h-4"></i>
+                        <span><?= __('productos') ?></span>
+                    </a>
+                </div>
+                <p class="text-gray-500 mt-2 text-sm"><?= __('reports_subheading') ?></p>
             </div>
             
             <div class="flex flex-wrap gap-3 items-center bg-gray-50 p-2 rounded-xl border border-gray-200">
                 <button onclick="setFilter('today')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white text-gray-600 shadow-sm hover:text-primary">
-                    Hoy
+                    <?= __('filter_today') ?>
                 </button>
                 <button onclick="setFilter('week')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 text-gray-600 hover:text-primary">
-                    Esta Semana
+                    <?= __('filter_week') ?>
                 </button>
                 <button onclick="setFilter('month')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 text-gray-600 hover:text-primary">
-                    Este Mes
+                    <?= __('filter_month') ?>
                 </button>
                 
                 <div class="h-6 w-px bg-gray-300 mx-1"></div>
@@ -131,7 +138,7 @@
                 <div class="absolute right-0 top-0 h-full w-1 bg-primary"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ventas Totales</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?= __('kpi_total_sales') ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-total">$0.00</h3>
                     </div>
                     <div class="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -140,7 +147,7 @@
                 </div>
                 <div class="flex items-center text-xs text-green-600 font-medium bg-green-50 w-fit px-2 py-1 rounded-md">
                     <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>
-                    Ingresos Brutos
+                    <?= __('kpi_gross_income') ?>
                 </div>
             </div>
 
@@ -149,14 +156,14 @@
                 <div class="absolute right-0 top-0 h-full w-1 bg-secondary"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Transacciones</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?= __('kpi_transactions') ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-transacciones">0</h3>
                     </div>
                     <div class="p-3 bg-secondary/10 rounded-xl text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
                         <i data-lucide="shopping-bag" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-gray-400 mt-1">Tickets generados en el periodo</div>
+                <div class="text-xs text-gray-400 mt-1"><?= __('kpi_tickets_generated_period') ?></div>
             </div>
 
             <!-- KPI 3: Ticket Promedio -->
@@ -164,14 +171,14 @@
                 <div class="absolute right-0 top-0 h-full w-1 bg-accent"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ticket Promedio</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?= __('kpi_avg_ticket') ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-ticket">$0.00</h3>
                     </div>
                     <div class="p-3 bg-accent/10 rounded-xl text-accent group-hover:bg-accent group-hover:text-white transition-colors">
                         <i data-lucide="credit-card" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-gray-400 mt-1">Promedio por venta realizada</div>
+                <div class="text-xs text-gray-400 mt-1"><?= __('kpi_avg_ticket_sub') ?></div>
             </div>
 
             <!-- KPI 4: Margen Bruto -->
@@ -179,7 +186,7 @@
                 <div class="absolute right-0 top-0 h-full w-1 bg-indigo-500"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Margen Bruto</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?= __('kpi_gross_margin') ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-margen">$0.00</h3>
                     </div>
                     <div class="p-3 bg-indigo-50 rounded-xl text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
@@ -188,7 +195,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-2xl font-bold text-primary" id="kpi-margen-pct">0%</span>
-                    <span class="text-xs text-gray-400">de rentabilidad</span>
+                    <span class="text-xs text-gray-400"><?= __('kpi_profitability_suffix') ?></span>
                 </div>
             </div>
         </div>
@@ -201,7 +208,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="activity" class="w-5 h-5 text-primary"></i>
-                        Tendencia de Ingresos
+                        <?= __('chart_income_trend_title') ?>
                     </h3>
                     <button class="text-gray-400 hover:text-secondary transition-colors"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
                 </div>
@@ -215,14 +222,14 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="layers" class="w-5 h-5 text-accent"></i>
-                        Ventas por Categoría
+                        <?= __('chart_sales_by_category_title') ?>
                     </h3>
                 </div>
                 <div class="relative h-64 w-full flex items-center justify-center">
                     <canvas id="chartCategorias"></canvas>
                 </div>
                 <div class="mt-4 text-center">
-                    <p class="text-xs text-gray-400">Distribución de ingresos por familia de productos</p>
+                    <p class="text-xs text-gray-400"><?= __('chart_sales_by_category_sub') ?></p>
                 </div>
             </div>
         </div>
@@ -235,7 +242,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="star" class="w-5 h-5 text-yellow-500"></i>
-                        Top 10 Productos Más Vendidos
+                        <?= __('chart_top_products_title') ?>
                     </h3>
                 </div>
                 <div class="relative h-72 w-full">
@@ -248,7 +255,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
-                        Rendimiento por Empleado
+                        <?= __('chart_employee_performance_title') ?>
                     </h3>
                 </div>
                 <div class="relative h-72 w-full">
@@ -330,7 +337,7 @@
                 renderChart('chartIngresos', 'line', 
                     ingresos.data.map(d => d.periodo), 
                     ingresos.data.map(d => d.total), 
-                    'Ingresos', 
+                    '<?= __('chart_dataset_income') ?>', 
                     colors.primary
                 );
 
@@ -339,7 +346,7 @@
                 renderChart('chartCategorias', 'doughnut', 
                     categorias.data.map(d => d.categoria), 
                     categorias.data.map(d => d.total), 
-                    'Ventas', 
+                    '<?= __('chart_dataset_sales') ?>', 
                     colors.palette
                 );
 
@@ -348,7 +355,7 @@
                 renderChart('chartProductos', 'bar', 
                     productos.data.map(d => d.nom_producto), 
                     productos.data.map(d => d.cantidad), 
-                    'Unidades', 
+                    '<?= __('chart_dataset_units') ?>', 
                     colors.secondary
                 );
 
@@ -357,7 +364,7 @@
                 renderChart('chartEmpleados', 'bar', 
                     empleados.data.map(d => d.empleado), 
                     empleados.data.map(d => d.total), 
-                    'Ventas ($)', 
+                    '<?= __('chart_dataset_sales_currency') ?>', 
                     colors.accent
                 );
 

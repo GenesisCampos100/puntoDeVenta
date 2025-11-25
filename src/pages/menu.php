@@ -277,7 +277,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
       </div>
       <div class="flex flex-col leading-tight">
         <span style="color:#b4c24d; font-weight:700; font-size:14px; letter-spacing:-0.02em;">
-          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+          <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
         </span>
         <span style="color:#cbd5e1; font-size:12px; font-weight:500;">
           <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>

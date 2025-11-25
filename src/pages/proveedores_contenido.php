@@ -464,14 +464,14 @@
                                     <td class="px-6 py-4">
                                         <input type="checkbox" class="custom-checkbox row-checkbox" data-id="<?= $pr['numero'] ?>" />
                                     </td>
-                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900"><?= htmlspecialchars($pr['empresa']) ?></td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($pr['empresa'])) ?></td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                                                 <?= strtoupper(substr($pr['representante'], 0, 1))?>
                                             </div>
                                             <div>
-                                                <p class="text-sm font-semibold text-gray-900"><?= htmlspecialchars($pr['representante']) ?></p>
+                                                <p class="text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($pr['representante'])) ?></p>
                                             </div>
                                         </div>
                                     </td>

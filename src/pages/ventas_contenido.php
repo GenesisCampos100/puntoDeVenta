@@ -43,7 +43,7 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach($ventas as $v): ?>
         <tr class="border-b hover:bg-gray-50">
             <td class="px-4 py-2"><?= $v['id_venta'] ?></td>
-            <td class="px-4 py-2"><?= htmlspecialchars($v['nombre_empleado']) ?></td>
+            <td class="px-4 py-2"><?= tr_content(htmlspecialchars($v['nombre_empleado'])) ?></td>
             <td class="px-4 py-2"><?= $v['fecha'] ?></td>
             <td class="px-4 py-2">$<?= number_format($v['pago_total'],2) ?></td>
             <td class="px-4 py-2 space-x-2">

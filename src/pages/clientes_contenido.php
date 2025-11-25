@@ -56,11 +56,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
             $direccion = trim(($r['calle'] ?? '') . ' ' . ($r['num_ext'] ?? '') . ' ' . ($r['num_int'] ?? '') . ' ' . ($r['colonia'] ?? '') . ' ' . ($r['cp'] ?? '') . ' ' . ($r['estado'] ?? ''));
             return [
                 'id_cliente' => $r['id_cliente'],
-                'nombre' => $displayName,
+                'nombre' => tr_content($displayName),
                 'celular' => $r['celular'] ?? '',
                 'correo' => $r['correo'] ?? '',
-                'direccion' => $direccion,
-                'estado' => $r['estado'] ?? '',
+                'direccion' => tr_content($direccion),
+                'estado' => tr_content($r['estado'] ?? ''),
                 'inicial' => strtoupper(substr($r['nombre'], 0, 1))
             ];
         }, $rows);

@@ -169,7 +169,7 @@ require_once __DIR__ . '/../config/db.php';
 
         <p><b><?= __('performed_by') ?>: </b></p>
         <p style="margin-top:4px; font-size:14px; color:#666;">
-        <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+        <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
         </p>
       </div>
       <div class="modal-footer">
@@ -195,7 +195,7 @@ require_once __DIR__ . '/../config/db.php';
 
         <p><b><?= __('performed_by') ?>: </b></p>
         <p style="margin-top:4px; font-size:14px; color:#666;">
-        <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+        <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
         </p>
       </div>
       <div class="modal-footer">

@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- 🧾 FORMULARIO -->
 <div class="producto-form">
-  <h2>Editar variante del producto: <span style="color:#3b82f6;"><?= htmlspecialchars($nombre_producto) ?></span></h2>
+  <h2>Editar variante del producto: <span style="color:#3b82f6;"><?= tr_content(htmlspecialchars($nombre_producto)) ?></span></h2>
 
   <form method="post" enctype="multipart/form-data">
     <section>

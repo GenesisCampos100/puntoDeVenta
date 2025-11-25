@@ -17,7 +17,12 @@ if (isset($_GET['buscar_cliente'])) {
     ");
     $like = "%$texto%";
     $sql->execute([$like, $like, $like]);
-    echo json_encode($sql->fetchAll(PDO::FETCH_ASSOC));
+    $clientes = $sql->fetchAll(PDO::FETCH_ASSOC);
+    // Aplicar traducción a nombres de clientes
+    foreach ($clientes as &$c) {
+        $c['nombre_completo'] = tr_content($c['nombre_completo']);
+    }
+    echo json_encode($clientes);
     exit;
 }
 
@@ -215,18 +220,18 @@ function normalizeCategory($name) {
         <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input type="text" id="search-products" class="search-input" placeholder="Buscar productos por nombre, categoría o código...">
+        <input type="text" id="search-products" class="search-input" placeholder="<?= __('search_products_placeholder') ?>">
     </div>
 </div>
 
 <!-- CATEGORÍAS -->
 <div class="flex flex-wrap justify-start gap-2 mb-6 px-6 animate-slide">
     <button data-category="all" class="category-btn active px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-        Todos
+        <?= __('all_categories') ?>
     </button>
     <?php foreach($categorias as $cat): ?>
         <button data-category="<?= normalizeCategory($cat['nombre']) ?>" class="category-btn px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-            <?= htmlspecialchars($cat['nombre']) ?>
+            <?= htmlspecialchars(tr_category($cat['nombre'])) ?>
         </button>
     <?php endforeach; ?>
 </div>
@@ -253,8 +258,8 @@ function normalizeCategory($name) {
                          class="w-full h-48 object-cover rounded-xl product-image">
                 </div>
                 
-                <h3 class="font-semibold text-gray-800 text-base mb-1"><?= htmlspecialchars($prod['nombre']) ?></h3>
-                <p class="text-gray-500 text-sm mb-2"><?= htmlspecialchars($prod['categoria']) ?></p>
+                <h3 class="font-semibold text-gray-800 text-base mb-1"><?= tr_content(htmlspecialchars($prod['nombre'])) ?></h3>
+                <p class="text-gray-500 text-sm mb-2"><?= htmlspecialchars(tr_category($prod['categoria'])) ?></p>
                 <p class="text-xl font-bold price mb-2" style="color: var(--primary);">$<?= number_format($precio, 2) ?></p>
                 
                 <!-- STOCK -->
@@ -277,7 +282,7 @@ function normalizeCategory($name) {
                         $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
                         if (empty($colors)) $colors = [$prod['color_default']];
                         foreach ($colors as $color): ?>
-                        <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
+                        <option value="<?= htmlspecialchars($color) ?>"><?= tr_content(htmlspecialchars($color)) ?></option>
                     <?php endforeach; ?>
                 </select>
                 
@@ -287,56 +292,7 @@ function normalizeCategory($name) {
             </article>
         <?php endforeach; ?>
     </div>
-<div class="px-6">
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
-    <?php foreach($productos as $prod): 
-      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
-      $precio = $prod['precio'] ?: 0;
-      $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
-    ?>
-      <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-               data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
-               data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-               data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-               data-price="<?= htmlspecialchars($precio) ?>"
-               data-category="<?= htmlspecialchars($prod['categoria']) ?>"
-               data-stock="<?= $prod['stock'] ?>"
-               data-variants='<?= $variants_json ?>'>
-        
-        <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" alt="<?= htmlspecialchars($prod['nombre']) ?>" class="w-full h-40 object-cover rounded product-image">
-        
-        <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
-        <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
-        <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
-
-        <!-- STOCK MOSTRADO -->
-        <p class="text-sm mt-1 text-green-600 font-semibold stock-text">
-            Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
-        </p>
-
-        <select class="variant-size border rounded-lg px-2 py-1 text-sm mt-2 w-full">
-          <?php 
-            $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
-            if (empty($sizes)) $sizes = [$prod['talla_default']];
-            foreach ($sizes as $size): ?>
-              <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-          <?php endforeach; ?>
-        </select>
-
-        <select class="variant-color border rounded-lg px-2 py-1 text-sm mt-2 w-full">
-          <?php 
-            $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
-            if (empty($colors)) $colors = [$prod['color_default']];
-            foreach ($colors as $color): ?>
-              <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-          <?php endforeach; ?>
-        </select>
-
-        <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
-      </article>
-    <?php endforeach; ?>
-  </div>
-</div>
+<!-- Eliminado grid duplicado para evitar doble render y traducciones inconsistentes -->
 
 <!-- CARRITO LATERAL -->
 <aside id="cart" class="fixed top-[81px] right-0 w-80 h-[calc(100%-81px)] bg-white shadow-lg flex flex-col p-4 z-50">   

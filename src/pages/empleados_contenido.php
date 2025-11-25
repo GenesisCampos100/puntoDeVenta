@@ -474,7 +474,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                         <?= strtoupper(substr($emp['nombre_completo'], 0, 1)) ?>
                       </div>
                       <div>
-                        <p class="text-sm font-semibold text-gray-900"><?= htmlspecialchars($emp['nombre_completo']) ?></p>
+                        <p class="text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($emp['nombre_completo'])) ?></p>
                       </div>
                     </div>
                   </td>
