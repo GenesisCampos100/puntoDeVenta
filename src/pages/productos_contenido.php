@@ -1,6 +1,6 @@
 <?php
 // src/pages/productos_contenido.php
-// Versión Premium Refactorizada - Estilo React/Moderno
+// Versión Premium - Estilo consistente con clientes_contenido.php
 // Mantiene TODA la lógica de backend intacta.
 
 require_once __DIR__ . "/../config/db.php";
@@ -92,95 +92,187 @@ foreach($productos as $p) {
 <!-- Dependencias -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://unpkg.com/lucide@0.257.0/dist/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+        },
+      },
+    }
+</script>
 
 <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    :root {
+        --primary: #b4c24d;
+        --primary-dark: #9fb03d;
+        --secondary: #2d4353;
+        --accent: #e15871;
+        --gray-bg: #eeeeee;
+    }
+    
+    body { 
+        font-family: 'Poppins', sans-serif; 
+        background: linear-gradient(135deg, #f9fafb 0%, #eeeeee 100%);
+        min-height: 100vh;
+    }
+    
+    /* Animaciones Premium */
+    @keyframes fadeIn { 
+        from { opacity: 0; } 
+        to { opacity: 1; } 
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp { 
+        from { opacity: 0; transform: translateY(15px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+    @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
     .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    .animate-slideDown { animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
     .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .animate-scaleIn { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    
     .delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
     .delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
-    
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    .search-input:focus { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
-    .has-value { border-color: #3b82f6; background: #eff6ff; }
+    /* Hover Effects Premium */
+    .hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hover-lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Search Input Focus */
+    .search-input {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .search-input:focus { 
+        box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.1);
+        border-color: var(--primary);
+    }
+    .search-input.has-value {
+        border-color: var(--primary);
+        background: rgba(180, 194, 77, 0.02);
+    }
     
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    /* Table Row Hover */
+    tbody tr {
+        transition: all 0.2s ease;
+    }
+    tbody tr:hover {
+        background: rgba(180, 194, 77, 0.04);
+    }
+    
+    /* Tabs Active State */
+    .tab-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(180, 194, 77, 0.3);
+    }
+    
+    /* Modal Backdrop */
+    .modal-backdrop {
+        backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.4);
+    }
 </style>
 
-<div class="max-w-7xl mx-auto p-4 md:p-8 pb-24">
+<div class="max-w-7xl mx-auto p-4 md:p-6 pb-32">
 
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-slideUp">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Inventario</h1>
-            <p class="text-gray-500 mt-1">Administra tu catálogo y existencias</p>
+    <div class="mb-8 animate-slideDown">
+        <div class="mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Inventario</h1>
+            <p class="text-gray-600 text-base">Administra tu catálogo y existencias de forma eficiente</p>
         </div>
         
-        <div class="flex gap-4">
-            <!-- Stat Card: Total -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[160px]">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <i data-lucide="package" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Total</p>
-                    <p class="text-2xl font-bold text-gray-900" id="totalProductos"><?= $totalProductos ?></p>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Total Productos -->
+            <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">Total Productos</p>
+                        <p class="text-3xl font-bold text-gray-900" id="totalProductos"><?= $totalProductos ?></p>
+                    </div>
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
             
-            <!-- Stat Card: Stock Bajo -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 min-w-[160px]">
-                <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Stock Bajo</p>
-                    <p class="text-2xl font-bold text-gray-900"><?= $stockBajo ?></p>
+            <!-- Stock Bajo -->
+            <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">Stock Bajo</p>
+                        <p class="text-3xl font-bold" style="color: #e15871;"><?= $stockBajo ?></p>
+                    </div>
+                    <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toolbar Section -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-6 animate-slideUp delay-100">
-        <div class="flex flex-col lg:flex-row gap-5 items-center justify-between">
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slideUp delay-100 border border-gray-100">
+        <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
             
-            <!-- Search & Tabs -->
-            <div class="flex flex-col md:flex-row gap-4 w-full lg:w-2/3 items-center">
+            <!-- Search & Tabs Container -->
+            <div class="flex flex-col md:flex-row gap-4 flex-1 items-stretch md:items-center">
                 <!-- Search Bar -->
-                <div class="relative w-full md:w-1/2 group">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                <div class="relative flex-1">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
                     <input id="busqueda" type="text" placeholder="Buscar por nombre, código o SKU..." 
                            value="<?= htmlspecialchars($busqueda) ?>"
-                           class="search-input w-full pl-12 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white outline-none transition-all duration-200 font-medium text-gray-700 placeholder-gray-400">
-                    <button id="clear-search" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition-colors p-1 rounded-full hover:bg-red-50">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                           class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium">
+                    <button id="clear-search" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                     </button>
                 </div>
 
                 <!-- Tabs -->
-                <div class="flex bg-gray-100 p-1.5 rounded-xl w-full md:w-auto">
-                    <button data-status="activo" class="tab-btn active flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm bg-white text-gray-900">
+                <div class="flex bg-gray-100 p-1.5 rounded-xl">
+                    <button data-status="activo" class="tab-btn active flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all">
                         Activos
                     </button>
-                    <button data-status="descatalogado" class="tab-btn flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all">
+                    <button data-status="descatalogado" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-all">
                         Descatalogados
                     </button>
                 </div>
             </div>
 
             <!-- Filters & Actions -->
-            <div class="flex flex-wrap md:flex-nowrap gap-3 w-full lg:w-auto justify-end">
-                <select id="categoria" class="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none cursor-pointer hover:bg-gray-50 transition-all">
+            <div class="flex flex-wrap md:flex-nowrap gap-3 justify-end">
+                <select id="categoria" class="px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:outline-none cursor-pointer hover:bg-gray-50 transition-all">
                     <option value="">Todas las categorías</option>
                     <?php foreach ($categorias as $cat): ?>
                         <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
@@ -189,15 +281,17 @@ foreach($productos as $p) {
                     <?php endforeach; ?>
                 </select>
 
-                <select id="orden" class="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none cursor-pointer hover:bg-gray-50 transition-all hidden md:block">
+                <select id="orden" class="px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:outline-none cursor-pointer hover:bg-gray-50 transition-all hidden md:block">
                     <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A-Z)</option>
                     <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z-A)</option>
                     <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio: Menor</option>
                     <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio: Mayor</option>
                 </select>
 
-                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 whitespace-nowrap">
-                    <i data-lucide="plus" class="w-5 h-5"></i>
+                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
                     <span class="hidden sm:inline">Nuevo Producto</span>
                 </button>
             </div>
@@ -205,19 +299,19 @@ foreach($productos as $p) {
     </div>
 
     <!-- Table Container -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-slideUp delay-200">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-slideUp delay-200 border border-gray-100">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-100">
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Categoría</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
-                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Precio</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tabla-productos" class="divide-y divide-gray-100">
+                <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
                     <?php 
                         // Renderizado Inicial PHP
                         if (!empty($productos)) {
@@ -228,9 +322,9 @@ foreach($productos as $p) {
                                 include __DIR__ . '/../api/product_row.partial.php';
                                 
                                 if (($producto['tiene_variante'] > 0) && isset($variantesPorProducto[$producto['id_producto']])) {
-                                    echo '<tr id="variants-' . $producto['id_producto'] . '" class="hidden transition-all duration-300 ease-in-out bg-gray-50/50">';
+                                    echo '<tr id="variants-' . $producto['id_producto'] . '" class="hidden transition-all duration-300 ease-in-out">';
                                     echo '<td colspan="5" class="p-0 border-t-0">';
-                                    echo '<div class="px-4 py-3 bg-gray-50 border-y border-gray-100 shadow-inner">';
+                                    echo '<div class="px-6 py-4 bg-gray-50/80 border-y border-gray-100 shadow-inner">';
                                     echo '<table class="w-full">';
                                     echo '<tbody class="divide-y divide-gray-200/50">';
                                     foreach ($variantesPorProducto[$producto['id_producto']] as $var) {
@@ -243,13 +337,13 @@ foreach($productos as $p) {
                                 }
                             }
                         } else {
-                            echo '<tr><td colspan="5" class="px-6 py-16 text-center text-gray-500">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                            <i data-lucide="search-x" class="w-8 h-8 text-gray-400"></i>
-                                        </div>
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-1">No se encontraron productos</h3>
-                                        <p class="text-sm text-gray-500">Intenta ajustar los filtros o tu búsqueda</p>
+                            echo '<tr><td colspan="5" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center justify-center animate-fadeIn">
+                                        <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                        </svg>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o tu búsqueda</p>
                                     </div>
                                   </td></tr>';
                         }
@@ -262,65 +356,83 @@ foreach($productos as $p) {
 </div>
 
 <!-- Modal Detalles (Premium) -->
-<div id="modalDetalle" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 animate-fadeIn">
+<div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="absolute inset-0 modal-backdrop" onclick="cerrarModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-scaleIn">
+        
+        <!-- Header con gradiente -->
+        <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-6 h-6" style="color: #b4c24d;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Detalle del Producto
+            </h3>
+            <button onclick="cerrarModal()" class="text-white/70 hover:text-white text-2xl leading-none transition-colors">&times;</button>
+        </div>
         
         <!-- Modal Header Image -->
-        <div class="relative h-64 bg-gray-100 group">
-            <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            
-            <button onclick="cerrarModal()" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-md transition-all border border-white/10">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+        <div class="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 group overflow-hidden">
+            <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
             
             <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <span id="modal-categoria" class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-md text-xs font-bold uppercase tracking-wider mb-2 border border-white/10"></span>
-                <h3 id="modal-nombre" class="text-2xl font-bold leading-tight shadow-sm"></h3>
+                <span id="modal-categoria" class="inline-block px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-wider mb-3 border border-white/20"></span>
+                <h3 id="modal-nombre" class="text-2xl font-bold leading-tight"></h3>
             </div>
         </div>
         
-        <div class="p-6">
+        <div class="p-6 space-y-6">
             <!-- Price Section -->
-            <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-6">
+            <div class="flex justify-between items-end border-b-2 border-gray-100 pb-6">
                 <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Precio de Venta</p>
-                    <p class="text-4xl font-bold text-gray-900 tracking-tight">$<span id="modal-precio"></span></p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Precio de Venta</p>
+                    <p class="text-4xl font-bold tracking-tight" style="color: #b4c24d;">$<span id="modal-precio"></span></p>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">Costo</p>
-                    <p class="text-lg font-medium text-gray-500">$<span id="modal-costo"></span></p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Costo</p>
+                    <p class="text-xl font-semibold text-gray-600">$<span id="modal-costo"></span></p>
                 </div>
             </div>
             
             <!-- Info Grid -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="barcode" class="w-4 h-4 text-blue-500"></i>
-                        <p class="text-xs text-gray-500 uppercase font-bold">Código / SKU</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 rounded-xl border border-blue-200/50 hover:border-blue-300 transition-all">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5" style="color: #2d4353;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        </svg>
+                        <p class="text-xs text-gray-600 uppercase font-bold">Código / SKU</p>
                     </div>
                     <p id="modal-codigo" class="font-mono text-gray-900 font-bold text-sm truncate"></p>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="box" class="w-4 h-4 text-orange-500"></i>
-                        <p class="text-xs text-gray-500 uppercase font-bold">Existencias</p>
+                <div class="bg-gradient-to-br from-pink-50 to-pink-100/50 p-5 rounded-xl border border-pink-200/50 hover:border-pink-300 transition-all">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5" style="color: #e15871;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <p class="text-xs text-gray-600 uppercase font-bold">Existencias</p>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span id="modal-stock" class="text-xl font-bold text-gray-900"></span>
-                        <span class="text-xs text-gray-400 font-medium">Min: <span id="modal-stock-min"></span></span>
+                        <span id="modal-stock" class="text-2xl font-bold text-gray-900"></span>
+                        <span class="text-xs text-gray-500 font-medium">Min: <span id="modal-stock-min"></span></span>
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex gap-3">
-                <a id="modal-btn-editar" href="#" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold text-center transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                    <i data-lucide="edit-2" class="w-4 h-4"></i> Editar
+                <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Editar
                 </a>
-                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2" style="color: #e15871;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar
                 </button>
             </div>
         </div>
@@ -328,23 +440,24 @@ foreach($productos as $p) {
 </div>
 
 <!-- Modal Confirmación Eliminación -->
-<div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100 animate-fadeIn text-center">
-        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 ring-8 ring-red-50/50">
-            <i data-lucide="alert-circle" class="w-8 h-8"></i>
+<div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100 animate-scaleIn text-center">
+        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
-        <p id="confirmMessage" class="text-gray-500 mb-8 leading-relaxed">Esta acción eliminará el producto permanentemente y no se puede deshacer.</p>
+        <h3 class="text-2xl font-bold text-gray-900 mb-3">¿Estás seguro?</h3>
+        <p id="confirmMessage" class="text-gray-600 mb-8 leading-relaxed">Esta acción eliminará el producto permanentemente y no se puede deshacer.</p>
         <div class="flex gap-3">
-            <button id="cancelBtn" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition">Cancelar</button>
-            <button id="confirmBtn" class="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg hover:shadow-red-500/30 transition">Eliminar</button>
+            <button id="cancelBtn" class="flex-1 px-5 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Cancelar</button>
+            <button id="confirmBtn" class="flex-1 px-5 py-3.5 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">Eliminar</button>
         </div>
     </div>
 </div>
 
 <script>
     // Configuración Global para JS
-    // Usamos ruta relativa a la raíz para evitar problemas de CORS/Protocolo (HTTP vs HTTPS)
     const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
     console.log("API URL Configurada:", BASE_URL);
 </script>
