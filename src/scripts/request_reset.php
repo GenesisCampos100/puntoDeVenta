@@ -88,7 +88,7 @@ $insert->execute(['user_id' => $user['id_usuario'], 'token' => $tokenHash, 'expi
 $mail = new PHPMailer(true);
 try {
     // Leer configuración de mail desde src/config/mail.php
-    $mailConfigPath = __DIR__ . '/../config/mail.php';
+    $mailConfigPath = __DIR__ . '/../c  onfig/mail.php';
     $mailConfig = file_exists($mailConfigPath) ? require $mailConfigPath : [];
 
     // Logs dir

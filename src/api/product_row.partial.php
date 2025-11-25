@@ -1,81 +1,112 @@
 <?php
 // src/api/product_row.partial.php
-// Render: Fila de un producto PRINCIPAL (con variantes o sin variantes)
+// Render: Fila de un producto PRINCIPAL con diseño premium
 
-$id         = htmlspecialchars($producto['cod_barras']);
-$nombre     = htmlspecialchars($producto['nom_producto']);
-$codigo     = htmlspecialchars($producto['cod_barras']);
-$categoria  = htmlspecialchars($producto['nombre_categoria']);
-$cantidad   = (int)$producto['cantidad'];
-$estado     = (int)$producto['is_active'];
-$precio     = number_format($producto['precio'], 2, '.', ',');
+$pid = htmlspecialchars($producto['cod_barras']);
+$nombre = htmlspecialchars($producto['nom_producto']);
+$sku = htmlspecialchars($producto['cod_barras']); // Fallback si SKU es null, usar cod_barras
+if (!empty($producto['sku'])) $sku = htmlspecialchars($producto['sku']);
+
+$categoria = htmlspecialchars($producto['nombre_categoria'] ?? $producto['categoria'] ?? 'Sin categoría');
+$cantidad = (int)($producto['cantidad'] ?? 0);
+$cantidad_min = (int)($producto['cantidad_min'] ?? 0);
+$is_active = (int)($producto['is_active'] ?? 1);
+$precio = $producto['precio'] ?? 0;
+$tieneVariantes = ($producto['tiene_variante'] ?? 0) > 0;
+
+// Lógica de color para stock
+if ($cantidad > $cantidad_min) {
+    $stockClass = 'bg-green-50 text-green-700 ring-1 ring-green-600/20';
+} elseif ($cantidad > 0 && $cantidad <= $cantidad_min) {
+    $stockClass = 'bg-orange-50 text-orange-700 ring-1 ring-orange-600/20';
+} else {
+    $stockClass = 'bg-red-50 text-red-700 ring-1 ring-red-600/20';
+}
+
+$imagen = !empty($producto['imagen']) ? "uploads/".htmlspecialchars($producto['imagen']) : "../uploads/sin-imagen.png";
+$jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
 ?>
 
-<tr class="border-b hover:bg-gray-50 transition" data-tipo="producto" data-id="<?= $id ?>">
+<tr class="group hover:bg-gray-50 transition-colors duration-200 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'opacity-60 bg-gray-50'; ?>" 
+    id="product-row-<?= $pid ?>"
+    data-product-id="<?= $pid ?>"
+    data-details="<?= $jsonProducto ?>">
     
-    <!-- Nombre -->
-    <td class="px-4 py-2 text-sm font-medium text-gray-800">
-        <?= $nombre ?>
+    <td class="px-6 py-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm flex-shrink-0 bg-white group-hover:border-blue-200 transition-colors">
+                <img src="<?= $imagen ?>" class="w-full h-full object-cover" alt="<?= $nombre ?>">
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="font-bold text-gray-900 text-sm mb-0.5 truncate group-hover:text-blue-600 transition-colors"><?= $nombre ?></div>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <span class="bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-mono border border-gray-200"><?= $sku ?></span>
+                    <?php if ($tieneVariantes): ?>
+                        <span class="text-blue-600 font-medium flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            Variantes
+                        </span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php if ($tieneVariantes): ?>
+                <button class="toggle-variants flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-200 transition-all duration-200 flex items-center justify-center text-gray-400 hover:text-gray-600" 
+                        data-target-id="variants-<?= $pid ?>">
+                    <svg class="arrow-icon h-5 w-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+            <?php endif; ?>
+        </div>
     </td>
-
-    <!-- Stock  -->
-    <td class="px-4 py-2 text-sm text-gray-600">
-        <?= $cantidad ?>
+    
+    <td class="px-4 py-4 text-center">
+        <span id="stock-<?= $pid ?>" data-min="<?= $cantidad_min ?>" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $stockClass ?>">
+            <?= $cantidad ?>
+        </span>
     </td>
-
-    <!-- Categoría -->
-    <td class="px-4 py-2 text-sm text-gray-600">
-        <?= $categoria ?>
+    
+    <td class="px-4 py-4 text-center hidden sm:table-cell">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+            <?= $categoria ?>
+        </span>
     </td>
-
-    <!-- Precio  -->
-    <td class="px-4 py-2 text-sm text-center">
-        <?= $precio ?>
+    
+    <td class="px-4 py-4 text-center">
+        <span class="font-bold text-gray-900 text-sm tracking-tight">
+            <?= $tieneVariantes ? '—' : '$'.number_format($precio, 2) ?>
+        </span>
     </td>
-
-    <!-- Acciones -->
-    <td class="px-4 py-2">
-        <div class="flex items-center justify-center gap-3">
-
-            <!-- Ver detalles -->
-            <button 
-                class="btn-detalle w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition shadow-sm"
-                data-id="<?= $id ?>"
-                data-tipo="producto"
-                data-nombre="<?= $nombre ?>"
-                title="Ver detalles"
-            >
-                <i data-lucide="eye" class="w-5 h-5"></i>
+    
+    <td class="px-6 py-4 text-right">
+        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button class="open-modal-btn p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" 
+                    title="Ver Detalles"
+                    data-details='<?= $jsonProducto ?>'>
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
             </button>
-
-            <!-- Ajustar stock -->
-            <button 
-                class="btn-ajuste w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm"
-                data-id="<?= $id ?>"
-                data-tipo="producto"
-                data-nombre="<?= $nombre ?>"
-                title="Ajustar stock"
-            >
-                <i data-lucide="settings" class="w-5 h-5"></i>
-            </button>
-
-            <!-- Activar / Desactivar -->
-            <button 
-                class="btn-toggle w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-gray-100 transition shadow-sm
-                <?= $estado ? 'text-red-600' : 'text-green-600' ?>"
-                data-id="<?= $id ?>"
-                data-tipo="producto"
-                data-estado="<?= $estado ?>"
-                data-nombre="<?= $nombre ?>"
-                title="<?= $estado ? 'Desactivar producto' : 'Activar producto' ?>"
-            >
-                <?php if ($estado): ?>
-                    <i data-lucide="x" class="w-5 h-5"></i>
+            
+            <?php if (!$tieneVariantes): ?>
+                <button class="btn-ajuste p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
+                    title="Ajustar Stock"
+                    data-id="<?= $pid ?>"
+                    data-type="producto"
+                    data-nombre="<?= htmlspecialchars($nombre) ?>">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                </button>
+            <?php endif; ?>
+            
+            <button class="toggle-active p-2 rounded-lg transition-all <?= $is_active ? 'text-gray-400 hover:text-red-600 hover:bg-red-50' : 'text-green-600 bg-green-50 hover:bg-green-100' ?>" 
+                    title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
+                    data-id="<?= $pid ?>" 
+                    data-type="producto" 
+                    data-active="<?= $is_active ? 'true' : 'false' ?>">
+                <?php if ($is_active): ?>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
                 <?php else: ?>
-                    <i data-lucide="check" class="w-5 h-5"></i>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <?php endif; ?>
             </button>
-
         </div>
     </td>
 </tr>
