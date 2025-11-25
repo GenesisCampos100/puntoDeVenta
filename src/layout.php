@@ -5,7 +5,7 @@
   <title>Punto de Venta</title>
   
   <!-- Fonts & Styles -->
-  <link rel="stylesheet" href="CSS/layout.css">
+  <link rel="stylesheet" href="../CSS/layout.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
@@ -150,7 +150,7 @@
                       display:flex; align-items:center; justify-content:center; 
                       cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2);
                       transition:all 0.3s ease; border:3px solid white;">
-          <img src="public/img/cambioUsuario.png" alt="Cambiar" style="width:18px; height:18px; filter:brightness(0) invert(1);">
+          <img src="../public/img/cambioUsuario.png" alt="Cambiar" style="width:18px; height:18px; filter:brightness(0) invert(1);">
         </label>
       </div>
 
@@ -220,12 +220,12 @@
 
       <!-- Enlaces premium -->
       <div style="margin-top:24px; font-size:12px; color:#9ca3af; display:flex; gap:12px; justify-content:center;">
-        <a href="public/docs/privacidad.pdf" target="_blank" 
+        <a href="../public/docs/privacidad.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
           <?= __('privacy_policy') ?>
         </a>
         <span>•</span>
-        <a href="public/docs/terminos.pdf" target="_blank" 
+        <a href="../public/docs/terminos.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
           <?= __('terms_of_service') ?>
         </a>
@@ -413,7 +413,7 @@
         e.preventDefault();
         const formData = new FormData(formFoto);
 
-        fetch("src/scripts/guardar_foto.php", {
+        fetch("scripts/guardar_foto.php", {
           method: "POST",
           body: formData
         })
@@ -483,7 +483,7 @@
   });
   </script>
 
-  <script src="src/scripts/menu.js"></script>
+  <script src="scripts/menu.js"></script>
 
   <?php if (!empty($_SESSION['mensaje'])): ?>
     <div id="toast" class="toast <?= $_SESSION['mensaje_tipo'] ?? 'info' ?>">

@@ -153,46 +153,78 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 echo json_encode(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
                 exit;
             }
-        } catch (PDOException $e) {
+
+            // Consulta para insertar el empleado
+            $sql = "INSERT INTO empleados 
+                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
+                VALUES
+                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                'id_empleado' => $id_empleado,
+                'nombre' => $nombre,
+                'apellido_paterno' => $apellido_paterno,
+                'apellido_materno' => $apellido_materno,
+                'celular' => $telefono,
+                'calle' => $calle,
+                'num_ext' => $num_ext,
+                'num_int' => $num_int,
+                'colonia' => $colonia,
+                'cp' => $cp,
+                'estado' => $estado,
+                'estatus' => $estatus,
+                'id_rol' => $id_rol
+            ]);
+
+            // Consulta para insertar el usuario asociado al empleado
+            $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
+                VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
+            $stmt_2 = $pdo->prepare($sql_2);
+            $stmt_2->execute([
+                'id_usuario' => NULL,
+                'correo' => $correo,
+                'contrasena' => $hash,
+                'id_empleado' => $id_empleado
+            ]);
+
+            $nombre_p = 'No especificado';
+            if (!empty($id_rol) && is_array($roles)) {
+                foreach ($roles as $rol_item) {
+                    // id_rol en la base puede ser string o int, normalizamos
+                    if (isset($rol_item['id_rol']) && (string)$rol_item['id_rol'] === (string)$id_rol) {
+                        $nombre_p = isset($rol_item['nombre_rol']) && $rol_item['nombre_rol'] !== '' ? $rol_item['nombre_rol'] : $nombre_p;
+                        break;
+                    }
+                }
+            }
+
+            // Enviar el correo en segundo plano
+            $datosCorreo = [
+                'nombre' => $nombre,
+                'apellido_paterno' => $apellido_paterno,
+                'apellido_materno' => $apellido_materno,
+                'id_empleado' => $id_empleado,
+                'nombre_p' => $nombre_p,
+                'correo' => $correo
+            ];
+
+            try {
+                $url = "http://localhost/puntoDeVenta/src/scripts/enviar_correo.php?" . http_build_query($datosCorreo);
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 100);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
+            }
+            echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
+            exit();
+        } catch (Exception $e) {
             echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
-            exit;
+            exit();
         }
-
-        // Consulta para insertar el empleado
-        $sql = "INSERT INTO empleados 
-            (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
-            VALUES
-            (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            'id_empleado' => $id_empleado,
-            'nombre' => $nombre,
-            'apellido_paterno' => $apellido_paterno,
-            'apellido_materno' => $apellido_materno,
-            'celular' => $telefono,
-            'calle' => $calle,
-            'num_ext' => $num_ext,
-            'num_int' => $num_int,
-            'colonia' => $colonia,
-            'cp' => $cp,
-            'estado' => $estado,
-            'estatus' => $estatus,
-            'id_rol' => $id_rol
-        ]);
-
-        // Consulta para insertar el usuario asociado al empleado
-        $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
-            VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
-        $stmt_2 = $pdo->prepare($sql_2);
-        $stmt_2->execute([
-            'id_usuario' => NULL,
-            'correo' => $correo,
-            'contrasena' => $hash,
-            'id_empleado' => $id_empleado
-        ]);
-        
-        echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
-        exit();
     } catch (Exception $e) {
         echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
         exit();

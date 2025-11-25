@@ -39,8 +39,6 @@ $sql = "SELECT
             p.descripcion,
             c.nombre AS categoria,
             p.cantidad,
-            p.color,
-            p.sku,
             p.cantidad_min,
             p.costo,
             p.precio AS precio_unitario,
@@ -530,9 +528,18 @@ function cargarProductos() {
             const httpStatus = xhr.status || 'N/A';
             const errorMsg = `Error HTTP ${httpStatus}. Revisa la consola para el detalle del servidor.`;
             $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">${errorMsg}</td></tr>`);
+        function toggleSelect(event, selectId) {
+            event.stopPropagation();
+            const select = document.getElementById(selectId);
+            const button = event.currentTarget;
+            
+            // Ocultar todos los demás selects
+            document.querySelectorAll('.toolbar form select').forEach(s => {
+                if (s.id !== selectId) {
+                    s.style.display = 'none';
+                }
+            });
         }
-    });
-}
 
 /* ==========================
    Eventos: búsqueda, filtros y tabs
@@ -640,10 +647,9 @@ function openCustomModalFromJSON(obj) {
     if (!obj) return;
     const isVariant = !!(obj.id_variante || obj.sku && (obj.talla !== undefined || obj.color !== undefined));
 
-    const productName = obj.producto_nombre || obj.nom_producto || 'Sin nombre';
-    $("#modal-nombre").text(productName);
-    $("#modal-categoria").text(obj.categoria || obj.nombre_categoria || 'Sin categoría');
-    $("#modal-codigo").text(obj.cod_barras || obj.producto_cod_barras || obj.sku || 'N/A');
+    // 2. Imagen
+    const imageKey = isVariant ? 'imagen' : 'producto_imagen';
+    document.getElementById('modal-img').src = data[imageKey] ? "uploads/" + data[imageKey] : "../uploads/sin-imagen.png";
 
     const imageKey = obj.imagen || obj.producto_imagen || null;
     $("#modal-img").attr('src', imageKey ? ("uploads/" + imageKey) : "../uploads/sin-imagen.png");
@@ -746,6 +752,7 @@ $("#confirmBtn").on("click", function(){
     window.location.href = `pages/productos_eliminar.php?type=${encodeURIComponent(deleteType)}&id=${encodeURIComponent(deleteId)}`;
 });
 
+<<<<<<< HEAD
 /* ==========================
    Ajuste de stock (prompt simple con fetch)
    ========================== */
@@ -760,6 +767,37 @@ function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
             if (value === '' || value === null || isNaN(value)) {
                 Swal.showValidationMessage('<?= __('enter_valid_quantity') ?>');
             } else return parseInt(value,10);
+=======
+
+function toggleVariantes(productId) {
+    const filaId = 'variantes-' + productId;
+    const filaVar = document.getElementById(filaId);
+    const btnToggle = document.getElementById('btn-toggle-' + productId);
+
+    if (!filaVar || !btnToggle) {
+        return;
+    }
+    
+    const isHidden = filaVar.style.display === 'none' || filaVar.style.display === '';
+    // Usamos 'table-row' para pantallas grandes y 'block' para pantallas pequeñas
+    filaVar.style.display = isHidden ? (window.innerWidth >= 1024 ? 'table-row' : 'block') : 'none';
+    
+    // Cambia el signo de + a - (y viceversa)
+    btnToggle.textContent = isHidden ? '−' : '+'; 
+
+    if (isHidden) {
+        filaVar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Escucha el cambio de tamaño para recalcular la visualización de la fila de variantes
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.fila-variantes').forEach(fila => {
+        const isVisible = fila.style.display !== 'none' && fila.style.display !== '';
+        if (isVisible) {
+            // Mantiene la visualización correcta según el tamaño de la pantalla
+            fila.style.display = window.innerWidth >= 1024 ? 'table-row' : 'block';
+>>>>>>> origin/Mario
         }
     }).then(res => {
         if (!res.isConfirmed) return;
@@ -810,53 +848,6 @@ $(document).ready(function(){
     // Inicializar lucide para los iconos estáticos del servidor
     try { if (window.lucide) lucide.createIcons(); } catch(e){}
 });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggleButtons = document.querySelectorAll('.toggle-variants');
-
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evita que se dispare el evento del row padre si lo hubiese.
-                
-                const targetId = button.getAttribute('data-target-id');
-                const targetRow = document.getElementById(targetId);
-                const arrowIcon = button.querySelector('.arrow-icon');
-
-                if (targetRow.classList.contains('hidden')) {
-                    // Abrir
-                    targetRow.classList.remove('hidden');
-                    arrowIcon.classList.add('rotate-180');
-                    
-                    // Animación de opacidad (opcional, si las filas internas lo soportan)
-                    setTimeout(() => {
-                        targetRow.style.opacity = '1';
-                    }, 50);
-
-                } else {
-                    // Cerrar
-                    targetRow.style.opacity = '0'; // Animación de fade-out
-                    
-                    setTimeout(() => {
-                        targetRow.classList.add('hidden');
-                        arrowIcon.classList.remove('rotate-180');
-                    }, 300); // Coincide con la duración de la transición
-                }
-            });
-        });
-        
-        // Agregar funcionalidad para que hacer clic en la fila principal (si tiene variantes) también haga el toggle
-        document.querySelectorAll('.product-parent').forEach(row => {
-            row.addEventListener('click', (e) => {
-                const productId = row.getAttribute('data-product-id');
-                const toggleButton = document.querySelector(`.toggle-variants[data-target-id="variants-${productId}"]`);
-                if (toggleButton) {
-                    toggleButton.click();
-                }
-            });
-        });
-    });
 </script>
 
 </body>

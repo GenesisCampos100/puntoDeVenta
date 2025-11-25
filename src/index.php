@@ -1,4 +1,5 @@
 <?php
+// 🚀 Iniciar salida antes de cualquier texto
 ob_start();
 session_start();
 
@@ -11,7 +12,8 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 // Si no hay login, mándalo al login
 // ⚙️ Verificar sesión correctamente
 if (!isset($_SESSION['usuario_id'])) {
-    header("Locati n: pages/login.php");
+    // ⚠️ Asegurar que no haya espacios o salida antes del header
+    header("Location: pages/login.php");
     exit;
 }
 
@@ -52,6 +54,9 @@ $views = [
     'empleados' => __DIR__ . "/pages/empleados_contenido.php",
     'productos' => __DIR__ . "/pages/productos_contenido.php",
     'proveedores' => __DIR__ . "/pages/proveedores_contenido.php",
+    'agregar_proveedor' => __DIR__ . "/pages/agregar_proveedor.php",
+    'editar_proveedor' => __DIR__ . "/pages/editar_proveedor.php",
+    'eliminar_proveedor' => __DIR__ . "/pages/eliminar_proveedor.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",
@@ -62,8 +67,10 @@ $views = [
     'eliminar_empleados_multiple' => __DIR__ . "/pages/eliminar_empleados_multiple.php",
 ];
 
-// Si no existe vista → 404
-$contenido = $views[$view] ?? __DIR__ . "/pages/404.php";
+// 🔐 Si la vista no existe, mostrar 404
+$contenido = array_key_exists($view, $views)
+    ? $views[$view]
+    : __DIR__ . "/pages/404.php";
     
 // Si es una petición AJAX (XMLHttpRequest) y viene por POST, incluir
 // directamente la vista para que los endpoints que devuelven JSON
@@ -79,7 +86,22 @@ if (
     }
 }
 
-// Cargar layout normal
+// Si viene una petición GET con el parámetro `action`, asumimos que
+// es una llamada AJAX para obtener JSON desde la misma vista. Incluir
+// la vista directamente sin el layout para evitar que el layout
+// ya haya impreso HTML (DOCTYPE) antes del JSON.
+if (
+    $_SERVER['REQUEST_METHOD'] === 'GET' &&
+    isset($_GET['action']) &&
+    !empty($_GET['action'])
+) {
+    if (file_exists($contenido)) {
+        include $contenido;
+        exit;
+    }
+}
+
+// ✅ Incluir el layout (NO debe imprimir antes del header)
 include __DIR__ . "/layout.php";
 
 ob_end_flush();

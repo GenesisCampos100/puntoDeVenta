@@ -18,12 +18,12 @@ require_once __DIR__ . '/../config/translation.php';
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
     <!-- include the script -->
-    <script src="{PATH}/alertify.min.js"></script>
+    <script src="../alertifyjs/alertify.min.js"></script>
 
     <!-- include the style -->
-    <link rel="stylesheet" href="{PATH}/alertify.min.css" />
+    <link rel="stylesheet" href="../alertifyjs/css/alertify.min.css" />
     <!-- include a theme -->
-    <link rel="stylesheet" href="{PATH}/themes/default.min.css" />
+    <link rel="stylesheet" href="../alertifyjs/css/themes/default.min.css" />
         
     <!-- <link rel="stylesheet" href="../styles/login.css"> -->
     
@@ -75,7 +75,7 @@ require_once __DIR__ . '/../config/translation.php';
 <?php endif; ?>
 
 
-                <form id="loginFormulario" action="/puntoDeVenta/src/scripts/validar_login.php" method="POST">
+                <form id="loginFormulario" action="../scripts/validar_login.php" method="POST">
                     <div class="contenedor-campos"> <!--Inicio contenedor de campos-->
 
                         <div class="campo">
