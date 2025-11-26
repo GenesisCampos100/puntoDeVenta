@@ -12,7 +12,6 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 // Si no hay login, mándalo al login
 // ⚙️ Verificar sesión correctamente
 if (!isset($_SESSION['usuario_id'])) {
-    // ⚠️ Asegurar que no haya espacios o salida antes del header
     header("Location: pages/login.php");
     exit;
 }

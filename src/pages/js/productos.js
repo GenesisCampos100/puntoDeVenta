@@ -6,14 +6,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.open-modal-btn')) {
             const button = e.target.closest('.open-modal-btn');
             const details = JSON.parse(button.dataset.details || '{}');
+            const directId = button.dataset.id;
 
             // Abrir modal con los detalles del producto
-            abrirModal(details);
+            abrirModal(details, directId);
         }
     });
 });
 
-function abrirModal(producto) {
+function abrirModal(producto, directId = null) {
     const modal = document.getElementById('modalDetalle');
     if (!modal) return;
 
@@ -49,28 +50,32 @@ function abrirModal(producto) {
     if (modalStock) modalStock.textContent = producto.cantidad || 0;
     if (modalStockMin) modalStockMin.textContent = producto.cantidad_min || 0;
 
-    // Botón Editar - configurar evento click para abrir modal de edición
-    const productId = producto.cod_barras || producto.id_producto || '';
+    // Botón Editar - configurar enlace para ir a la página de edición
+    const productId = directId || producto.cod_barras || producto.id_producto || '';
     if (modalBtnEditar) {
-        // Remover href para evitar navegación
-        modalBtnEditar.removeAttribute('href');
-        modalBtnEditar.style.cursor = 'pointer';
-
-        // Clonar el botón para eliminar event listeners anteriores
-        const newBtn = modalBtnEditar.cloneNode(true);
-        modalBtnEditar.parentNode.replaceChild(newBtn, modalBtnEditar);
-
-        // Agregar nuevo event listener
-        newBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            abrirModalEditar(producto);
-        });
+        // Establecer href directamente
+        modalBtnEditar.href = `index.php?view=editar_producto&id=${productId}`;
+        console.log('Edit button configured with href:', modalBtnEditar.href);
     }
 
-    // Botón Eliminar - configurar data attributes para confirmarEliminar()
+    // Botón Eliminar - solo configurar data attributes
+    // El event listener se maneja en el script inline de productos_contenido.php
     if (modalBtnEliminar) {
         modalBtnEliminar.dataset.id = productId;
         modalBtnEliminar.dataset.nombre = producto.nom_producto || 'este producto';
+    }
+
+    // Actualizar input hidden para mayor robustez
+    const hiddenInput = document.getElementById('id_producto_detalle');
+    console.log('Intentando asignar ID al hidden input. ProductId:', productId);
+
+    if (hiddenInput) {
+        hiddenInput.value = productId;
+        // Forzar atributo value también para inspección visual en DOM
+        hiddenInput.setAttribute('value', productId);
+        console.log('ID asignado a hidden input (value y atributo):', hiddenInput.value);
+    } else {
+        console.error('CRITICO: Hidden input id_producto_detalle no encontrado en el DOM');
     }
 
     // Mostrar modal

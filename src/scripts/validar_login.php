@@ -1,75 +1,119 @@
 <?php
-session_start();
-include(__DIR__ . '/../config/db.php'); // conexión PDO
+// Iniciar buffer de salida para evitar que warnings/notices rompan el JSON
+ob_start();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = isset($_POST['usuario']) ? trim($_POST['usuario']) : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
+session_start();
+require_once __DIR__ . '/../config/db.php';
+
+// Función helper para respuesta JSON segura
+function send_json($success, $message = '', $redirect = '') {
+    // Limpiar cualquier salida previa (errores PHP, espacios, etc.)
+    ob_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'redirect' => $redirect
+    ]);
+    exit;
+}
+
+try {
+    // Verificar método
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception("Método no permitido");
+    }
+
+    // Verificar conexión PDO
+    if (!isset($pdo)) {
+        throw new Exception("Error de conexión a la base de datos");
+    }
+
+    // Obtener datos
+    $correo = trim($_POST['correo'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    // Validar campos vacíos
+    if (empty($correo) || empty($password)) {
+        send_json(false, "Por favor complete todos los campos");
+    }
 
     // Debug: log datos recibidos
-    error_log("LOGIN ATTEMPT - Usuario: $usuario, Password length: " . strlen($password));
+    error_log("LOGIN ATTEMPT - Usuario: $correo, Password length: " . strlen($password));
 
-    // Buscar usuario con su imagen
-    $stmt = $pdo->prepare("SELECT 
-                u.id_usuario AS id,
-                e.id_empleado AS id_empleado,
-                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) AS nombre_completo,
-                u.contrasena AS password,
-                u.correo AS correo,
-                u.imagen AS imagen,
-                r.nombre_rol AS rol
+    // Consulta SQL segura con PDO
+    $sql = "SELECT 
+                u.id_usuario,
+                u.contrasena,
+                u.correo,
+                u.imagen,
+                e.id_empleado,
+                e.nombre,
+                e.apellido_paterno,
+                e.apellido_materno,
+                r.nombre_rol
             FROM usuarios u
-            INNER JOIN empleados e ON u.id_empleado = e.id_empleado
-            INNER JOIN roles r ON e.id_rol = r.id_rol
+            LEFT JOIN empleados e ON u.id_empleado = e.id_empleado
+            LEFT JOIN roles r ON e.id_rol = r.id_rol
             WHERE u.correo = :correo
-        ");
-    $stmt->execute(['correo' => $usuario]);
+            LIMIT 1";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':correo' => $correo]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Debug: log si se encontró usuario
-    error_log("USER FOUND: " . ($user ? "YES (ID: {$user['id']})" : "NO"));
+    error_log("USER FOUND: " . ($user ? "YES (ID: {$user['id_usuario']})" : "NO"));
+
+    // Verificar contraseña
+    $passwordValido = false;
     if ($user) {
-        error_log("Password verify: " . (password_verify($password, $user['password']) ? "SUCCESS" : "FAIL"));
+        if (password_verify($password, $user['contrasena'])) {
+            $passwordValido = true;
+            error_log("Password verify: SUCCESS");
+        } elseif ($password === trim($user['contrasena'])) {
+            // Fallback: Permitir contraseña en texto plano (para usuarios de prueba)
+            $passwordValido = true;
+            error_log("Password verify: SUCCESS (plain text)");
+        } else {
+            error_log("Password verify: FAIL");
+        }
     }
 
-    $isAjax = isset($_POST['ajax']) && $_POST['ajax'] === '1';
-    $isXRequestedWith = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    $wantsJson = $isAjax || $isXRequestedWith || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+    if ($user && $passwordValido) {
+        
+        // Regenerar ID de sesión por seguridad
+        session_regenerate_id(true);
 
-    if ($user && password_verify($password, $user['password'])) {
-        // Guardar variables de sesión
-        $_SESSION['usuario_id'] = $user['id'];
+        // Construir nombre completo (manejar nulos)
+        $nombre = $user['nombre'] ?? 'Usuario';
+        $paterno = $user['apellido_paterno'] ?? '';
+        $materno = $user['apellido_materno'] ?? '';
+        $nombreCompleto = trim("$nombre $paterno $materno");
+
+        // Guardar en sesión
+        $_SESSION['usuario_id'] = $user['id_usuario'];
         $_SESSION['empleado_id'] = $user['id_empleado'] ?? null;
-        $_SESSION['rol'] = $user['rol'];
-        $_SESSION['nombre_completo'] = $user['nombre_completo'];
         $_SESSION['correo'] = $user['correo'];
+        $_SESSION['nombre_completo'] = $nombreCompleto ?: $user['correo'];
+        $_SESSION['rol'] = $user['nombre_rol'] ?? 'empleado';
         $_SESSION['foto_perfil'] = $user['imagen'] ?? '../public/img/1.png';
 
-        if ($wantsJson) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'success' => true,
-                'redirect' => '../index.php?view=nueva_venta'
-            ]);
-            exit;
-        } else {
-            header("Location: ../index.php?view=nueva_venta");
-            exit;
-        }
+        // Respuesta exitosa
+        send_json(true, "Inicio de sesión exitoso", "../index.php?view=nueva_venta");
+
     } else {
-        if ($wantsJson) {
-            header('Content-Type: application/json; charset=utf-8');
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Usuario o contraseña incorrectos'
-            ]);
-            exit;
-        } else {
-            $_SESSION['error'] = "Usuario o contraseña incorrectos";
-            header("Location: ../pages/login.php");
-            exit;
-        }
+        send_json(false, "Correo o contraseña incorrectos");
     }
+
+} catch (Exception $e) {
+    // Log del error real en el servidor
+    error_log("Login Error: " . $e->getMessage());
+    
+    // Respuesta genérica al usuario
+    send_json(false, "Error en el servidor: " . $e->getMessage());
 }
+
+// Finalizar buffer (por si acaso no se llamó a send_json)
+ob_end_flush();
 ?>

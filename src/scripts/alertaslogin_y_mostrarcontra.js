@@ -1,80 +1,137 @@
-// ALERTAS LOGIN (AJAX)
-(function setupAjaxLogin() {
-    const form = document.getElementById('loginFormulario');
-    if (!form) { console.log('[login.js] form #loginFormulario not found'); return; }
-    console.log('[login.js] form found, attaching submit handler');
+// ===============================
+//   ALERTAS LOGIN (AJAX)
+// ===============================
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById("loginFormulario");
 
-    form.addEventListener('submit', async (e) => {
-        console.log('[login.js] submit intercepted');
+    if (!form) {
+        console.warn("[Login] Formulario #loginFormulario no encontrado");
+        return;
+    }
+
+    console.log("[Login] Sistema de login AJAX inicializado");
+
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        // Referencias a elementos UI (opcional: deshabilitar botón)
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
         const formData = new FormData(form);
-        // Señalamos al servidor que esta petición viene vía AJAX (fallback adicional)
-        formData.append('ajax', '1');
+        formData.append("ajax", "1");
 
         try {
-            console.log('[login.js] sending fetch to', form.action);
-            const res = await fetch(form.action, {
-                method: form.method || 'POST',
+            const response = await fetch(form.action, {
+                method: "POST",
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                },
-                credentials: 'same-origin'
+                    "X-Requested-With": "XMLHttpRequest"
+                }
             });
 
-            console.log('[login.js] fetch response status', res.status);
-            let data = null;
+            // Intentar leer como texto primero para depuración si falla el JSON
+            const text = await response.text();
+            let data;
+
             try {
-                data = await res.json();
-            } catch (jsonErr) {
-                console.error('[login.js] failed to parse JSON', jsonErr);
+                data = JSON.parse(text);
+            } catch (jsonError) {
+                console.error("[Login] Error parseando JSON:", jsonError);
+                console.error("[Login] Respuesta recibida:", text);
+                showErrorModal("Error del servidor: Respuesta inválida. Revisa la consola.");
+                if (submitBtn) submitBtn.disabled = false;
+                return;
             }
 
-            console.log('[login.js] response JSON', data);
-
-            if (data && data.success) {
-                // En lugar de redirigir directamente, muestra el modal
+            if (data.success) {
+                console.log("[Login] Éxito:", data);
                 showSuccessModal(data.redirect);
             } else {
-                const msg = data && data.message ? data.message : 'Error al iniciar sesión, contraseña o correo incorrectos';
-                showErrorModal(msg);
+                console.warn("[Login] Fallo:", data.message);
+                showErrorModal(data.message || "Error al iniciar sesión, contraseña o correo incorrectos");
+                if (submitBtn) submitBtn.disabled = false;
             }
-        } catch (err) {
-            console.error('[login.js] fetch error', err);
-            showErrorModal('Error de red. Intenta de nuevo.');
+
+        } catch (error) {
+            console.error("[Login] Error de red:", error);
+            showErrorModal("Error de conexión. Intenta nuevamente.");
+            if (submitBtn) submitBtn.disabled = false;
         }
     });
-})();
+});
 
-function showErrorModal(message) {
-    const modal = document.getElementById('errorModal');
-    const messageElement = document.getElementById('errorMessage');
-    const closeButton = document.getElementById('closeErrorModal');
+// ===============================
+//   MODAL ERROR
+// ===============================
+function showErrorModal(msg) {
+    const modal = document.getElementById("errorModal");
+    const messageEl = document.getElementById("errorMessage");
+    const closeBtn = document.getElementById("closeErrorModal");
 
-    if (!modal || !messageElement || !closeButton) return;
+    if (!modal || !messageEl) {
+        alert(msg); // Fallback nativo
+        return;
+    }
 
-    messageElement.textContent = message;
-    modal.classList.add('visible');
+    messageEl.textContent = msg;
+    modal.classList.add("visible");
 
-    closeButton.onclick = () => modal.classList.remove('visible');
+    // Cerrar al hacer click en botón o fuera
+    const closeModal = () => modal.classList.remove("visible");
+
+    if (closeBtn) closeBtn.onclick = closeModal;
     modal.onclick = (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('visible');
-        }
+        if (e.target === modal) closeModal();
     };
 }
 
+// ===============================
+//   MODAL ÉXITO + REDIRECCIÓN
+// ===============================
 function showSuccessModal(redirectUrl) {
-    const modal = document.getElementById('successModal');
-    if (!modal) return;
+    const modal = document.getElementById("successModal");
 
-    modal.classList.add('visible');
+    if (modal) {
+        modal.classList.add("visible");
+    } else {
+        console.log("Login exitoso, redirigiendo...");
+    }
 
-    // Esperar 2 segundos y luego redirigir
     setTimeout(() => {
-        window.location.href = redirectUrl;
+        window.location.href = redirectUrl || '../index.php';
     }, 2000);
+}
+
+// ===============================
+//   MOSTRAR / OCULTAR CONTRASEÑA
+// ===============================
+const toggleContainer = document.querySelector('.js-password-toggle');
+if (toggleContainer) {
+    const passwordInput = document.getElementById('password');
+
+    toggleContainer.addEventListener('click', () => {
+        if (passwordInput) {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Alternar clases visuales para los iconos
+            toggleContainer.classList.toggle('active');
+
+            // Alternar visibilidad de iconos SVG específicos si tienen clases
+            const iconClosed = toggleContainer.querySelector('.toggle-closed');
+            const iconOpen = toggleContainer.querySelector('.toggle-open');
+
+            if (iconClosed && iconOpen) {
+                if (type === 'text') {
+                    iconClosed.style.display = 'none';
+                    iconOpen.style.display = 'block';
+                } else {
+                    iconClosed.style.display = 'block';
+                    iconOpen.style.display = 'none';
+                }
+            }
+        }
+    });
 }
 
