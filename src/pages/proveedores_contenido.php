@@ -1,5 +1,6 @@
 <?php
     require_once __DIR__ . '/../config/db.php';
+    require_once __DIR__ . '/../config/translation.php';
 
     if (isset($_GET['action']) && $_GET['action'] === 'getProveedores') {
         header('Content-Type: application/json; charset=UTF-8');
@@ -77,7 +78,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Proveedores</title>
+    <title><?= __('suppliers_title') ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -277,8 +278,8 @@
         <!-- Header -->
         <div class="mb-8 animate-slideDown">
             <div class="mb-6">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Proveedores</h1>
-                <p class="text-gray-600 text-base">Administra y organiza</p>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('suppliers_management') ?></h1>
+                <p class="text-gray-600 text-base"><?= __('suppliers_subtitle') ?></p>
             </div>
 
             <!-- Stats Cards -->
@@ -286,7 +287,7 @@
                 <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-500 text-sm font-medium mb-1">Total Proveedores</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1"><?= __('total_suppliers') ?></p>
                             <p class="text-3xl font-bold text-gray-900"><?= count($proveedores) ?></p>
                         </div>
                         <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -300,7 +301,7 @@
                 <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-500 text-sm font-medium mb-1">Activos</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1"><?= __('active_suppliers') ?></p>
                             <p class="text-3xl font-bold" style="color: #b4c24d;"><?= count(array_filter($proveedores, fn($e) => $e['estatus'] == 1)) ?></p>
                         </div>
                         <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
@@ -314,7 +315,7 @@
                 <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-500 text-sm font-medium mb-1">Inactivos</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1"><?= __('inactive_suppliers') ?></p>
                             <p class="text-3xl font-bold text-gray-900"><?= count(array_filter($proveedores, fn($e) => $e['estatus'] == 0)) ?></p>
                         </div>
                         <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -342,7 +343,7 @@
                             id="busqueda-input"
                             name="busqueda"
                             type="text"
-                            placeholder="Buscar por nombre o correo..."
+                            placeholder="<?= __('search_supplier_placeholder') ?>"
                             value="<?= htmlspecialchars($busqueda) ?>"
                             class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
                         />
@@ -359,7 +360,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                             </svg>
-                            Filtrar
+                            <?= __('filter') ?>
                             <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
@@ -367,9 +368,9 @@
 
                         <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por categorías</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?= __('filter_by_categories') ?></p>
                                 <select name="categoria" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                                    <option value="">-- Todas las categorías --</option>
+                                    <option value=""><?= __('all_categories_suppliers') ?></option>
                                     <?php foreach ($categorias as $ca): ?>
                                         <option value="<?= $ca['id_categoria']?>" <?= ($categoria == $ca['id_categoria']) ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($ca['nombre']) ?>
@@ -386,7 +387,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
                             </svg>
-                            Ordenar
+                            <?= __('sort') ?>
                             <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
@@ -394,12 +395,12 @@
 
                         <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?= __('sort_by_suppliers') ?></p>
                                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                                    <option value="p.nombre ASC" <?= ($orden == 'p.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                                    <option value="p.nombre DESC" <?= ($orden == 'p.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                                    <option value="p.correo ASC" <?= ($orden == 'p.correo ASC') ? 'selected' : '' ?>>Correo A-Z</option>
-                                    <option value="p.correo DESC" <?= ($orden == 'p.correo DESC') ? 'selected' : '' ?> >Correo Z-A</option>
+                                    <option value="p.nombre ASC" <?= ($orden == 'p.nombre ASC') ? 'selected' : '' ?>><?= __('name_az_suppliers') ?></option>
+                                    <option value="p.nombre DESC" <?= ($orden == 'p.nombre DESC') ? 'selected' : '' ?>><?= __('name_za_suppliers') ?></option>
+                                    <option value="p.correo ASC" <?= ($orden == 'p.correo ASC') ? 'selected' : '' ?>><?= __('email_az') ?></option>
+                                    <option value="p.correo DESC" <?= ($orden == 'p.correo DESC') ? 'selected' : '' ?> ><?= __('email_za') ?></option>
                                 </select>
                             </div>
                         </div>
@@ -410,7 +411,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
-                        Agregar
+                        <?= __('add_supplier') ?>
                     </button>
                 </div>
             </form>
@@ -448,12 +449,12 @@
                             <th class="px-6 py-4 text-left">
                                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Negocio</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Representante</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Catálogo</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('business_col') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('representative_col') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('email_col') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('state_col') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('catalog_col') ?></th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?= __('actions_col') ?></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -481,14 +482,14 @@
                                                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                 </svg>
-                                                Activo
+                                                <?= __('active') ?>
                                             </span>
                                         <?php else: ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(225, 88, 113, 0.1); color: #e15871;">
                                                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                                 </svg>
-                                                Inactivo
+                                                <?= __('inactive') ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
@@ -499,19 +500,19 @@
                                             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 18px rgba(31, 64, 24, 0.12);">
                                             <!-- Catalog icon -->
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M7 7v10M12 7v10M17 7v10"/></svg>
-                                            <span>Catálogo</span>
+                                            <span><?= __('catalog_button') ?></span>
                                         </button>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="inline-flex gap-2">
                                             <button onclick="openDetalle('<?= $pr['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                                                Ver
+                                                <?= __('view_button') ?>
                                             </button>
                                             <a href="index.php?view=editar_proveedor&id=<?= $pr['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                                                Editar
+                                                <?= __('edit_button') ?>
                                             </a>
                                             <button onclick="confirmDelete('<?= $pr['numero'] ?>', '<?= htmlspecialchars(addslashes($pr['representante'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                                                Eliminar
+                                                <?= __('delete_button') ?>
                                             </button>
                                         </div>
                                     </td>
@@ -524,8 +525,8 @@
                                         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo proveedor</p>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2"><?= __('no_suppliers_found') ?></h3>
+                                        <p class="text-gray-500"><?= __('adjust_filters_or_add_supplier') ?></p>
                                     </div>
                                 </td>
                             </tr>
