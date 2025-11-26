@@ -29,14 +29,14 @@
 
     $busqueda = $_GET['busqueda'] ?? '';
     $categoria = $_GET['categoria'] ?? '';
-    $orden = $_GET['orden'] ?? 'p.nombre ASC';
-    $allowed_order = ['p.nombre ASC', 'p.nombre DESC', 'p.correo ASC', 'p.correo DESC'];
-    if (!in_array($orden, $allowed_order)) $orden = 'p.nombre ASC';
+    $orden = $_GET['orden'] ?? 'p.representante ASC';
+    $allowed_order = ['p.representante ASC', 'p.representante DESC', 'p.correo ASC', 'p.correo DESC'];
+    if (!in_array($orden, $allowed_order)) $orden = 'p.representante ASC';
     $vista_actual = $_GET['view'] ?? 'proveedores';
 
     $sql = "SELECT 
                 p.id_proveedor AS numero,
-                CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno) AS representante,
+                p.representante AS representante,
                 p.empresa AS empresa,
                 p.celular AS celular,
                 p.correo AS correo,
@@ -49,9 +49,8 @@
     ";
 
     if(!empty($busqueda)) $sql .= " AND (
-                                p.nombre LIKE :busqueda 
-                                OR p.apellido_paterno LIKE :busqueda
-                                OR p.apellido_materno LIKE :busqueda
+                                p.representante LIKE :busqueda 
+                                OR p.empresa LIKE :busqueda
                                 OR p.correo LIKE :busqueda)";
     if(!empty($categoria)) $sql .= " AND pr.id_categoria = :categoria";
 

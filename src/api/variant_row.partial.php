@@ -9,7 +9,17 @@ $color = htmlspecialchars($var['color'] ?? '-');
 $cantidadVar = (int)($var['cantidad'] ?? 0);
 $cantidadMinVar = (int)($var['cantidad_min'] ?? 0);
 $precioVar = $var['precio'] ?? 0;
-$imagenVar = !empty($var['imagen']) ? "uploads/".htmlspecialchars($var['imagen']) : "../uploads/sin-imagen.png";
+// Construir ruta absoluta para imágenes de variantes
+$imgNameVar = htmlspecialchars($var['imagen'] ?? '');
+if (!empty($imgNameVar)) {
+    $imagenVar = '/PrismaMK2C/src/uploads/' . $imgNameVar;
+    $imgPathVar = __DIR__ . '/../../src/uploads/' . $var['imagen'];
+    if (!file_exists($imgPathVar)) {
+        $imagenVar = '/PrismaMK2C/public/img/sin-imagen.png';
+    }
+} else {
+    $imagenVar = '/PrismaMK2C/public/img/sin-imagen.png';
+}
 
 // Lógica de color para stock
 if ($cantidadVar > $cantidadMinVar) {

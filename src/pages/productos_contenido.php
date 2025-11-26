@@ -952,17 +952,19 @@ function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
                             const min = parseInt(target.dataset.min || -1,10);
                             if (min >= 0 && data.nuevo_stock <= min) {
                                 target.classList.remove('bg-green-50','text-green-800');
-                                target.classList.add('bg-red-100','text-red-600');
+                                target.classList.add('bg-red-50','text-red-800');
                             } else {
-                                target.classList.remove('bg-red-100','text-red-600');
+                                target.classList.remove('bg-red-50','text-red-800');
                                 target.classList.add('bg-green-50','text-green-800');
                             }
                         }
                     }
+                    cargarProductos();
                 } else {
                     Swal.fire('<?= __('error') ?>', data.message || '<?= __('could_not_register_adjustment') ?>', 'error');
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 console.error(err);
                 Swal.fire('<?= __('error') ?>', '<?= __('connection_failed') ?>', 'error');
             });

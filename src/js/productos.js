@@ -7,7 +7,16 @@
 // -------------------------------------------------------------------
 
 // Usamos la BASE_URL inyectada desde PHP. Si no existe, fallback (aunque no debería pasar)
-const API_ENDPOINT = (typeof BASE_URL !== 'undefined') ? BASE_URL : 'api/inventario_api.php';
+// Construcción robusta del endpoint evitando 404 relativos.
+// Preferimos ruta absoluta basada en carpeta del proyecto.
+const PROJECT_ROOT = '/PrismaMK2C';
+const API_ENDPOINT = (function(){
+    if (typeof BASE_URL === 'string' && BASE_URL.trim() !== '') return BASE_URL;
+    // Si la URL actual contiene /src/ asumimos que API está un nivel arriba en /api/
+    if (window.location.pathname.includes('/src/')) return PROJECT_ROOT + '/api/inventario_api.php';
+    // Fallback
+    return 'api/inventario_api.php';
+})();
 
 // Función Genérica para llamadas API
 async function apiCall(action, params = {}, method = 'GET') {
@@ -157,10 +166,14 @@ $(document).ready(function () {
             const data = JSON.parse(json);
 
             // Llenar Modal
-            $('#modal-nombre').text(data.nom_producto || data.producto_nombre);
+            $('#modal-nombre').text(data.nom_producto || data.producto_nombre || 'Producto');
             $('#modal-categoria').text(data.nombre_categoria || data.categoria || 'General');
             $('#modal-codigo').text(data.cod_barras || data.sku || 'N/A');
-            $('#modal-precio').text(parseFloat(data.precio).toFixed(2));
+                        if (data.precio !== undefined && !isNaN(parseFloat(data.precio))) {
+                            $('#modal-precio').text(parseFloat(data.precio).toFixed(2));
+                        } else {
+                            $('#modal-precio').text('0.00');
+                        }
             $('#modal-costo').text(data.costo ? parseFloat(data.costo).toFixed(2) : '0.00');
             $('#modal-stock').text(data.cantidad);
             $('#modal-stock-min').text(data.cantidad_min);

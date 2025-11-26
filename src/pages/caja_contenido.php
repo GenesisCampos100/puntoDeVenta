@@ -37,15 +37,37 @@ require_once __DIR__ . '/../config/translation.php';
       <button class="btn corte">
         💵 <?= __('close_cash_register') ?>
       </button>
-// src/pages/caja_contenido.php
-require_once __DIR__ . '/../config/db.php';
-?>
+    </div>
 
-<!-- Dependencias (Mismas que productos) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tarjetas de información -->
+    <div class="tarjetas">
+      <div class="tarjeta efectivo">
+        <h3><?= __('expected_cash') ?></h3>
+        <p class="monto" id="efectivo-esperado">$0.00</p>
+        <small><?= __('sales_income_withdrawals') ?></small>
+      </div>
+
+      <div class="tarjeta tarjeta-credito">
+        <h3><?= __('expected_card') ?></h3>
+        <p class="monto" id="tarjeta-esperado">$0.00</p>
+        <small><?= __('card_sales') ?></small>
+      </div>
+
+      <div class="tarjeta total">
+        <h3><?= __('total_expected') ?></h3>
+        <p class="monto total-monto" id="total-esperado">$0.00</p>
+        <small><?= __('cash_card') ?></small>
+      </div>
+    </div>
+
+    <!-- Historial de movimientos -->
+    <div class="historial">
+      <h3><?= __('movement_history') ?></h3>
+      <div id="lista-movimientos">
+        <!-- Movimientos dinámicos -->
+      </div>
+    </div>
+  </main>
 
 <script>
     tailwind.config = {
@@ -469,4 +491,7 @@ require_once __DIR__ . '/../config/db.php';
     </div>
 </div>
 
-<script src="js/caja.js?v=<?= time() ?>"></script>
+<script src="../js/caja.js?v=<?= time() ?>"></script>
+
+</body>
+</html>
