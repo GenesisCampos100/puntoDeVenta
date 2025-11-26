@@ -630,4 +630,8 @@ return [
     'could_not_delete_supplier' => 'Could not delete supplier',
     'internal_error' => 'Internal error processing request',
     'method_not_allowed' => 'Method not allowed',
+
+    // Products/Inventory
+    'inventory_management' => 'Inventory Management',
+    'manage_catalog_stock' => 'Manage your catalog and stock efficiently',
 ];

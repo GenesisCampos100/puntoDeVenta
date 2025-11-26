@@ -614,5 +614,9 @@ return [
     'confirm_delete_supplier_title' => '¿Eliminar proveedor?',
     'confirm_delete_supplier_text' => '¿Estás seguro de eliminar a',
     'supplier_deleted' => 'El proveedor ha sido eliminado correctamente',
+
+    // Productos/Inventario
+    'inventory_management' => 'Gestión de Inventario',
+    'manage_catalog_stock' => 'Administra tu catálogo y existencias de forma eficiente',
 ];
 

@@ -93,7 +93,7 @@ foreach($productos as $p) {
 ?>
 
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= current_lang() ?>">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -209,8 +209,8 @@ foreach($productos as $p) {
     <!-- Header Section -->
     <div class="mb-8 animate-slideDown">
         <div class="mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Inventario</h1>
-            <p class="text-gray-600 text-base">Administra tu catálogo y existencias de forma eficiente</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('inventory_management') ?></h1>
+            <p class="text-gray-600 text-base"><?= __('manage_catalog_stock') ?></p>
         </div>
         
         <div class="flex items-center gap-3 w-full lg:w-3/5">
