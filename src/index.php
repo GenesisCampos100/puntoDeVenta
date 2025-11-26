@@ -10,7 +10,7 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 // Si no hay login, mándalo al login
 if (!isset($_SESSION['usuario_id'])) {
-    header("Locati n: pages/login.php");
+    header("Location: /puntoDeVenta/src/pages/login.php");
     exit;
 }
 
@@ -84,7 +84,7 @@ if (
 }
 
 if (
-    $_SERVER['REQUEST_NETHOD'] === 'GET' && 
+    $_SERVER['REQUEST_METHOD'] === 'GET' && 
     isset($_GET['action']) &&
     !empty($_GET['action'])
 ) {

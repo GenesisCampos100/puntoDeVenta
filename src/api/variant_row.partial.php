@@ -58,28 +58,6 @@ $jsonVariante = htmlspecialchars(json_encode($var), ENT_QUOTES, 'UTF-8');
     
     <td class="px-6 py-3 text-right">
         <div class="inline-flex gap-2">
-            <button class="open-modal-btn px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-all duration-200 hover:scale-105" 
-                    title="Ver Detalles"
-                    data-details='<?= $jsonVariante ?>'>
-                Ver
-            </button>
-            
-            <button class="btn-ajuste px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-semibold hover:bg-green-100 transition-all duration-200 hover:scale-105" 
-                    title="Ajustar Stock"
-                    data-id="<?= $skuVar ?>"
-                    data-type="variante"
-                    data-nombre="<?= htmlspecialchars($var['producto_nombre'] . ' (' . $talla . '/' . $color . ')') ?>">
-                Ajustar
-            </button>
-
-            
-            <button class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-all duration-200 hover:scale-105" 
-                    title="Eliminar Variante"
-                    onclick="confirmarEliminar(this)"
-                    data-id="<?= $vid ?>" 
-                    data-type="variante">
-                Eliminar
-            </button>
         </div>
     </td>
 </tr>

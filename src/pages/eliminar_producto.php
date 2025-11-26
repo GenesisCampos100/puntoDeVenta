@@ -1,66 +1,39 @@
 <?php
-// src/pages/eliminar_producto.php
-// Endpoint para eliminar un producto
-
-header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/db.php';
+header("Content-Type: application/json; charset=utf-8");
 
-// Verificar que sea una petición POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+if (!isset($_POST['cod_barras']) || empty($_POST['cod_barras'])) {
+    echo json_encode([
+        "success" => false,
+        "message" => "cod_barras no recibido"
+    ]);
     exit;
 }
 
-// Obtener el ID del producto
-$data = json_decode(file_get_contents('php://input'), true);
-$id = $data['id'] ?? null;
+$cod_barras = intval($_POST['cod_barras']);
 
-if (empty($id)) {
-    echo json_encode(['success' => false, 'error' => 'ID de producto no proporcionado']);
+$sql = "DELETE FROM productos WHERE cod_barras = ?";
+$stmt = $conexion->prepare($sql);
+
+if (!$stmt) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Error al preparar la consulta"
+    ]);
     exit;
 }
 
-try {
-    // Iniciar transacción
-    $pdo->beginTransaction();
-    
-    // Verificar si el producto existe
-    $stmt = $pdo->prepare("SELECT nom_producto FROM productos WHERE cod_barras = ?");
-    $stmt->execute([$id]);
-    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$producto) {
-        $pdo->rollBack();
-        echo json_encode(['success' => false, 'error' => 'Producto no encontrado']);
-        exit;
-    }
-    
-    // Eliminar primero las variantes asociadas (si existen)
-    $stmt = $pdo->prepare("DELETE FROM variantes WHERE cod_barras = ?");
-    $stmt->execute([$id]);
-    
-    // Eliminar el producto
-    $stmt = $pdo->prepare("DELETE FROM productos WHERE cod_barras = ?");
-    $stmt->execute([$id]);
-    
-    // Confirmar transacción
-    $pdo->commit();
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Producto eliminado correctamente',
-        'nombre' => $producto['nom_producto']
-    ]);
-    
-} catch (Exception $e) {
-    // Revertir transacción en caso de error
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error al eliminar el producto: ' . $e->getMessage()
-    ]);
-}
-?>
+$stmt->bind_param("i", $cod_barras);
+
+$ok = $stmt->execute();
+
+echo json_encode([
+    "success" => $ok,
+    "message" => $ok ? "Producto eliminado" : "Error al eliminar"
+]);
+
+$stmt->close();
+$conexion->close();

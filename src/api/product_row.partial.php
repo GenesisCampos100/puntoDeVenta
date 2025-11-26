@@ -82,6 +82,7 @@ $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
         <div class="inline-flex gap-2">
             <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
                     title="Ver Detalles"
+                    data-id="<?= $pid ?>"
                     data-details='<?= $jsonProducto ?>'>
                 Ver
             </button>

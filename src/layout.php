@@ -150,21 +150,6 @@
         </svg>
       </button>
 
-      <script>
-        const closeUserModal = document.getElementById('closeUserModal');
-        closeUserModal.addEventListener('mouseover', () => {
-          closeUserModal.style.background = '#fee2e2';
-          closeUserModal.style.transform = 'scale(1.1)';
-        });
-        closeUserModal.addEventListener('mouseout', () => {
-          closeUserModal.style.background = 'rgba(239, 68, 68, 0.1)';
-          closeUserModal.style.transform = 'scale(1)';
-        });
-        closeUserModal.addEventListener('click', () => {
-          document.getElementById('userModal').style.display = 'none';
-        });
-      </script>
-
       <!-- Foto de perfil con efecto premium -->
       <div style="position:relative; display:inline-block; margin-bottom:20px;">
         <div style="padding:5px; border-radius:50%; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
@@ -357,33 +342,39 @@
   <script>
     // Efectos hover para botón volver
     const btnVolver = document.getElementById('btnVolver');
-    btnVolver.addEventListener('mouseover', () => {
-      btnVolver.style.background = '#fee2e2';
-      btnVolver.style.transform = 'scale(1.1)';
-    });
-    btnVolver.addEventListener('mouseout', () => {
-      btnVolver.style.background = 'rgba(239, 68, 68, 0.1)';
-      btnVolver.style.transform = 'scale(1)';
-    });
-    btnVolver.addEventListener('click', () => {
-      document.getElementById('changePhotoModal').style.display = 'none';
-      document.getElementById('userModal').style.display = 'flex';
-    });
+    if(btnVolver) {
+        btnVolver.addEventListener('mouseover', () => {
+        btnVolver.style.background = '#fee2e2';
+        btnVolver.style.transform = 'scale(1.1)';
+        });
+        btnVolver.addEventListener('mouseout', () => {
+        btnVolver.style.background = 'rgba(239, 68, 68, 0.1)';
+        btnVolver.style.transform = 'scale(1)';
+        });
+        btnVolver.addEventListener('click', () => {
+        document.getElementById('changePhotoModal').style.display = 'none';
+        document.getElementById('userModal').style.display = 'flex';
+        });
+    }
     
     // Efectos hover para botones de archivo
-    document.querySelector('label[for="inputArchivo"]').addEventListener('mouseover', function() {
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = '0 6px 20px rgba(180, 194, 77, 0.4)';
-    });
-    document.querySelector('label[for="inputArchivo"]').addEventListener('mouseout', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '0 4px 16px rgba(180, 194, 77, 0.3)';
-    });
+    const labelArchivo = document.querySelector('label[for="inputArchivo"]');
+    if(labelArchivo) {
+        labelArchivo.addEventListener('mouseover', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 6px 20px rgba(180, 194, 77, 0.4)';
+        });
+        labelArchivo.addEventListener('mouseout', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 4px 16px rgba(180, 194, 77, 0.3)';
+        });
+    }
   </script>
 
-  <!-- Scripts de funcionalidad (sin cambios) -->
+  <!-- Scripts de funcionalidad unificados -->
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // Referencias al DOM
     const userBlock = document.getElementById("userBlock");
     const userModal = document.getElementById("userModal");
     const logoutOption = document.getElementById("logoutOption");
@@ -396,126 +387,113 @@
     const formFoto = document.getElementById("formFoto");
     const mainFotoPerfil = document.getElementById("mainFotoPerfil");
     const sidebarFoto = document.getElementById("sidebarFoto");
+    const closeUserModal = document.getElementById('closeUserModal');
 
+    // --- LÓGICA DEL MODAL PRINCIPAL ---
+    
     // Abrir modal principal
-    userBlock.addEventListener("click", () => {
-      userModal.style.display = "flex";
-      document.body.style.overflow = "hidden";
-    });
+    if(userBlock) {
+        userBlock.addEventListener("click", () => {
+            userModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        });
+    }
 
-    // Abrir confirmación de logout
-    logoutOption.addEventListener("click", () => {
-      confirmBox.style.display = "block";
-    });
+    // Cerrar modal principal (botón X)
+    if(closeUserModal) {
+        closeUserModal.addEventListener('click', () => {
+            userModal.style.display = 'none';
+            document.body.style.overflow = "auto";
+        });
+    }
 
-    // Confirmar logout
-    btnConfirm.addEventListener("click", () => {
-      window.location.href = "../src/pages/login.php";
-    });
+    // Cerrar modal principal (clic fuera)
+    if(userModal) {
+        userModal.addEventListener("click", (e) => {
+            if (e.target === userModal) {
+                userModal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+        });
+    }
+
+    // --- LÓGICA DE LOGOUT ---
+
+    // Mostrar confirmación de logout
+    if(logoutOption) {
+        logoutOption.addEventListener("click", () => {
+            if(confirmBox) confirmBox.style.display = "block";
+        });
+    }
+
+    // Confirmar logout -> Redirigir al script de logout
+    if(btnConfirm) {
+        btnConfirm.addEventListener("click", () => {
+            window.location.href = "/puntoDeVenta/src/scripts/logout.php";
+        });
+    }
 
     // Cancelar logout
-    btnCancel.addEventListener("click", () => {
-      confirmBox.style.display = "none";
-    });
+    if(btnCancel) {
+        btnCancel.addEventListener("click", () => {
+            if(confirmBox) confirmBox.style.display = "none";
+        });
+    }
 
-    // Cerrar modal principal al hacer clic fuera
-    userModal.addEventListener("click", (e) => {
-      if (e.target === userModal) {
-        userModal.style.display = "none";
-        document.body.style.overflow = "auto";
-      }
-    });
+    // --- LÓGICA DE FOTO DE PERFIL ---
 
-    // Abrir modal de cambio de foto al hacer clic en la imagen
-    mainFotoPerfil.addEventListener("click", () => {
-      changePhotoModal.style.display = "flex";
-    });
+    // Abrir modal de cambio de foto
+    if(mainFotoPerfil) {
+        mainFotoPerfil.addEventListener("click", () => {
+            if(changePhotoModal) changePhotoModal.style.display = "flex";
+        });
+    }
 
     // Previsualizar imagen seleccionada
-    inputArchivo.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) previewFoto.src = URL.createObjectURL(file);
-    });
+    if(inputArchivo) {
+        inputArchivo.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file && previewFoto) previewFoto.src = URL.createObjectURL(file);
+        });
+    }
 
-    // Cerrar modal de cambio de foto al hacer clic fuera
-    changePhotoModal.addEventListener("click", (e) => {
-      if (e.target === changePhotoModal) {
-        changePhotoModal.style.display = "none";
-      }
-    });
+    // Cerrar modal de cambio de foto (clic fuera)
+    if(changePhotoModal) {
+        changePhotoModal.addEventListener("click", (e) => {
+            if (e.target === changePhotoModal) {
+                changePhotoModal.style.display = "none";
+            }
+        });
+    }
 
     // Subir foto al servidor
-    formFoto.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(formFoto);
+    if(formFoto) {
+        formFoto.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const formData = new FormData(formFoto);
 
-      fetch("../src/scripts/guardar_foto.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Actualizar fotos en sidebar y modal principal
-          mainFotoPerfil.src = data.newPhoto;
-          sidebarFoto.src = data.newPhoto;
-          // Cerrar modal de cambio de foto
-          changePhotoModal.style.display = "none";
-        } else {
-          alert("Error al guardar la foto: " + data.error);
-        }
-      })
-      .catch(err => {
-        alert("Error en la conexión: " + err);
-      });
-    });
-  });
-  </script>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const fotoPerfil = document.querySelector("#userModal img");
-    const changePhotoModal = document.getElementById("changePhotoModal");
-    const inputArchivo = document.getElementById("inputArchivo");
-    const previewFoto = document.getElementById("previewFoto");
-    const formFoto = document.getElementById("formFoto");
-
-    // Abrir modal al hacer clic en la imagen
-    fotoPerfil.addEventListener("click", () => {
-      changePhotoModal.style.display = "flex";
-    });
-
-    // Previsualizar imagen antes de subir
-    inputArchivo.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) previewFoto.src = URL.createObjectURL(file);
-    });
-
-    // Cerrar modal si haces clic fuera
-    changePhotoModal.addEventListener("click", (e) => {
-      if (e.target === changePhotoModal) {
-        changePhotoModal.style.display = "none";
-      }
-    });
-
-    // Al guardar, recargar imagen en el modal principal
-    formFoto.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(formFoto);
-      fetch("../src/scripts/guardar_foto.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          fotoPerfil.src = data.newPhoto;
-          changePhotoModal.style.display = "none";
-        } else {
-          alert("Error al guardar la foto: " + data.error);
-        }
-      });
-    });
+            fetch("../src/scripts/guardar_foto.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar fotos en UI
+                    if(mainFotoPerfil) mainFotoPerfil.src = data.newPhoto;
+                    if(sidebarFoto) sidebarFoto.src = data.newPhoto;
+                    // Cerrar modal
+                    if(changePhotoModal) changePhotoModal.style.display = "none";
+                } else {
+                    alert("Error al guardar la foto: " + (data.error || "Desconocido"));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error de conexión al guardar la foto.");
+            });
+        });
+    }
   });
   </script>
 

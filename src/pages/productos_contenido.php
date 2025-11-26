@@ -422,35 +422,123 @@ foreach($productos as $p) {
 
             <!-- Action Buttons -->
             <div class="flex gap-3">
-                <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                <a id="modal-btn-editar"
+                href="#"
+                class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white"
+                style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Editar
                 </a>
-                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2" style="color: #e15871;">
+
+                <button id="modal-btn-eliminar"
+                    class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2"
+                    style="color: #e15871;">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
                     Eliminar
                 </button>
             </div>
+
+<!-- Hidden input con ID -->
+<input type="hidden" id="id_producto_detalle" value="">
+
+
         </div>
     </div>
 </div>
 
-<!-- Modal Confirmación Eliminación -->
-<div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100 animate-scaleIn text-center">
-        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-900 mb-3">¿Estás seguro?</h3>
-        <p id="confirmMessage" class="text-gray-600 mb-8 leading-relaxed">Esta acción eliminará el producto permanentemente y no se puede deshacer.</p>
-        <div class="flex gap-3">
-            <button id="cancelBtn" class="flex-1 px-5 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Cancelar</button>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// === BOTÓN ELIMINAR DESDE EL MODAL ===
+document.getElementById("modal-btn-eliminar").addEventListener("click", () => {
+
+    Swal.fire({
+        title: "¿Eliminar producto?",
+        text: "Esta acción no se puede deshacer",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#e15871",
+        cancelButtonColor: "#2d4353",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        customClass: {
+            popup: "rounded-2xl shadow-xl",
+            confirmButton: "rounded-lg px-4 py-2 font-bold",
+            cancelButton: "rounded-lg px-4 py-2 font-bold"
+        }
+    }).then((result) => {
+
+        if (!result.isConfirmed) return;
+
+        const idProducto = document.getElementById("id_producto_detalle").value;
+
+        fetch("eliminar_productos.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `cod_barras=${idProducto}`
+
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.success) {
+                Swal.fire({
+                    title: "Error",
+                    text: data.message,
+                    icon: "error",
+                    confirmButtonColor: "#2d4353"
+                });
+                return;
+            }
+
+            // Cerrar modal
+            const modal = document.getElementById("modalVerDetalles");
+            if (modal) modal.classList.add("hidden");
+
+            // Eliminar fila de la tabla
+            const fila = document.getElementById(`row-${idProducto}`);
+            if (fila) fila.remove();
+
+            // Alert de éxito
+            Swal.fire({
+                title: "Producto eliminado",
+                text: "El producto ha sido eliminado correctamente",
+                icon: "success",
+                confirmButtonColor: "#2d4353",
+                customClass: { popup: "rounded-2xl shadow-xl" }
+            });
+
+        })
+        .catch(err => {
+            Swal.fire({
+                title: "Error inesperado",
+                text: "Ocurrió un problema al eliminar el producto",
+                icon: "error",
+                confirmButtonColor: "#2d4353"
+            });
+            console.error(err);
+        });
+
+    });
+});
+</script>
+
+
+
+<script>
+    // Configuración Global para JS
+    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
+    console.log("API URL Configurada:", BASE_URL);
+</script>
+<script src="js/productos.js?v=<?= time() ?>"></script>
+<script src="js/producto_delete.js?v=<?= time() ?>"></script>
+
             <button id="confirmBtn" class="flex-1 px-5 py-3.5 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">Eliminar</button>
         </div>
     </div>
@@ -462,3 +550,4 @@ foreach($productos as $p) {
     console.log("API URL Configurada:", BASE_URL);
 </script>
 <script src="js/productos.js?v=<?= time() ?>"></script>
+<script src="js/producto_delete.js?v=<?= time() ?>"></script>

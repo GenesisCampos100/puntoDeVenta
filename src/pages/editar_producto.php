@@ -7,32 +7,35 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 🧾 Obtener producto principal
 $id = $_GET['id'] ?? null;
-if (!$id) die("ID de producto no especificado.");
+if (!$id) {
+    echo "<script>window.location='index.php?view=productos';</script>";
+    exit;
+}
 
-$stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
-$stmt->execute([$id]);
+$stmt = $pdo->prepare("SELECT * FROM productos WHERE cod_barras = ? OR id_producto = ? OR id = ?");
+$stmt->execute([$id, $id, $id]);
 $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$producto) die("Producto no encontrado.");
+
+if (!$producto) {
+    echo "<script>alert('Producto no encontrado'); window.location='index.php?view=productos';</script>";
+    exit;
+}
 
 // 🧩 Obtener variantes (si las hay)
-$stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE id_producto = ?");
-$stmtVar->execute([$id]);
+$stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE cod_barras = ? OR id_producto = ?");
+$stmtVar->execute([$producto['cod_barras'], $producto['cod_barras']]);
 $variantes = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 
 // 🧾 Actualizar producto
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
     $nombre = trim($_POST['nombre']);
-    $cod_barras = trim($_POST['cod_barras']);
-    $id_categoria = $_POST['id_categoria'];
     $marca = trim($_POST['marca']);
     $descripcion = trim($_POST['descripcion']);
     $color_base = trim($_POST['color_base']);
-    $cantidad = (int)$_POST['cantidad'];
-    $cantidad_min = (int)$_POST['cantidad_min'];
-    $costo = (float)$_POST['costo'];
-    $tipo_costo = $_POST['tipo_costo'];
     $precio_unitario = (float)$_POST['precio_unitario'];
+    $id_categoria = $_POST['id_categoria']; // Permitido editar
+    $is_active = isset($_POST['is_active']) ? 1 : 0;
 
     // 🖼️ Imagen principal
     $imagen = $producto['imagen'];
@@ -46,423 +49,266 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
 
-    // 💾 Actualizar producto base
+    // 💾 Actualizar producto base (SOLO CAMPOS PERMITIDOS)
+    // NO actualizamos: cod_barras, cantidad, cantidad_min, costo, tipo_costo
     $stmt = $pdo->prepare("UPDATE productos SET 
-      nombre=?, cod_barras=?, id_categoria=?, marca=?, descripcion=?, color=?, imagen=?, 
-      cantidad=?, cantidad_min=?, costo=?, tipo_costo=?, precio_unitario=? 
-      WHERE id=?");
+      nom_producto=?, marca=?, descripcion=?, color=?, imagen=?, 
+      precio=?, id_categoria=?, is_active=?
+      WHERE cod_barras=?");
 
     $stmt->execute([
-      $nombre, $cod_barras ?: null, $id_categoria, $marca, $descripcion,
-      $color_base, $imagen, $cantidad, $cantidad_min, $costo, $tipo_costo, $precio_unitario, $id
+      $nombre, $marca, $descripcion, $color_base, $imagen, 
+      $precio_unitario, $id_categoria, $is_active, $producto['cod_barras']
     ]);
 
-    // 🧩 Actualizar variantes
-    $pdo->prepare("DELETE FROM variantes WHERE id_producto = ?")->execute([$id]);
-    if (!empty($_POST['variantes'])) {
-      $stmtVar = $pdo->prepare("INSERT INTO variantes 
-        (id_producto, cod_barras, talla, color, imagen, cantidad, cantidad_min, costo, precio_unitario) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-      $totalCantidad = 0;
-      foreach ($_POST['variantes'] as $index => $v) {
-        $codVar = trim($v['cod_barras'] ?? '');
-        if ($codVar === '') $codVar = "VAR-{$id}-" . ($index + 1);
-
-        // Imagen individual
-        $imgVar = null;
-        if (!empty($_FILES['variantes']['name'][$index]['imagen'])) {
-          $carpetaUploads = __DIR__ . "/../uploads/";
-          $nombreArchivo = uniqid("var_") . "_" . basename($_FILES['variantes']['name'][$index]['imagen']);
-          $rutaDestino = $carpetaUploads . $nombreArchivo;
-          $tmp = $_FILES['variantes']['tmp_name'][$index]['imagen'];
-          if (is_uploaded_file($tmp) && move_uploaded_file($tmp, $rutaDestino)) {
-            $imgVar = $nombreArchivo;
-          }
-        }
-
-        $cantidadVar = (int)($v['cantidad'] ?? 0);
-        $totalCantidad += $cantidadVar;
-
-        $stmtVar->execute([
-          $id,
-          $codVar,
-          $v['talla'] ?? '',
-          $v['color'] ?? '',
-          $imgVar,
-          $cantidadVar,
-          (int)($v['cantidad_min'] ?? 0),
-          (float)($v['costo'] ?? 0),
-          (float)($v['precio_unitario'] ?? 0)
-        ]);
-      }
-
-      // 🧮 Actualizar cantidad global
-      $pdo->prepare("UPDATE productos SET cantidad=? WHERE id=?")->execute([$totalCantidad, $id]);
-    }
-
-    echo "<script>alert('✅ Producto actualizado correctamente'); window.location='index.php?view=productos';</script>";
-    exit;
-
+    echo "<script>
+        Swal.fire({
+            title: '¡Actualizado!',
+            text: 'El producto ha sido actualizado correctamente',
+            icon: 'success',
+            confirmButtonColor: '#b4c24d',
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            window.location='index.php?view=productos';
+        });
+    </script>";
+    // No exit here to allow layout to finish if needed, but usually redirect handles it.
+    
   } catch (Exception $e) {
-    echo "<script>alert('❌ Error: " . addslashes($e->getMessage()) . "');</script>";
+    echo "<script>
+        Swal.fire({
+            title: 'Error',
+            text: '" . addslashes($e->getMessage()) . "',
+            icon: 'error',
+            confirmButtonColor: '#e15871'
+        });
+    </script>";
   }
 }
 ?>
 
-<!-- 🧾 FORMULARIO -->
-<div class="producto-form">
-  <h2>Editar producto</h2>
+<!-- Dependencias (si no están ya en layout) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <form method="post" enctype="multipart/form-data">
-    <section>
-      <h3>🧾 Datos generales</h3>
-      <div class="grid">
-        <div>
-          <label>Nombre</label>
-          <input type="text" name="nombre" value="<?= htmlspecialchars($producto['nombre']) ?>" required>
-        </div>
-        <div>
-          <label>Código de barras</label>
-          <input type="text" name="cod_barras" value="<?= htmlspecialchars($producto['cod_barras']) ?>">
-        </div>
-        <div>
-          <label>Imagen principal</label><br>
-          <?php if ($producto['imagen']): ?>
-            <img src="../uploads/<?= htmlspecialchars($producto['imagen']) ?>" width="100"><br>
-          <?php endif; ?>
-          <input type="file" name="imagen" accept="image/*">
-        </div>
-      </div>
-    </section>
+<style>
+    :root {
+        --primary: #b4c24d;
+        --primary-dark: #9fb03d;
+        --secondary: #2d4353;
+        --accent: #e15871;
+    }
+    
+    body { font-family: 'Poppins', sans-serif; }
 
-    <section>
-      <h3>🧩 Variantes</h3>
-      <div id="variantes-container" class="variantes">
-        <?php foreach ($variantes as $i => $v): ?>
-          <div class="var">
-            <input name="variantes[<?= $i ?>][cod_barras]" value="<?= htmlspecialchars($v['cod_barras']) ?>" placeholder="Código de barras">
-            <input name="variantes[<?= $i ?>][talla]" value="<?= htmlspecialchars($v['talla']) ?>" placeholder="Talla">
-            <input name="variantes[<?= $i ?>][color]" value="<?= htmlspecialchars($v['color']) ?>" placeholder="Color">
-            <input name="variantes[<?= $i ?>][cantidad]" type="number" value="<?= htmlspecialchars($v['cantidad']) ?>" placeholder="Cantidad">
-            <input name="variantes[<?= $i ?>][cantidad_min]" type="number" value="<?= htmlspecialchars($v['cantidad_min']) ?>" placeholder="Mínimo">
-            <input name="variantes[<?= $i ?>][costo]" type="number" step="0.01" value="<?= htmlspecialchars($v['costo']) ?>" placeholder="Costo">
-            <input name="variantes[<?= $i ?>][precio_unitario]" type="number" step="0.01" value="<?= htmlspecialchars($v['precio_unitario']) ?>" placeholder="Precio">
-            <input type="file" name="variantes[<?= $i ?>][imagen]" accept="image/*">
-            <?php if ($v['imagen']): ?>
-              <img src="../uploads/<?= htmlspecialchars($v['imagen']) ?>" width="60">
-            <?php endif; ?>
-            <button type="button" class="remove">🗑️</button>
-          </div>
-        <?php endforeach; ?>
-      </div>
-      <button type="button" id="add-variant" class="btn-secundario">+ Agregar variante</button>
-    </section>
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    <section>
-      <h3>⚙️ Datos adicionales</h3>
-      <div class="grid">
-        <div>
-          <label>Categoría</label>
-          <select name="id_categoria" required>
-            <?php foreach ($categorias as $cat): ?>
-              <option value="<?= $cat['id_categoria'] ?>" <?= $cat['id_categoria'] == $producto['id_categoria'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($cat['nombre']) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div>
-          <label>Marca</label>
-          <input type="text" name="marca" value="<?= htmlspecialchars($producto['marca']) ?>">
-        </div>
-        <div class="full">
-          <label>Descripción</label>
-          <textarea name="descripcion"><?= htmlspecialchars($producto['descripcion']) ?></textarea>
-        </div>
-        <div class="full">
-          <label>Color base</label>
-          <input type="text" name="color_base" value="<?= htmlspecialchars($producto['color']) ?>">
-        </div>
-      </div>
-    </section>
+    .input-field {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-field:focus {
+        box-shadow: 0 0 0 4px rgba(180, 194, 77, 0.1);
+        border-color: var(--primary);
+    }
+    
+    /* Readonly styling */
+    .input-readonly {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+        border-color: #e5e7eb;
+    }
+</style>
 
-    <section>
-      <h3>📦 Inventario</h3>
-      <div class="grid">
+<div class="max-w-5xl mx-auto p-4 md:p-8 pb-32">
+    
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between animate-fadeIn">
         <div>
-          <label>Cantidad</label>
-          <input type="number" name="cantidad" value="<?= htmlspecialchars($producto['cantidad']) ?>">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Editar Producto</h1>
+            <p class="text-gray-600">Modifica los detalles del producto. Los campos de inventario están protegidos.</p>
         </div>
-        <div>
-          <label>Cantidad mínima</label>
-          <input type="number" name="cantidad_min" value="<?= htmlspecialchars($producto['cantidad_min']) ?>">
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h3>💰 Costo</h3>
-      <div class="grid">
-        <div>
-      <label>Costo ($)</label>
-      <input type="number" step="0.01" id="costo" name="costo" value="<?= htmlspecialchars($producto['costo'] ?? '') ?>">
+        <button onclick="window.location.href='index.php?view=productos'" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Volver
+        </button>
     </div>
-        <div>
-          <label>Tipo de costo</label>
-          <select name="tipo_costo">
-            <option value="bruto" <?= $producto['tipo_costo'] === 'bruto' ? 'selected' : '' ?>>Bruto</option>
-            <option value="neto" <?= $producto['tipo_costo'] === 'neto' ? 'selected' : '' ?>>Neto</option>
-          </select>
-        </div>
-      </div>
-    </section>
 
+    <form method="post" enctype="multipart/form-data" class="animate-fadeIn" style="animation-delay: 0.1s;">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Columna Izquierda: Imagen y Estado -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Tarjeta Imagen -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Imagen del Producto
+                    </h3>
+                    
+                    <div class="relative group aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4 border-2 border-dashed border-gray-300 hover:border-[#b4c24d] transition-colors">
+                        <img id="preview-img" src="<?= $producto['imagen'] ? 'uploads/'.$producto['imagen'] : 'public/img/sin-imagen.png' ?>" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="text-white font-semibold">Cambiar Imagen</span>
+                        </div>
+                        <input type="file" name="imagen" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
+                    </div>
+                    <p class="text-xs text-gray-500 text-center">Click para subir una nueva imagen (JPG, PNG)</p>
+                </div>
 
-    <section>
-      <h3>💵 Precio de venta</h3>
-      <div class="grid">
-        <div>
-          <label>Precio unitario</label>
-           <input type="number" step="0.01" id="precio_unitario" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
-        </div>
-        <div>
-          <label>Margen (%)</label>
-          <input type="text" id="margen" readonly>
-        </div>
-        <div>
-          <label>Ganancia ($)</label>
-          <input type="text" id="ganancia" readonly>
-        </div>
-      </div>
-    </section>
+                <!-- Tarjeta Estado -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Estado
+                    </h3>
+                    <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="checkbox" name="is_active" class="w-5 h-5 text-[#b4c24d] rounded focus:ring-[#b4c24d]" <?= ($producto['is_active'] ?? 1) ? 'checked' : '' ?>>
+                        <span class="font-medium text-gray-700">Producto Activo</span>
+                    </label>
+                </div>
+            </div>
 
-    <div class="botones">
-      <button type="submit" class="btn-principal">💾 Guardar cambios</button>
-      <a href="index.php?view=productos" class="btn-cancelar">Cancelar</a>
-    </div>
-  </form>
+            <!-- Columna Derecha: Formulario -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Información General -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-2">
+                        <svg class="w-5 h-5 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Información General
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nombre (Editable) -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nombre del Producto</label>
+                            <input type="text" name="nombre" value="<?= htmlspecialchars($producto['nom_producto']) ?>" required
+                                   class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none text-gray-900 placeholder-gray-400">
+                        </div>
+
+                        <!-- Código de Barras (Readonly) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-1">
+                                Código de Barras
+                                <span class="text-xs font-normal bg-gray-200 px-2 py-0.5 rounded text-gray-600">Bloqueado</span>
+                            </label>
+                            <input type="text" value="<?= htmlspecialchars($producto['cod_barras']) ?>" readonly
+                                   class="input-readonly w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none">
+                        </div>
+
+                        <!-- Categoría (Editable) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Categoría</label>
+                            <select name="id_categoria" required class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none bg-white">
+                                <?php foreach ($categorias as $cat): ?>
+                                    <option value="<?= $cat['id_categoria'] ?>" <?= $cat['id_categoria'] == $producto['id_categoria'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($cat['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Marca (Editable) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Marca</label>
+                            <input type="text" name="marca" value="<?= htmlspecialchars($producto['marca']) ?>"
+                                   class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none">
+                        </div>
+
+                        <!-- Color (Editable) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Color</label>
+                            <input type="text" name="color_base" value="<?= htmlspecialchars($producto['color']) ?>"
+                                   class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none">
+                        </div>
+
+                        <!-- Descripción (Editable) -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Descripción</label>
+                            <textarea name="descripcion" rows="3" class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none"><?= htmlspecialchars($producto['descripcion']) ?></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario y Precios -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-2">
+                        <svg class="w-5 h-5 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Inventario y Precios
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Stock Actual (Readonly) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-1">
+                                Stock Actual
+                                <span class="text-xs font-normal bg-gray-200 px-2 py-0.5 rounded text-gray-600">Bloqueado</span>
+                            </label>
+                            <input type="number" value="<?= htmlspecialchars($producto['cantidad']) ?>" readonly
+                                   class="input-readonly w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none">
+                        </div>
+
+                        <!-- Stock Mínimo (Readonly) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-1">
+                                Stock Mínimo
+                                <span class="text-xs font-normal bg-gray-200 px-2 py-0.5 rounded text-gray-600">Bloqueado</span>
+                            </label>
+                            <input type="number" value="<?= htmlspecialchars($producto['cantidad_min']) ?>" readonly
+                                   class="input-readonly w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none">
+                        </div>
+
+                        <!-- Costo (Readonly) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-500 mb-2 flex items-center gap-1">
+                                Costo ($)
+                                <span class="text-xs font-normal bg-gray-200 px-2 py-0.5 rounded text-gray-600">Bloqueado</span>
+                            </label>
+                            <input type="number" value="<?= htmlspecialchars($producto['costo']) ?>" readonly
+                                   class="input-readonly w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none">
+                        </div>
+
+                        <!-- Precio Venta (Editable) -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Precio Venta ($)</label>
+                            <input type="number" step="0.01" name="precio_unitario" value="<?= htmlspecialchars($producto['precio']) ?>" required
+                                   class="input-field w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none font-bold text-gray-900">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex items-center gap-4 pt-4">
+                    <button type="button" onclick="window.location.href='index.php?view=productos'" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 px-6 py-4 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                        Guardar Cambios
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </form>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  let idx = document.querySelectorAll('#variantes-container .var').length;
-  const cont = document.getElementById('variantes-container');
-  const addBtn = document.getElementById('add-variant');
-
-  addBtn.addEventListener('click', () => {
-    const html = `
-      <div class="var">
-        <input name="variantes[${idx}][cod_barras]" placeholder="Código de barras">
-        <input name="variantes[${idx}][talla]" placeholder="Talla">
-        <input name="variantes[${idx}][color]" placeholder="Color">
-        <input name="variantes[${idx}][cantidad]" type="number" min="0" placeholder="Cantidad">
-        <input name="variantes[${idx}][cantidad_min]" type="number" min="0" placeholder="Mínimo">
-        <input name="variantes[${idx}][costo]" type="number" step="0.01" placeholder="Costo">
-        <input name="variantes[${idx}][precio_unitario]" type="number" step="0.01" placeholder="Precio">
-        <input type="file" name="variantes[${idx}][imagen]" accept="image/*">
-        <button type="button" class="remove">🗑️</button>
-      </div>`;
-    cont.insertAdjacentHTML('beforeend', html);
-    cont.querySelectorAll('.remove').forEach(btn => btn.onclick = e => e.target.closest('.var').remove());
-    idx++;
-  });
-
-  cont.querySelectorAll('.remove').forEach(btn => btn.onclick = e => e.target.closest('.var').remove());
-});
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 </script>
-
-<script>
-// 💵 Cálculo automático de margen y ganancia
-function actualizarMargenGanancia() {
-  const costo = parseFloat(document.getElementById('costo').value) || 0;
-  const precio = parseFloat(document.getElementById('precio_unitario').value) || 0;
-  const margenInput = document.getElementById('margen');
-  const gananciaInput = document.getElementById('ganancia');
-
-  if (costo > 0 && precio > 0) {
-    const ganancia = precio - costo;
-    const margen = (ganancia / costo) * 100;
-    margenInput.value = margen.toFixed(2) + '%';
-    gananciaInput.value = '$' + ganancia.toFixed(2);
-  } else {
-    margenInput.value = '';
-    gananciaInput.value = '';
-  }
-}
-
-document.getElementById('costo').addEventListener('input', actualizarMargenGanancia);
-document.getElementById('precio_unitario').addEventListener('input', actualizarMargenGanancia);
-window.addEventListener('load', actualizarMargenGanancia);
-</script>
-
-<style>
-:root {
-  --azul: #2563eb;
-  --verde: #22c55e;
-  --rojo: #ef4444;
-  --gris-claro: #f9fafb;
-  --borde: #e5e7eb;
-  --texto: #374151;
-}
-
-body {
-  background: #f3f4f6;
-   font-family: 'Poppins', sans-serif; 
-}
-
-.producto-form {
-  width: 90%;
-  max-width: 900px;
-  margin: 40px auto;
-  background: white;
-  padding: 35px 40px;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--texto);
-  font-weight: 600;
-}
-
-section {
-  margin-bottom: 25px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--borde);
-}
-
-h3 {
-  color: var(--azul);
-  font-size: 1.1rem;
-  margin-bottom: 12px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
-}
-
-.full { grid-column: 1 / -1; }
-
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: var(--texto);
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--borde);
-  border-radius: 8px;
-  transition: 0.2s;
-}
-
-input:focus, select:focus, textarea:focus {
-  border-color: var(--azul);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-}
-
-.variantes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.var {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  background: var(--gris-claro);
-  padding: 12px;
-  border: 1px solid var(--borde);
-  border-radius: 10px;
-}
-
-.var input {
-  flex: 1;
-  min-width: 100px;
-}
-
-.remove {
-  background: var(--rojo);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 10px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.remove:hover { background: #dc2626; }
-
-.btn-principal, .btn-secundario, .btn-cancelar {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.btn-principal {
-  background: var(--verde);
-  color: white;
-}
-
-.btn-secundario {
-  background: var(--azul);
-  color: white;
-  margin-top: 10px;
-}
-
-.btn-cancelar {
-  background: var(--rojo);
-  color: white;
-  text-decoration: none;
-}
-
-.botones {
-  margin-top: 25px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-.info {
-  font-size: 0.9em;
-  color: #6b7280;
-}
-
-.disabled {
-  opacity: 0.6;
-}
-
-.msg-variantes {
-  margin-top: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  padding: 10px 14px;
-  border-radius: 8px;
-  color: #b91c1c;
-  font-size: 0.9em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.hidden { display: none; }
-
-/* 🌫️ Estilo visual para campos bloqueados */
-input:disabled, select:disabled, textarea:disabled {
-  background-color: #e5e7eb !important;
-  color: #9ca3af !important;
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-</style>

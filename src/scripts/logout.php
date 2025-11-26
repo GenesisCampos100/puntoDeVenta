@@ -21,5 +21,5 @@ header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 // Redirigir al login
-header('Location: ../pages/login.php');
+header('Location: /puntoDeVenta/src/pages/login.php');
 exit;
