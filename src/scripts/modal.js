@@ -2,9 +2,9 @@
 (() => {
   document.addEventListener('DOMContentLoaded', () => {
 
-    /* ===========================
+    /* 
          DESCUENTO GLOBAL
-    ============================ */
+     */
     const discountModal = document.getElementById("discount-modal");
     const discountType = document.getElementById("discount-type");
     const discountInput = document.getElementById("discount-input");
@@ -26,9 +26,9 @@
       document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
     });
 
-    /* ===========================
+    /* 
          DESCUENTO INDIVIDUAL
-    ============================ */
+     */
     const productDiscountModal = document.getElementById("product-discount-modal");
     const productDiscountType = document.getElementById("product-discount-type");
     const productDiscountInput = document.getElementById("product-discount-input");
@@ -37,9 +37,15 @@
 
     let currentItemIndex = null;
 
-    window.openProductDiscountModal = function (index, currentDiscount = 0) {
+    window.openProductDiscountModal = function (index) {
       currentItemIndex = index;
-      productDiscountInput.value = currentDiscount || 0;
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const currentDiscount = cart[index]?.discount || 0;
+      const currentType = cart[index]?.discountType || 'percent';
+
+      productDiscountInput.value = currentDiscount;
+      productDiscountType.value = currentType;
+
       productDiscountModal?.classList.remove("hidden");
     };
 
@@ -52,15 +58,21 @@
       if (currentItemIndex !== null) {
         const value = parseFloat(productDiscountInput.value) || 0;
         const type = productDiscountType.value || 'percent';
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        if (cart[currentItemIndex]) {
+          cart[currentItemIndex].discount = value;
+          cart[currentItemIndex].discountType = type;
+          localStorage.setItem("cart", JSON.stringify(cart));
+        }
         productDiscountModal?.classList.add("hidden");
         document.dispatchEvent(new CustomEvent("applyProductDiscount", { detail: { index: currentItemIndex, value, type } }));
         currentItemIndex = null;
       }
     });
 
-    /* ===========================
+    /* 
          MODAL CLIENTE
-    ============================ */
+     */
     const clientBtn = document.getElementById('client-btn');
     const modalClientes = document.getElementById('modalClientes');
     const cerrarModalClienteBtn = document.getElementById('cerrar-modal-cliente');
@@ -81,12 +93,11 @@
         const clientNameEl = document.getElementById('client-name');
         const clientPhoneEl = document.getElementById('client-phone');
         if (clientNameEl) clientNameEl.textContent = nombre;
-        if (clientPhoneEl) clientPhoneEl.textContent = ""; // si deseas el teléfono, puedes ajustarlo aquí
+        if (clientPhoneEl) clientPhoneEl.textContent = "";
         modalClientes?.classList.add("hidden");
       }
     });
 
-    // Eliminar cliente seleccionado
     const removeClientBtn = document.getElementById('remove-client');
     removeClientBtn?.addEventListener('click', () => {
       localStorage.removeItem('selectedClient');
@@ -100,18 +111,15 @@
       const q = e.target.value.trim().toLowerCase();
       if (!tablaClientes) return;
       [...tablaClientes.querySelectorAll('tr')].forEach(row => {
-        if (row.querySelectorAll('th').length) {
-          row.style.display = '';
-          return;
-        }
+        if (row.querySelectorAll('th').length) { row.style.display = ''; return; }
         const text = row.textContent.toLowerCase();
         row.style.display = q === '' || text.includes(q) ? '' : 'none';
       });
     });
 
-    /* ===========================
+    /* 
          MODAL PRODUCTOS
-    ============================ */
+     */
     $('#open-product-modal').on('click', function () {
       $('#modalProductos').removeClass('hidden');
       $('#buscarProductoModal').val('').focus();
@@ -122,13 +130,9 @@
       $('#modalProductos').addClass('hidden');
     });
 
-    // Buscar productos en modal
     $('#buscarProductoModal').on('input', function () {
       const texto = $(this).val().trim();
-      if (!texto) {
-        $('#tablaProductosModal').html('');
-        return;
-      }
+      if (!texto) { $('#tablaProductosModal').html(''); return; }
 
       $.ajax({
         url: 'pages/nueva_venta.php',
@@ -152,13 +156,10 @@
       data-imagen="${p.imagen ?? ''}"
     >Agregar</button>
   </td>
-</tr>
-`).join('');
-
+</tr>`).join('');
 
           $('#tablaProductosModal').html(rows);
         }
-
       });
     });
 
@@ -167,18 +168,19 @@
         cod_barras: $(this).data('codigo'),
         name: $(this).data('nombre'),
         price: parseFloat($(this).data('precio')),
-        cantidad: 1, // cantidad inicial
+        cantidad: 1,
         talla: $(this).data('talla'),
         color: $(this).data('color'),
-        imagen: $(this).data('imagen')
+        imagen: $(this).data('imagen'),
+        discount: 0,
+        discountType: 'percent'
       };
-      addToCart(prod); // ahora addToCart recibe un objeto completo
+      addToCart(prod);
     });
 
-
-    /* ===========================
+    /* 
          MODAL PAGO
-    ============================ */
+     */
     const payBtn = document.getElementById('pay-btn');
     const paymentModal = document.getElementById('payment-modal');
     const cancelPayment = document.getElementById('cancel-payment');
@@ -204,11 +206,41 @@
       mixtoReferencia
     ];
 
+    function calcularTotal() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
+      const globalType = localStorage.getItem("globalDiscountType") || 'percent';
+
+      let subtotal = 0;
+
+      cart.forEach(p => {
+        let precio = p.price * p.cantidad;
+
+        // Descuento individual
+        if (p.discount && p.discountType === 'percent') precio *= (1 - p.discount / 100);
+        else if (p.discount && p.discountType === 'amount') precio -= p.discount;
+
+        subtotal += precio;
+      });
+
+      // Descuento global
+      let total = subtotal;
+      if (globalDiscount && globalType === 'percent') total *= (1 - globalDiscount / 100);
+      else if (globalDiscount && globalType === 'amount') total -= globalDiscount;
+
+      return total;
+    }
+
+
     function getTotal() {
       // Suponiendo que guardaste el total en localStorage
       const total = parseFloat(localStorage.getItem("lastTotal")) || 0;
       return total;
     }
+
+    const totalPagarEl = document.getElementById("total-pagar");
+    if (totalPagarEl) totalPagarEl.textContent = calcularTotal().toFixed(2);
+
 
     function validarPago() {
       const total = getTotal();
@@ -423,9 +455,9 @@
       }
     });
 
-    /* ===========================
+    /* 
          DETALLE DE VENTA
-    ============================ */
+     */
     const ventaModal = document.getElementById('venta-modal');
     const ventaDetalles = document.getElementById('venta-detalles');
     const closeVentaModal = document.getElementById('close-venta-modal');
@@ -493,11 +525,6 @@
     ventaModal?.addEventListener('click', e => {
       if (e.target === ventaModal) ventaModal.classList.add("hidden");
     });
-
-
-
-
-
 
 
   }); // fin DOMContentLoaded

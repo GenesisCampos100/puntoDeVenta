@@ -318,10 +318,18 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // RECIBIR DESCUENTOS DESDE modal.js
-    document.addEventListener('applyProductDiscount', e => {
-        const { index, value, type } = e.detail;
-        if (cart[index]) { cart[index].discount = { value, type }; saveCart(); }
+    document.addEventListener("applyProductDiscount", ({ detail }) => {
+        const { index, value, type } = detail;
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        if (cart[index]) {
+            cart[index].discount = value;
+            cart[index].discountType = type;
+            localStorage.setItem("cart", JSON.stringify(cart));
+            document.dispatchEvent(new CustomEvent("cartUpdated", { detail: cart }));
+        }
     });
+
     document.addEventListener('applyGlobalDiscount', e => {
         globalDiscount = e.detail.value || 0;
         localStorage.setItem('globalDiscount', globalDiscount);
