@@ -1,0 +1,37 @@
+# 📦 Node.js
+node_modules/
+package-lock.json
+package.json
+
+# 🧪 Archivos JSON
+*.json
+
+# 🔐 Archivos de entorno
+.env
+
+# 🧱 Carpetas de compilación
+dist/
+build/
+
+# 🎨 Archivos Sass compilados
+*.css
+*.css.map
+
+# 🧪 Archivos Sass fuente
+*.scss
+*.sass
+src/scss/
+
+# 🛠 Gulp
+gulpfile.js
+gulpfile.ts
+
+# 🧹 Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# 🧾 Archivos de log
+*.log
+
+# Ignorar sql
+.sql
