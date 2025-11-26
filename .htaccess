@@ -1,0 +1,53 @@
+# Habilitar reescritura de URLs
+RewriteEngine On
+
+# Redireccionar automáticamente www a no-www (opcional)
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+# Prevenir acceso directo a archivos sensibles
+<FilesMatch "\.(env|sql|json|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Redirigir errores 404 personalizados
+ErrorDocument 404 /PrismaMK2C/src/pages/404.php
+
+# Establecer charset UTF-8 por defecto
+AddDefaultCharset UTF-8
+
+# Comprimir archivos para mejor rendimiento
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache de recursos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Seguridad: Prevenir directory listing
+Options -Indexes
+
+# Seguridad: Proteger archivos de configuración
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "package.json">
+    Order allow,deny
+    Deny from all
+</Files>
