@@ -6,6 +6,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = isset($_POST['usuario']) ? trim($_POST['usuario']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
 
+    // Debug: log datos recibidos
+    error_log("LOGIN ATTEMPT - Usuario: $usuario, Password length: " . strlen($password));
+
     // Buscar usuario con su imagen
     $stmt = $pdo->prepare("SELECT 
                 u.id_usuario AS id,
@@ -22,6 +25,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ");
     $stmt->execute(['correo' => $usuario]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Debug: log si se encontró usuario
+    error_log("USER FOUND: " . ($user ? "YES (ID: {$user['id']})" : "NO"));
+    if ($user) {
+        error_log("Password verify: " . (password_verify($password, $user['password']) ? "SUCCESS" : "FAIL"));
+    }
 
     $isAjax = isset($_POST['ajax']) && $_POST['ajax'] === '1';
     $isXRequestedWith = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
