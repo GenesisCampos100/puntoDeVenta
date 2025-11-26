@@ -33,7 +33,7 @@ if (isset($_GET['buscar_producto'])) {
     $texto = trim($_GET['buscar_producto']);
 
     $sql = $pdo->prepare("
-        SELECT 
+        (SELECT 
             p.cod_barras,
             p.nom_producto,
             p.descripcion,
@@ -48,15 +48,38 @@ if (isset($_GET['buscar_producto'])) {
         FROM productos p
         LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
         WHERE 
-            p.nom_producto LIKE :texto
-            OR p.cod_barras LIKE :texto
-            OR p.sku LIKE :texto
-        LIMIT 15
+            (p.nom_producto LIKE ?
+            OR p.cod_barras LIKE ?
+            OR p.sku LIKE ?)
+            AND p.is_active = 1
+        LIMIT 15)
+        
+        UNION
+        
+        (SELECT 
+            p.cod_barras,
+            p.nom_producto,
+            p.descripcion,
+            p.marca,
+            v.imagen,
+            v.talla,
+            v.color,
+            v.sku,
+            v.cantidad,
+            v.precio,
+            c.nombre AS categoria
+        FROM variantes v
+        JOIN productos p ON v.cod_barras = p.cod_barras
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE 
+            (v.sku LIKE ?
+            OR v.cod_barras LIKE ?)
+            AND v.is_active = 1
+        LIMIT 15)
     ");
 
-    $sql->execute([
-        ":texto" => "%$texto%"
-    ]);
+    $like = "%$texto%";
+    $sql->execute([$like, $like, $like, $like, $like]);
 
     $resultados = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -176,204 +199,204 @@ function normalizeCategory($name) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    /* Reset y layout fijo */
-    html, body {
-        height: 100%;
-        overflow: hidden !important;
-        background: #f3f6fb;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+    :root {
+        --primary: #1e293b;      /* Slate 800 */
+        --primary-dark: #0f172a; /* Slate 900 */
+        --accent: #6366f1;       /* Indigo 500 */
+        --accent-hover: #4f46e5; /* Indigo 600 */
+        --bg-main: #f8fafc;      /* Slate 50 */
+        --surface: #ffffff;
+        --border: #e2e8f0;       /* Slate 200 */
+        --text-main: #334155;    /* Slate 700 */
+        --text-muted: #64748b;   /* Slate 500 */
+        --success: #10b981;      /* Emerald 500 */
+        --danger: #ef4444;       /* Red 500 */
     }
 
-    /* Paleta corporativa (opción B) */
-    :root{
-        --primary: #0f2a44;    /* azul oscuro */
-        --primary-600: #0b2237;
-        --accent: #ff557f;     /* magenta suave */
-        --muted: #6b7280;
-        --border: #e6eef7;
-    }
-
-    /* Scrollbars internas */
+    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Botones inmutables (evitar que el svg capture eventos) */
-    button svg { pointer-events: none; }
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+    }
 
-    /* Hover para filas */
+    .btn-transition {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-transition:active {
+        transform: scale(0.98);
+    }
+
     .row-hover:hover {
-        background-color: rgba(15, 42, 68, 0.06);
-        transition: background-color 0.12s ease;
-        cursor: pointer;
+        background-color: #f1f5f9; /* Slate 100 */
     }
 
-    /* Estilos para el encabezado de tablas */
-    .thead-primary {
-        background: linear-gradient(90deg, rgba(15,42,68,1) 0%, rgba(11,34,55,1) 100%);
-        color: white;
+    input:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        border-color: var(--accent);
     }
-
-    /* Sombras POS profesionales */
-    .card-shadow { box-shadow: 0 6px 18px -8px rgba(15,42,68,0.12); }
-
-    /* Clases utilitarias extras */
-    .text-primary { color: var(--primary); }
-    .bg-primary { background-color: var(--primary); }
-    .bg-accent { background-color: var(--accent); }
 </style>
-</head>
 
-<body class="h-screen overflow-hidden font-sans antialiased">
+<div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
 
-<div class="flex h-full">
+    <!-- PANEL IZQUIERDO (Buscador y Carrito) -->
+    <div class="flex-1 flex flex-col overflow-hidden gap-4">
 
-    <!-- ================================
-                PANEL IZQUIERDO
-    ================================== -->
-    <div class="w-3/4 p-6 flex flex-col overflow-hidden">
-
-        <!-- Top: buscador y acciones rápidas -->
-        <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-                <label class="text-sm font-semibold text-gray-700">Código del Producto</label>
-
-                <div class="relative mt-2">
-                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
-                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-4.35-4.35m1.6-5.15a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+        <!-- Top: Buscador -->
+        <div class="flex gap-3 shrink-0">
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-
-                    <input 
-                        id="search-input" 
-                        type="text"
-                        placeholder="Ingresa código, nombre o SKU..."
-                        class="w-full border bg-white border-gray-200 rounded-xl pl-12 pr-4 py-3 text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[rgba(15,42,68,0.12)] focus:border-primary transition"
-                    >
                 </div>
+                <input id="quick-search" type="text" placeholder="Buscar producto por código, nombre o SKU..." 
+                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-lg shadow-sm focus:outline-none transition-all placeholder-slate-400 font-medium">
             </div>
-
-            
+            <button id="open-product-modal" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3 rounded-2xl font-semibold shadow-lg btn-transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                Catálogo
+            </button>
         </div>
 
-        <!-- 🟦 RESULTADOS (SCROLL INTERNO) -->
-        <div id="search-results" 
-             class="hidden border border-gray-200 rounded-xl bg-white shadow-lg mt-4 overflow-y-auto card-shadow"
-             style="max-height:260px;">
-             
-            <table class="w-full text-sm">
-                <thead class="thead-primary text-left">
+        <!-- Resultados búsqueda (Flotante) -->
+        <div id="search-results" class="hidden absolute top-28 left-6 right-[28%] z-50 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[400px] animate-fade-in-down">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider border-b border-slate-100">
                     <tr>
-                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Código</th>
-                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Descripción</th>
-                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Talla / Color</th>
-                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Precio</th>
-                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Depto</th>
-                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Stock</th>
+                        <th class="py-3 px-4">Código</th>
+                        <th class="py-3 px-4">Producto</th>
+                        <th class="py-3 px-4">Variante</th>
+                        <th class="py-3 px-4 text-right">Precio</th>
+                        <th class="py-3 px-4 text-center">Stock</th>
                     </tr>
                 </thead>
-                <tbody id="search-body" class="text-gray-700"></tbody>
+                <tbody id="search-body" class="divide-y divide-slate-50"></tbody>
             </table>
         </div>
 
-        <!-- 🧾 CARRITO / TICKET -->
-        <div class="mt-6 flex-1 flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-primary">Ticket 1</h2>
-                <div class="text-sm text-muted">Caja: <span class="font-semibold">Principal</span></div>
-            </div>
-
-            <div class="bg-white rounded-xl overflow-hidden flex-1 flex flex-col border border-gray-200 card-shadow">
-                <div class="p-4 border-b border-gray-100">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50">
-                            <tr class="text-gray-700 text-sm">
-                                <th class="py-2 px-3 text-left">Código</th>
-                                <th class="py-2 px-3 text-left">Nombre</th>
-                                <th class="py-2 px-3 text-left">Talla/Color</th>
-                                <th class="py-2 px-3 text-center">Precio</th>
-                                <th class="py-2 px-3 text-center">Cant.</th>
-                                <th class="py-2 px-3 text-center">Total</th>
-                                <th class="py-2 px-3 text-center">Desc.</th>
-                                <th class="py-2 px-3 text-center">Eliminar</th>
-                            </tr>
-                        </thead>
-                    </table>
+        <!-- Ticket / Carrito -->
+        <div class="flex-1 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden card-shadow">
+            <!-- Header Ticket -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
+                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
+                    </div>
                 </div>
-
-                <!-- 🟧 CONTENEDOR CON SCROLL -->
-                <div class="overflow-y-auto" style="max-height:340px;">
-                    <table class="w-full text-sm">
-                        <tbody id="cart-rows" class="divide-y divide-gray-100 bg-white"></tbody>
-                    </table>
+                <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+                    Caja Principal
                 </div>
             </div>
-        </div>
 
+            <!-- Tabla Header -->
+            <div class="bg-slate-50 border-b border-slate-100 px-2">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="py-3 px-4 text-left w-[15%]">Código</th>
+                            <th class="py-3 px-4 text-left w-[30%]">Descripción</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Precio</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Cant.</th>
+                            <th class="py-3 px-4 text-right w-[15%]">Total</th>
+                            <th class="py-3 px-4 text-center w-[10%]"></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <!-- Filas Carrito -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                <table class="w-full text-sm border-separate border-spacing-y-1">
+                    <tbody id="cart-rows"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- ================================
-                PANEL DERECHO
-    ================================== -->
-    <div class="w-1/4 bg-white border-l border-gray-100 shadow-lg p-6 flex flex-col rounded-l-xl card-shadow">
+    <!-- PANEL DERECHO (Totales y Acciones) -->
+    <div class="w-[340px] flex flex-col gap-4 shrink-0">
 
-    <!-- CLIENTE SELECCIONADO -->
-    <div id="selected-client" class="mb-4 p-3 bg-gray-100 rounded-xl shadow-sm flex justify-between items-center">
-        <div>
-            <p class="text-gray-700 font-semibold">Cliente:</p>
-            <p id="client-name" class="text-lg text-primary">Público General</p>
-            <p id="client-phone" class="text-sm text-gray-500"></p>
-        </div>
-        <button id="remove-client" class="text-gray-400 hover:text-red-500 text-xl font-bold ml-4" title="Eliminar cliente">&times;</button>
-    </div>
-
-        <h2 class="text-xl font-bold text-primary mb-4">Opciones</h2>
-
-        <!-- IMAGEN DEL PRODUCTO SELECCIONADO -->
-        <div id="preview-producto" class="w-full mb-6 hidden">
-            <div class="bg-white rounded-xl border border-gray-200 p-3">
-                <img id="preview-img"
-                     src=""
-                     alt="Producto seleccionado"
-                     class="w-full h-56 object-contain rounded-lg border shadow-sm bg-white">
+        <!-- Tarjeta Cliente -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 card-shadow relative overflow-hidden group shrink-0">
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg class="w-20 h-20 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            
+            <div class="relative z-10">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Cliente Asignado</label>
+                <div class="flex justify-between items-start">
+                    <div class="truncate pr-2">
+                        <h3 id="client-name" class="text-lg font-bold text-slate-800 leading-tight truncate">Público General</h3>
+                        <p id="client-phone" class="text-xs text-slate-500 mt-0.5 font-medium h-4"></p>
+                    </div>
+                    <button id="remove-client" class="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <button id="client-btn" class="mt-3 w-full py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Cambiar Cliente
+                </button>
             </div>
         </div>
 
-        <!-- CLIENTE -->
-        <button id="client-btn" 
-            class="w-full py-3 mb-3 bg-[var(--primary)] text-white text-lg font-semibold rounded-xl shadow hover:bg-[var(--primary-600)] transition">
-            Cliente
-        </button>
+        <!-- Preview Producto -->
+        <div id="preview-producto" class="hidden bg-white rounded-2xl p-3 shadow-sm border border-slate-200 card-shadow text-center shrink-0">
+            <img id="preview-img" src="" class="h-32 w-full object-contain mx-auto rounded-lg">
+        </div>
 
-        <!-- DESCUENTO -->
-        <button id="discount-btn" 
-            class="w-full py-3 mb-3 bg-[var(--accent)] text-white text-lg font-semibold rounded-xl shadow hover:brightness-95 transition">
-            Descuento
-        </button>
+        <!-- Panel de Totales -->
+        <div class="flex-1 bg-slate-900 rounded-2xl p-5 text-white shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-0">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20"></div>
 
-        <!-- PAGO -->
-        <button id="pay-btn" 
-            class="w-full py-3 mb-6 bg-green-600 text-white text-lg font-semibold rounded-xl shadow hover:bg-green-700 transition">
-            Pagar
-        </button>
+            <div class="relative z-10 space-y-3 overflow-y-auto custom-scrollbar pr-1">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="text-base font-medium">Subtotal</span>
+                    <span id="subtotal" class="text-lg font-semibold tracking-wide">$0.00</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-rose-300">
+                    <span class="flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        Descuento
+                    </span>
+                    <span id="discount" class="text-base font-semibold">-$0.00</span>
+                </div>
 
-        <!-- DIVISOR -->
-        <div class="border-t border-gray-100 pt-6 mt-auto">
-            <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
-                <span>Subtotal:</span>
-                <span id="subtotal" class="text-right">$0.00</span>
+                <div class="h-px bg-slate-700 my-3"></div>
+
+                <div class="flex justify-between items-end">
+                    <span class="text-slate-400 font-medium mb-1 text-sm">Total a Pagar</span>
+                    <span id="total" class="text-4xl font-bold tracking-tight text-white">$0.00</span>
+                </div>
             </div>
 
-            <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
-                <span>Descuento:</span>
-                <span id="discount" class="text-right text-red-500">$0.00</span>
-            </div>
+            <div class="relative z-10 mt-4 space-y-3 shrink-0">
+                <button id="discount-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-slate-700 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                    Aplicar Descuento
+                </button>
 
-            <div class="flex justify-between text-4xl font-extrabold text-primary mt-4 tracking-tight">
-                <span>Total:</span>
-                <span id="total">$0.00</span>
+                <button id="pay-btn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 btn-transition flex items-center justify-center gap-2">
+                    <span>Cobrar</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </button>
             </div>
         </div>
 
@@ -381,11 +404,9 @@ function normalizeCategory($name) {
 
 </div>
 
+
 <!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
 <?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
-
-</body>
-</html>

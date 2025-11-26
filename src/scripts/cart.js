@@ -86,6 +86,62 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("preview-producto").classList.remove("hidden");
     }
 
+    // BÚSQUEDA RÁPIDA POR ENTER (código o SKU exacto)
+    $('#quick-search').on('keypress', function (e) {
+        if (e.which !== 13) return; // solo Enter
+        const codigo = $(this).val().trim();
+        if (!codigo) return;
+
+        $.ajax({
+            url: 'pages/nueva_venta.php',
+            method: 'GET',
+            data: { buscar_producto: codigo },
+            dataType: 'json',
+            success: function (productos) {
+                // Buscar coincidencia exacta por cod_barras o SKU (case-insensitive)
+                const exacto = productos.find(p => {
+                    const cod = String(p.cod_barras || '').trim().toLowerCase();
+                    const sku = String(p.sku || '').trim().toLowerCase();
+                    return cod === codigo.toLowerCase() || sku === codigo.toLowerCase();
+                });
+
+                if (exacto) {
+                    addToCart({
+                        cod_barras: exacto.cod_barras,       // código
+                        name: exacto.nom_producto,           // nombre exacto del producto
+                        price: parseFloat(exacto.precio),    // precio
+                        talla: exacto.talla ?? '',           // talla
+                        color: exacto.color ?? '',           // color
+                        cantidad: 1,                          // cantidad inicial
+                        imagen: exacto.imagen ?? null,       // imagen
+                        categoria: exacto.categoria ?? '',    // categoría
+                        discount: null                        // descuento inicial
+                    });
+
+                    $('#quick-search').val('');
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Producto no encontrado',
+                        text: 'El código o SKU ingresado no existe.'
+                    });
+                }
+            },
+            error: function (err) {
+                console.error('Error en búsqueda rápida:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo realizar la búsqueda. Revisa la consola.'
+                });
+            }
+        });
+    });
+
+
+
+
+
 
     let selectedClient = null;
     try {
@@ -280,23 +336,26 @@ document.addEventListener("DOMContentLoaded", () => {
             item.color == (prod.color ?? '')
         );
 
-        if (existente) existente.quantity++;
-        else cart.push({
-            cod_barras: prod.cod_barras,
-            name: prod.nom_producto,
-            price: parseFloat(prod.precio),
-            quantity: 1,
-            talla: prod.talla ?? '',
-            color: prod.color ?? '',
-            categoria: prod.categoria ?? '',
-            imagen: prod.imagen ?? null,
-            discount: null
-        });
+        if (existente) {
+            existente.quantity++;
+        } else {
+            cart.push({
+                cod_barras: prod.cod_barras,
+                name: prod.name,
+                price: parseFloat(prod.price),
+                quantity: prod.quantity ?? 1,
+                talla: prod.talla ?? '',
+                color: prod.color ?? '',
+                categoria: prod.categoria ?? '',
+                imagen: prod.imagen ?? null,
+                discount: null
+            });
+        }
 
         saveCart();
-
         actualizarPreview(prod);
     };
+
 
 
     // AL HACER CLICK EN UNA FILA DEL CARRITO → MOSTRAR PREVIEW
@@ -407,12 +466,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Agregar al carrito la variante específica
                     tr.addEventListener("click", () => addToCart({
                         cod_barras: prod.cod_barras,
-                        nom_producto: prod.nom_producto,
-                        precio: parseFloat(prod.precio),
-                        talla: prod.talla,
-                        color: prod.color,
-                        cantidad: 1,
-                        imagen: prod.imagen
+                        name: prod.nom_producto,           // ← cambiar
+                        price: parseFloat(prod.precio),    // ← cambiar
+                        talla: prod.talla ?? '',
+                        color: prod.color ?? '',
+                        quantity: 1,                        // ← siempre quantity
+                        imagen: prod.imagen ?? null,
+                        categoria: prod.categoria ?? '',
+                        discount: null
                     }));
 
                     searchBody.appendChild(tr);

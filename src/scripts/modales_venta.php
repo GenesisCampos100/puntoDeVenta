@@ -238,3 +238,28 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de búsqueda de productos -->
+<div id="modalProductos" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-primary">Buscar Producto</h2>
+            <button id="cerrar-modal-producto" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
+        </div>
+        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar producto por nombre, código o SKU...">
+        <div class="overflow-y-auto max-h-96">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-100 sticky top-0">
+                    <tr>
+                        <th class="p-3 border-b-2 font-semibold">Código</th>
+                        <th class="p-3 border-b-2 font-semibold">Producto</th>
+                        <th class="p-3 border-b-2 font-semibold">Precio</th>
+                        <th class="p-3 border-b-2 font-semibold">Stock</th>
+                        <th class="p-3 border-b-2 font-semibold">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaProductosModal"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
