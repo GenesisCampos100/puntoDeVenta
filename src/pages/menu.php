@@ -2,7 +2,7 @@
 
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    header("Location: /puntoDeVenta/src/pages/login.php");
     exit;
 }
 
@@ -11,9 +11,9 @@ require_once (__DIR__ . "/../config/permisos.php");
 
 $rol = $_SESSION['rol'];
 
-// Seguridad extra: si el rol no tiene permisos, redirigir
+// Seguridad extra: si el rol no tiene permisos, cerrar sesión automáticamente y redirigir al logout
 if (!isset($permisos[$rol])) {
-    header("Location: login.php");
+    header("Location: /puntoDeVenta/src/scripts/logout.php");
     exit;
 }
 
