@@ -1,0 +1,27 @@
+INSTRUCCIONES PARA COMPLETAR LA INTEGRACIÓN DE SWEETALERT
+==========================================================
+
+ARCHIVO CREADO:
+- c:\xampp\htdocs\puntoDeVenta\src\pages\js\producto_delete.js
+  (Este archivo YA EXISTE y contiene la función confirmarEliminar)
+
+ACCIÓN REQUERIDA:
+1. Abre el archivo: c:\xampp\htdocs\puntoDeVenta\src\pages\productos_contenido.php
+2. Ve a la línea 463
+3. Agrega esta línea EXACTA:
+
+<script src="js/producto_delete.js?v=<?= time() ?>"></script>
+
+4. Debe quedar así:
+
+<script>
+    // Configuración Global para JS
+    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
+    console.log("API URL Configurada:", BASE_URL);
+</script>
+<script src="js/producto_delete.js?v=<?= time() ?>"></script>
+<script src="js/productos.js?v=<?= time() ?>"></script>
+
+5. Guarda el archivo
+
+LISTO. El botón "Eliminar" del modal ahora usará SweetAlert.

@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="grid">
         <div>
           <label>Nombre</label>
-          <input type="text" name="nombre" value="<?= htmlspecialchars($producto['nombre']) ?>" required>
+          <input type="text" name="nombre" value="<?= tr_content(htmlspecialchars($producto['nombre'])) ?>" required>
         </div>
         <div>
           <label>Código de barras</label>
@@ -167,18 +167,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select name="id_categoria" required>
             <?php foreach ($categorias as $cat): ?>
               <option value="<?= $cat['id_categoria'] ?>" <?= $cat['id_categoria'] == $producto['id_categoria'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($cat['nombre']) ?>
+                <?= htmlspecialchars(tr_category($cat['nombre'])) ?>
               </option>
             <?php endforeach; ?>
           </select>
         </div>
         <div>
           <label>Marca</label>
-          <input type="text" name="marca" value="<?= htmlspecialchars($producto['marca']) ?>">
+          <input type="text" name="marca" value="<?= tr_content(htmlspecialchars($producto['marca'])) ?>">
         </div>
         <div class="full">
           <label>Descripción</label>
-          <textarea name="descripcion"><?= htmlspecialchars($producto['descripcion']) ?></textarea>
+          <textarea name="descripcion"><?= tr_content(htmlspecialchars($producto['descripcion'])) ?></textarea>
         </div>
         <div class="full">
           <label>Color base</label>

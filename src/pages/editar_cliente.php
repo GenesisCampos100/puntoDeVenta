@@ -884,7 +884,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                   type="text" 
                   name="estado" 
                   id="estado"
-                  value="<?=htmlspecialchars($cliente['estado'] ?? '')?>"
+                  value="<?= tr_content(htmlspecialchars($cliente['estado'] ?? '')) ?>"
                   class="form-input"
                   placeholder="Estado"
                 />

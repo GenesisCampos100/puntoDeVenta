@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,9 +5,8 @@
   <title>Punto de Venta</title>
   
   <!-- Fonts & Styles -->
-  <link rel="stylesheet" href="styles/output.css">
+  <link rel="stylesheet" href="../CSS/layout.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles/modo-oscuro.css">
   
   <style>
     :root {
@@ -24,6 +22,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     
     body {
@@ -37,16 +36,6 @@
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
-    }
-    
-    @keyframes slideInRight {
-      from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
     }
     
     @keyframes scaleIn {
@@ -99,16 +88,14 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
-    
-    /* Smooth transitions */
-    * {
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    }
   </style>
 </head>
 <body class="bg-gray-100">
 
-  <?php include __DIR__ . "/pages/menu.php"; ?>
+  <?php 
+    require_once __DIR__ . "/config/translation.php";
+    include __DIR__ . "/pages/menu.php"; 
+  ?>
   
   <main 
     id="content" 
@@ -116,13 +103,9 @@
   >
     <?php
       // Aquí se cargará el contenido de cada vista
-      if (defined('NO_LAYOUT') && NO_LAYOUT === true) {
-        // No renderizar layout — solo incluir contenido
-        include $contenido;
-        exit;
+      if (isset($contenido)) {
+          include $contenido;
       }
-
-      include $contenido;
     ?>
   </main>
 
@@ -150,26 +133,11 @@
         </svg>
       </button>
 
-      <script>
-        const closeUserModal = document.getElementById('closeUserModal');
-        closeUserModal.addEventListener('mouseover', () => {
-          closeUserModal.style.background = '#fee2e2';
-          closeUserModal.style.transform = 'scale(1.1)';
-        });
-        closeUserModal.addEventListener('mouseout', () => {
-          closeUserModal.style.background = 'rgba(239, 68, 68, 0.1)';
-          closeUserModal.style.transform = 'scale(1)';
-        });
-        closeUserModal.addEventListener('click', () => {
-          document.getElementById('userModal').style.display = 'none';
-        });
-      </script>
-
       <!-- Foto de perfil con efecto premium -->
       <div style="position:relative; display:inline-block; margin-bottom:20px;">
         <div style="padding:5px; border-radius:50%; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
           <img id="mainFotoPerfil" 
-               src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? '../public/img/1.png') ?>" 
+               src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? 'public/img/1.png') ?>" 
                alt="Usuario"
                style="width:100px; height:100px; border-radius:50%; object-fit:cover; 
                       cursor:pointer; border:4px solid white;">
@@ -188,7 +156,7 @@
 
       <!-- Nombre y saludo premium -->
       <h3 style="margin-top:12px; font-size:16px; font-weight:600; color:#1f2937; letter-spacing:-0.02em;">
-        <span style="color:var(--accent); font-weight:700;">¡Hola!</span>
+        <span style="color:var(--accent); font-weight:700;"><?= __('hello') ?></span>
         <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
       </h3>
       
@@ -217,21 +185,12 @@
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
             </svg>
-            Cerrar sesión
+            <?= __('logout') ?>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </div>
-
-        <script>
-          document.getElementById('logoutOption').addEventListener('mouseover', function() {
-            this.style.background = '#fef2f2';
-          });
-          document.getElementById('logoutOption').addEventListener('mouseout', function() {
-            this.style.background = 'transparent';
-          });
-        </script>
 
         <!-- Confirmación de logout premium -->
         <div id="confirmLogout" 
@@ -239,7 +198,7 @@
                     background:linear-gradient(135deg, var(--secondary) 0%, #1e3244 100%); 
                     color:white; padding:20px; border-radius:16px;
                     box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-          <p style="font-weight:500; margin-bottom:16px;">¿Seguro que deseas cerrar sesión?</p>
+          <p style="font-weight:500; margin-bottom:16px;"><?= __('confirm_logout_text') ?></p>
           <div style="display:flex; justify-content:center; gap:12px;">
             <button id="btnConfirmLogout" 
                     style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); 
@@ -247,13 +206,13 @@
                            border-radius:10px; cursor:pointer; font-weight:600;
                            box-shadow:0 4px 12px rgba(239, 68, 68, 0.3);
                            transition:all 0.3s ease;">
-              Sí, cerrar
+              <?= __('yes') ?>
             </button>
             <button id="btnCancelLogout" 
                     style="background:#64748b; border:none; color:white; 
                            padding:10px 24px; border-radius:10px; cursor:pointer;
                            font-weight:600; transition:all 0.3s ease;">
-              Cancelar
+              <?= __('cancel') ?>
             </button>
           </div>
         </div>
@@ -263,12 +222,12 @@
       <div style="margin-top:24px; font-size:12px; color:#9ca3af; display:flex; gap:12px; justify-content:center;">
         <a href="../public/docs/privacidad.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
-          Privacidad
+          <?= __('privacy_policy') ?>
         </a>
         <span>•</span>
         <a href="../public/docs/terminos.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
-          Términos
+          <?= __('terms_of_service') ?>
         </a>
       </div>
     </div>
@@ -299,10 +258,10 @@
       </button>
       
       <h2 style="font-size:22px; margin-bottom:24px; font-weight:700; color:var(--secondary); letter-spacing:-0.02em;">
-        Cambiar Foto de Perfil
+        <?= __('add_profile_photo') ?>
       </h2>
 
-      <form id="formFoto" enctype="multipart/form-data" method="POST" action="../src/scripts/guardar_foto.php">
+      <form id="formFoto" enctype="multipart/form-data">
         <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
                     border-radius:24px; padding:32px;">
           
@@ -311,15 +270,15 @@
                       border-radius:50%; width:140px; height:140px;
                       display:flex; justify-content:center; align-items:center; 
                       margin:0 auto 20px; padding:5px; box-shadow:0 12px 40px rgba(225, 88, 113, 0.3);">
-            <img id="mainFotoPerfil" 
-                 src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? '../public/img/1.png') ?>" 
+            <img id="previewFoto" 
+                 src="<?= htmlspecialchars($_SESSION['foto_perfil'] ?? 'public/img/1.png') ?>" 
                  alt="Usuario"
                  style="width:130px; height:130px; border-radius:50%; object-fit:cover; 
                         cursor:pointer; border:4px solid white;">
           </div>
           
           <p style="font-weight:600; margin-bottom:20px; color:var(--secondary); font-size:15px;">
-            Selecciona una nueva foto
+            <?= __('select_photo') ?>
           </p>
           
           <!-- Botón subir archivo premium -->
@@ -335,7 +294,7 @@
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Subir desde mi computadora
+            <?= __('upload_from_computer') ?>
           </label>
           <input type="file" id="inputArchivo" name="foto" accept="image/*" style="display:none;">
           
@@ -347,179 +306,184 @@
                          font-weight:700; font-size:15px;
                          box-shadow:0 4px 16px rgba(45, 67, 83, 0.3);
                          transition:all 0.3s ease;">
-            Guardar Cambios
+            <?= __('save_changes') ?>
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <script>
-    // Efectos hover para botón volver
-    const btnVolver = document.getElementById('btnVolver');
-    btnVolver.addEventListener('mouseover', () => {
-      btnVolver.style.background = '#fee2e2';
-      btnVolver.style.transform = 'scale(1.1)';
-    });
-    btnVolver.addEventListener('mouseout', () => {
-      btnVolver.style.background = 'rgba(239, 68, 68, 0.1)';
-      btnVolver.style.transform = 'scale(1)';
-    });
-    btnVolver.addEventListener('click', () => {
-      document.getElementById('changePhotoModal').style.display = 'none';
-      document.getElementById('userModal').style.display = 'flex';
-    });
-    
-    // Efectos hover para botones de archivo
-    document.querySelector('label[for="inputArchivo"]').addEventListener('mouseover', function() {
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = '0 6px 20px rgba(180, 194, 77, 0.4)';
-    });
-    document.querySelector('label[for="inputArchivo"]').addEventListener('mouseout', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '0 4px 16px rgba(180, 194, 77, 0.3)';
-    });
-  </script>
-
-  <!-- Scripts de funcionalidad (sin cambios) -->
+  <!-- Scripts de funcionalidad -->
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // Referencias a elementos
     const userBlock = document.getElementById("userBlock");
     const userModal = document.getElementById("userModal");
+    const closeUserModalBtn = document.getElementById("closeUserModal");
     const logoutOption = document.getElementById("logoutOption");
     const confirmBox = document.getElementById("confirmLogout");
     const btnConfirm = document.getElementById("btnConfirmLogout");
     const btnCancel = document.getElementById("btnCancelLogout");
+    
     const changePhotoModal = document.getElementById("changePhotoModal");
+    const btnVolver = document.getElementById("btnVolver");
     const inputArchivo = document.getElementById("inputArchivo");
     const previewFoto = document.getElementById("previewFoto");
     const formFoto = document.getElementById("formFoto");
+    
     const mainFotoPerfil = document.getElementById("mainFotoPerfil");
     const sidebarFoto = document.getElementById("sidebarFoto");
 
-    // Abrir modal principal
-    userBlock.addEventListener("click", () => {
-      userModal.style.display = "flex";
-      document.body.style.overflow = "hidden";
-    });
+    // --- MODAL DE USUARIO ---
+    if (userBlock) {
+      userBlock.addEventListener("click", () => {
+        userModal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+      });
+    }
 
-    // Abrir confirmación de logout
-    logoutOption.addEventListener("click", () => {
-      confirmBox.style.display = "block";
-    });
-
-    // Confirmar logout
-    btnConfirm.addEventListener("click", () => {
-      window.location.href = "../src/pages/login.php";
-    });
-
-    // Cancelar logout
-    btnCancel.addEventListener("click", () => {
-      confirmBox.style.display = "none";
-    });
-
-    // Cerrar modal principal al hacer clic fuera
-    userModal.addEventListener("click", (e) => {
-      if (e.target === userModal) {
+    if (closeUserModalBtn) {
+      closeUserModalBtn.addEventListener("click", () => {
         userModal.style.display = "none";
         document.body.style.overflow = "auto";
-      }
-    });
-
-    // Abrir modal de cambio de foto al hacer clic en la imagen
-    mainFotoPerfil.addEventListener("click", () => {
-      changePhotoModal.style.display = "flex";
-    });
-
-    // Previsualizar imagen seleccionada
-    inputArchivo.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) previewFoto.src = URL.createObjectURL(file);
-    });
-
-    // Cerrar modal de cambio de foto al hacer clic fuera
-    changePhotoModal.addEventListener("click", (e) => {
-      if (e.target === changePhotoModal) {
-        changePhotoModal.style.display = "none";
-      }
-    });
-
-    // Subir foto al servidor
-    formFoto.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(formFoto);
-
-      fetch("../src/scripts/guardar_foto.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Actualizar fotos en sidebar y modal principal
-          mainFotoPerfil.src = data.newPhoto;
-          sidebarFoto.src = data.newPhoto;
-          // Cerrar modal de cambio de foto
-          changePhotoModal.style.display = "none";
-        } else {
-          alert("Error al guardar la foto: " + data.error);
-        }
-      })
-      .catch(err => {
-        alert("Error en la conexión: " + err);
       });
-    });
+    }
+
+    if (logoutOption) {
+      logoutOption.addEventListener("click", () => {
+        confirmBox.style.display = "block";
+      });
+    }
+
+    if (btnConfirm) {
+      btnConfirm.addEventListener("click", () => {
+        window.location.href = "src/scripts/logout.php";
+      });
+    }
+
+    if (btnCancel) {
+      btnCancel.addEventListener("click", () => {
+        confirmBox.style.display = "none";
+      });
+    }
+
+    if (userModal) {
+      userModal.addEventListener("click", (e) => {
+        if (e.target === userModal) {
+          userModal.style.display = "none";
+          document.body.style.overflow = "auto";
+        }
+      });
+    }
+
+    // --- MODAL DE CAMBIO DE FOTO ---
+    if (mainFotoPerfil) {
+      mainFotoPerfil.addEventListener("click", () => {
+        userModal.style.display = "none";
+        changePhotoModal.style.display = "flex";
+      });
+    }
+    
+    if (btnVolver) {
+        btnVolver.addEventListener('click', () => {
+            changePhotoModal.style.display = 'none';
+            userModal.style.display = 'flex';
+        });
+    }
+
+    if (inputArchivo) {
+      inputArchivo.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            previewFoto.src = URL.createObjectURL(file);
+        }
+      });
+    }
+
+    if (changePhotoModal) {
+      changePhotoModal.addEventListener("click", (e) => {
+        if (e.target === changePhotoModal) {
+          changePhotoModal.style.display = "none";
+        }
+      });
+    }
+
+    if (formFoto) {
+      formFoto.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = new FormData(formFoto);
+
+        fetch("scripts/guardar_foto.php", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const newPhotoUrl = data.newPhoto + '?t=' + new Date().getTime();
+            if(mainFotoPerfil) mainFotoPerfil.src = newPhotoUrl;
+            if(sidebarFoto) sidebarFoto.src = newPhotoUrl;
+            if(previewFoto) previewFoto.src = newPhotoUrl;
+            
+            changePhotoModal.style.display = "none";
+            userModal.style.display = "flex";
+          } else {
+            alert("Error al guardar la foto: " + data.error);
+          }
+        })
+        .catch(err => {
+          console.error("Error en la conexión: ", err);
+          alert("Error en la conexión: " + err);
+        });
+      });
+    }
+
+    // --- EFECTOS HOVER ---
+    const logoutBtn = document.getElementById('logoutOption');
+    if(logoutBtn) {
+        logoutBtn.addEventListener('mouseover', function() { this.style.background = '#fef2f2'; });
+        logoutBtn.addEventListener('mouseout', function() { this.style.background = 'transparent'; });
+    }
+    
+    const closeBtn = document.getElementById('closeUserModal');
+    if(closeBtn) {
+        closeBtn.addEventListener('mouseover', () => {
+            closeBtn.style.background = '#fee2e2';
+            closeBtn.style.transform = 'scale(1.1)';
+        });
+        closeBtn.addEventListener('mouseout', () => {
+            closeBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+            closeBtn.style.transform = 'scale(1)';
+        });
+    }
+    
+    const backBtn = document.getElementById('btnVolver');
+    if(backBtn) {
+        backBtn.addEventListener('mouseover', () => {
+            backBtn.style.background = '#fee2e2';
+            backBtn.style.transform = 'scale(1.1)';
+        });
+        backBtn.addEventListener('mouseout', () => {
+            backBtn.style.background = 'rgba(239, 68, 68, 0.1)';
+            backBtn.style.transform = 'scale(1)';
+        });
+    }
+    
+    const uploadLabel = document.querySelector('label[for="inputArchivo"]');
+    if(uploadLabel) {
+        uploadLabel.addEventListener('mouseover', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(180, 194, 77, 0.4)';
+        });
+        uploadLabel.addEventListener('mouseout', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 16px rgba(180, 194, 77, 0.3)';
+        });
+    }
   });
   </script>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const fotoPerfil = document.querySelector("#userModal img");
-    const changePhotoModal = document.getElementById("changePhotoModal");
-    const inputArchivo = document.getElementById("inputArchivo");
-    const previewFoto = document.getElementById("previewFoto");
-    const formFoto = document.getElementById("formFoto");
-
-    // Abrir modal al hacer clic en la imagen
-    fotoPerfil.addEventListener("click", () => {
-      changePhotoModal.style.display = "flex";
-    });
-
-    // Previsualizar imagen antes de subir
-    inputArchivo.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) previewFoto.src = URL.createObjectURL(file);
-    });
-
-    // Cerrar modal si haces clic fuera
-    changePhotoModal.addEventListener("click", (e) => {
-      if (e.target === changePhotoModal) {
-        changePhotoModal.style.display = "none";
-      }
-    });
-
-    // Al guardar, recargar imagen en el modal principal
-    formFoto.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(formFoto);
-      fetch("../src/scripts/guardar_foto.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          fotoPerfil.src = data.newPhoto;
-          changePhotoModal.style.display = "none";
-        } else {
-          alert("Error al guardar la foto: " + data.error);
-        }
-      });
-    });
-  });
-  </script>
-
-  <script src="../src/scripts/menu.js"></script>
+  <script src="scripts/menu.js"></script>
 
   <?php if (!empty($_SESSION['mensaje'])): ?>
     <div id="toast" class="toast <?= $_SESSION['mensaje_tipo'] ?? 'info' ?>">
@@ -538,6 +502,5 @@
     <?php unset($_SESSION['mensaje'], $_SESSION['mensaje_tipo']); ?>
   <?php endif; ?>
 
-  <script src="./scripts/tema.js"></script>
 </body>
 </html>

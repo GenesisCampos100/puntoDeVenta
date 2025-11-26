@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . '/../config/translation.php';
 
 // -----------------------------
 // Helpers
@@ -197,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Agregar Producto | POS System</title>
+    <title><?= __('add_product_title') ?> | POS System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -471,9 +472,9 @@ body.dark-mode thead tr:first-child th:last-child {
         
         <div class="mb-8 flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800">Agregar Nuevo Producto</h1>
-                <p class="text-sm text-gray-500 mt-1">Añade la información básica, detalles, precios y variantes de tu producto.</p>
-                <p class="text-xs text-red-500 mt-2">* Campos obligatorios</p>
+                <h1 class="text-3xl font-bold text-gray-800"><?= __('add_new_product_heading') ?></h1>
+                <p class="text-sm text-gray-500 mt-1"><?= __('add_new_product_subheading') ?></p>
+                <p class="text-xs text-red-500 mt-2"><?= __('required_fields_note') ?></p>
             </div>
            
         </div>
@@ -484,32 +485,32 @@ body.dark-mode thead tr:first-child th:last-child {
             <main class="lg:col-span-2 space-y-6">
 
                 <section class="bg-white card p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Información General</h2>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6"><?= __('general_info_section') ?></h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('product_name_label') ?></label>
                             <input name="nombre" id="nombre_producto" required
                                     value="<?= isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : '' ?>"
                                     class="form-input w-full">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('category_label') ?></label>
                             <select name="id_categoria" id="select_categoria" required
                                     class="form-input w-full">
                                 <option value="">Seleccione</option>
                                 <?php foreach ($categorias as $cat): ?>
                                     <option value="<?= $cat['id_categoria'] ?>"
                                         <?= (isset($_POST['id_categoria']) && $_POST['id_categoria']==$cat['id_categoria']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($cat['nombre']) ?>
+                                        <?= htmlspecialchars(tr_category($cat['nombre'])) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('brand_label') ?></label>
                             <input name="marca"
                                     value="<?= htmlspecialchars($_POST['marca'] ?? '') ?>"
                                     class="form-input w-full">
@@ -518,13 +519,13 @@ body.dark-mode thead tr:first-child th:last-child {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">SKU Principal</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('main_sku_label') ?></label>
                             <input name="sku_principal" id="sku_principal"
                                     value="<?= htmlspecialchars($_POST['sku_principal'] ?? '') ?>"
                                     class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Código de Barras</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('barcode_label') ?></label>
                             <input name="cod_barras" id="cod_barras"
                                     value="<?= htmlspecialchars($_POST['cod_barras'] ?? '') ?>"
                                     class="form-input w-full">
@@ -532,70 +533,70 @@ body.dark-mode thead tr:first-child th:last-child {
                     </div>
 
                     <div class="mt-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('description_label') ?></label>
                         <div class="border border-gray-300 rounded-xl overflow-hidden">
                             <textarea name="descripcion" rows="4"
                                     class="w-full form-input-plain focus:ring-0 resize-none rounded-xl"
-                                    placeholder="Detalles del producto, materiales, cuidados, etc."><?= htmlspecialchars($_POST['descripcion'] ?? '') ?></textarea>
+                                    placeholder="<?= __('description_placeholder') ?>"><?= htmlspecialchars($_POST['descripcion'] ?? '') ?></textarea>
                         </div>
                     </div>
                 </section>
 
                 <section class="bg-white card p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">Inventario y Precios Base</h2>
-                        <div class="text-xs text-gray-400">Campos para producto **simple**</div>
+                        <h2 class="text-xl font-semibold text-gray-800"><?= __('inventory_prices_section') ?></h2>
+                        <div class="text-xs text-gray-400"><?= __('inventory_simple_note') ?></div>
                     </div>
 
                     <div id="msg-variantes" class="hidden mt-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2">
-                        <span>&#9888;</span> Hay variantes definidas. Los campos de inventario y precio base se han **deshabilitado**.
+                        <span>&#9888;</span> <?= __('variants_defined_message') ?>
                     </div>
 
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mt-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Talla Base *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('base_size_label') ?></label>
                             <input id="talla_base" name="talla_base" value="<?= isset($_POST['talla_base']) ? htmlspecialchars($_POST['talla_base']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Color Base *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('base_color_label') ?></label>
                             <input id="color_base" name="color_base" value="<?= isset($_POST['color_base']) ? htmlspecialchars($_POST['color_base']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('quantity_label') ?></label>
                             <input  id="cantidad"  name="cantidad"  type="number" min="0" placeholder="0" value="<?= (isset($_POST['cantidad']) && intval($_POST['cantidad']) >= 0) ? intval($_POST['cantidad']) : '' ?>" class="form-input w-full">
                         </div>
-                        <div> <label class="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo *</label>
+                        <div> <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('min_stock_label') ?></label>
                               <input  id="cantidad_min"  name="cantidad_min"  type="number"  min="0"  placeholder="(Permite 0)" value="<?= (isset($_POST['cantidad_min']) && intval($_POST['cantidad_min']) >= 0) ? intval($_POST['cantidad_min']) : '' ?>"  class="form-input w-full">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Costo ($) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('cost_label') ?></label>
                             <input id="costo" name="costo" type="number" step="0.01" min="0.01" value="<?= isset($_POST['costo']) ? htmlspecialchars($_POST['costo']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio Unitario ($) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('unit_price_label') ?></label>
                             <input id="precio_unitario" name="precio_unitario" type="number" step="0.01" min="0.01" value="<?= isset($_POST['precio_unitario']) ? htmlspecialchars($_POST['precio_unitario']) : '' ?>" class="form-input w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Margen</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('margin_label') ?></label>
                             <input id="margen" disabled class="form-input-disabled w-full">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Ganancia</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('profit_label') ?></label>
                             <input id="ganancia" disabled class="form-input-disabled w-full">
                         </div>
                     </div>
                 </section>
 
                 <section class="bg-white card p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Variantes del Producto</h2>
-                    <p class="text-sm text-gray-500 mb-4">Añade combinaciones de Talla y Color, o usa los botones rápidos.</p>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4"><?= __('product_variants_section') ?></h2>
+                    <p class="text-sm text-gray-500 mb-4"><?= __('variants_help_text') ?></p>
 
                     <div class="mb-5 flex flex-wrap items-center gap-3">
-                        <button type="button" data-type="talla" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> Solo Talla</button>
-                        <button type="button" data-type="color" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> Solo Color</button>
-                        <button type="button" data-type="ambas" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> Talla y Color</button>
-                        <button type="button" id="btn-add-row" class="px-4 py-2 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> Añadir fila rápida</button>
+                        <button type="button" data-type="talla" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> <?= __('variant_btn_size_only') ?></button>
+                        <button type="button" data-type="color" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> <?= __('variant_btn_color_only') ?></button>
+                        <button type="button" data-type="ambas" class="btn-add-variant px-4 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> <?= __('variant_btn_size_color') ?></button>
+                        <button type="button" id="btn-add-row" class="px-4 py-2 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 transition text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg> <?= __('variant_btn_add_row') ?></button>
                     </div>
 
                     <div class="overflow-x-auto border border-gray-200 rounded-xl">
@@ -603,15 +604,15 @@ body.dark-mode thead tr:first-child th:last-child {
                             <thead class="text-gray-600 bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="p-3 w-10"><input id="select-all" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"></th>
-                                    <th class="p-3 text-left w-36">SKU / Identif.</th>
-                                    <th class="p-3 text-left w-24">Talla</th>
-                                    <th class="p-3 text-left w-28">Color</th>
-                                    <th class="p-3 text-left w-24">Stock</th>
-                                    <th class="p-3 text-left w-24">Costo</th>
-                                    <th class="p-3 text-left w-24">Precio</th>
-                                    <th class="p-3 text-left w-24">Margen</th>
-                                    <th class="p-3 text-left w-28">Imagen</th>
-                                    <th class="p-3 text-left w-16">Acción</th>
+                                    <th class="p-3 text-left w-36"><?= __('table_header_sku') ?></th>
+                                    <th class="p-3 text-left w-24"><?= __('table_header_size') ?></th>
+                                    <th class="p-3 text-left w-28"><?= __('table_header_color') ?></th>
+                                    <th class="p-3 text-left w-24"><?= __('table_header_stock') ?></th>
+                                    <th class="p-3 text-left w-24"><?= __('table_header_cost') ?></th>
+                                    <th class="p-3 text-left w-24"><?= __('table_header_price') ?></th>
+                                    <th class="p-3 text-left w-24"><?= __('table_header_margin') ?></th>
+                                    <th class="p-3 text-left w-28"><?= __('table_header_image') ?></th>
+                                    <th class="p-3 text-left w-16"><?= __('table_header_action') ?></th>
                                 </tr>
                             </thead>
                             <tbody id="variants-body" class="divide-y divide-gray-100"></tbody>
@@ -619,20 +620,20 @@ body.dark-mode thead tr:first-child th:last-child {
                     </div>
 
                     <div class="mt-4 flex items-center gap-3">
-                        <button type="button" id="btn-delete-selected-2" class="px-4 py-2 rounded-xl border border-rose-300 text-rose-600 bg-rose-50 hover:bg-rose-100 transition hidden text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Eliminar seleccionadas</button>
+                        <button type="button" id="btn-delete-selected-2" class="px-4 py-2 rounded-xl border border-rose-300 text-rose-600 bg-rose-50 hover:bg-rose-100 transition hidden text-sm font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> <?= __('delete_selected_button') ?></button>
                     </div>
                 </section>
 
                 <div class="mt-6 p-4 bg-white card sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-100">
-                    <button type="button" id="btn-cancel" class="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition font-medium">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> Guardar Producto</button>
+                    <button type="button" id="btn-cancel" class="px-5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition font-medium"><?= __('cancel_button') ?></button>
+                    <button type="submit" class="px-6 py-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition font-medium flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> <?= __('save_product_button') ?></button>
                 </div>
             </main>
 
             <aside class="space-y-6 sticky top-12 self-start">
                 
                 <div class="bg-white card p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Imagen Principal</h3>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4"><?= __('main_image_section') ?></h3>
                     
                     <label id="file-main-label" class="flex flex-col items-center gap-4 cursor-pointer p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition">
                         <div id="preview-main" class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
@@ -640,28 +641,28 @@ body.dark-mode thead tr:first-child th:last-child {
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h-2M4 7h16v10a3 3 0 01-3 3H7a3 3 0 01-3-3V7z" /></svg>
                         </div>
                         <span class="text-sm font-medium text-brand-600">
-                            Clic para subir imagen
+                            <?= __('click_to_upload_image') ?>
                         </span>
                         <input id="file-main-input" name="imagen"
                                 type="file" class="hidden" accept="image/png,image/jpeg,image/webp">
                     </label>
                     <p class="text-xs text-gray-400 mt-2 text-center">
-                        Formatos: JPG, PNG, WEBP.
+                        <?= __('allowed_formats_note') ?>
                     </p>
                 </div>
 
                 <div class="bg-white card p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Acciones de Variante</h3>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4"><?= __('variant_actions_section') ?></h3>
                     <button type="button" id="btn-delete-selected"
                             class="hidden w-full text-sm px-4 py-2 rounded-xl border border-rose-300 text-rose-600 bg-rose-50 hover:bg-rose-100 transition font-medium flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Eliminar seleccionadas
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> <?= __('delete_selected_button') ?>
                     </button>
                     <button type="button" id="btn-delete-all"
                             class="w-full text-sm px-4 py-2 mt-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition font-medium flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Eliminar todas las variantes
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> <?= __('delete_all_variants_button') ?>
                     </button>
                     <p class="text-xs text-gray-400 mt-3 text-center">
-                        *Solo afecta las filas en esta vista
+                        <?= __('variants_scope_note') ?>
                     </p>
                 </div>
             </aside>
@@ -695,6 +696,43 @@ const costoInput = document.getElementById('costo');
 const precioInput = document.getElementById('precio_unitario');
 const margenInput = document.getElementById('margen');
 const gananciaInput = document.getElementById('ganancia');
+
+// Diccionario de traducciones para alertas JS
+const T = {
+    variantDeleteTitle: '<?= __('js_variant_delete_title') ?>',
+    variantDeleteText: '<?= __('js_variant_delete_text') ?>',
+    variantDeleteConfirm: '<?= __('js_variant_delete_confirm') ?>',
+    variantDeletedTitle: '<?= __('js_variant_deleted_title') ?>',
+    variantDeletedText: '<?= __('js_variant_deleted_text') ?>',
+    variantDeleteMultipleTitle: '<?= __('js_variant_delete_multiple_title') ?>',
+    variantDeleteMultipleText: '<?= __('js_variant_delete_multiple_text') ?>',
+    variantDeletedMultipleTitle: '<?= __('js_variant_deleted_multiple_title') ?>',
+    variantDeletedMultipleText: '<?= __('js_variant_deleted_multiple_text') ?>',
+    noVariantsTitle: '<?= __('js_no_variants_title') ?>',
+    noVariantsText: '<?= __('js_no_variants_text') ?>',
+    deleteAllVariantsTitle: '<?= __('js_delete_all_variants_title') ?>',
+    deleteAllVariantsText: '<?= __('js_delete_all_variants_text') ?>',
+    deleteAllVariantsConfirm: '<?= __('js_delete_all_variants_confirm') ?>',
+    deleteAllSuccessTitle: '<?= __('js_delete_all_success_title') ?>',
+    deleteAllSuccessText: '<?= __('js_delete_all_success_text') ?>',
+    cancelRegisterTitle: '<?= __('js_cancel_register_title') ?>',
+    cancelRegisterText: '<?= __('js_cancel_register_text') ?>',
+    cancelRegisterConfirm: '<?= __('js_cancel_register_confirm') ?>',
+    productDetailsRequiredTitle: '<?= __('js_product_details_required_title') ?>',
+    productDetailsRequiredText: '<?= __('js_product_details_required_text') ?>',
+    variantErrorsTitle: '<?= __('js_variant_errors_title') ?>',
+    variantErrorsText: '<?= __('js_variant_errors_text') ?>',
+    incompleteFieldsTitle: '<?= __('js_incomplete_fields_title') ?>',
+    incompleteFieldsText: '<?= __('js_incomplete_fields_text') ?>'
+};
+
+function tr(key, replacements = {}) {
+    let s = T[key] || key;
+    for (const [rk, rv] of Object.entries(replacements)) {
+        s = s.replace(new RegExp('{' + rk + '}', 'g'), rv);
+    }
+    return s;
+}
 
 
 let variantIdx = 0;
@@ -878,18 +916,18 @@ function addVariantRow(type = 'ambas', data = {}) {
     // Delete single row
     btnDelete.addEventListener('click', function(){
         Swal.fire({
-            title: 'Eliminar variante',
-            text: '¿Confirmas eliminar esta variante del formulario?',
+            title: T.variantDeleteTitle,
+            text: T.variantDeleteText,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e15871',
             cancelButtonColor: '#9ca3af',
-            confirmButtonText: 'Sí, eliminar'
+            confirmButtonText: T.variantDeleteConfirm
         }).then(res => {
             if(res.isConfirmed){
                 tr.remove();
                 updateVariantUIState();
-                Swal.fire('Eliminada', 'La variante se ha eliminado del formulario.', 'success');
+                Swal.fire(T.variantDeletedTitle, T.variantDeletedText, 'success');
             }
         });
     });
@@ -924,18 +962,18 @@ btnAddRow.addEventListener('click', () => addVariantRow('ambas'));
         if(selected.length === 0) return;
 
         Swal.fire({
-            title: `Eliminar ${selected.length} variantes`,
-            text: `¿Estás seguro de eliminar las ${selected.length} variantes seleccionadas?`,
+            title: tr('variantDeleteMultipleTitle', {n: selected.length}),
+            text: tr('variantDeleteMultipleText', {n: selected.length}),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e15871',
             cancelButtonColor: '#9ca3af',
-            confirmButtonText: 'Sí, eliminar'
+            confirmButtonText: T.variantDeleteConfirm
         }).then(res => {
             if(res.isConfirmed){
                 selected.forEach(chk => chk.closest('tr').remove());
                 updateVariantUIState();
-                Swal.fire('Eliminadas', `Se han eliminado ${selected.length} variantes del formulario.`, 'success');
+                Swal.fire(T.variantDeletedMultipleTitle, tr('variantDeletedMultipleText', {n: selected.length}), 'success');
             }
         });
     });
@@ -945,8 +983,8 @@ btnAddRow.addEventListener('click', () => addVariantRow('ambas'));
 btnDeleteAll.addEventListener('click', function(){
     if (variantsBody.children.length === 0) {
         Swal.fire({
-            title: 'No hay variantes',
-            text: 'La tabla de variantes está vacía. No hay nada que eliminar.',
+            title: T.noVariantsTitle,
+            text: T.noVariantsText,
             icon: 'info',
             confirmButtonColor: '#b4c24d'
         });
@@ -954,18 +992,18 @@ btnDeleteAll.addEventListener('click', function(){
     }
 
     Swal.fire({
-        title: `Eliminar todas las variantes`,
-        text: `¿Estás seguro de eliminar TODAS las variantes (${variantsBody.children.length}) del formulario?`,
+        title: T.deleteAllVariantsTitle,
+        text: tr('deleteAllVariantsText', {n: variantsBody.children.length}),
         icon: 'error',
         showCancelButton: true,
         confirmButtonColor: '#e15871',
         cancelButtonColor: '#9ca3af',
-        confirmButtonText: 'Sí, eliminar todas'
+        confirmButtonText: T.deleteAllVariantsConfirm
     }).then(res => {
         if(res.isConfirmed){
             variantsBody.innerHTML = '';
             updateVariantUIState();
-            Swal.fire('Éxito', 'Todas las variantes han sido eliminadas.', 'success');
+            Swal.fire(T.deleteAllSuccessTitle, T.deleteAllSuccessText, 'success');
         }
     });
 });
@@ -982,13 +1020,13 @@ selectAll.addEventListener('change', function(){
 // Cancel button
 btnCancel.addEventListener('click', function(){
     Swal.fire({
-        title: 'Cancelar Registro',
-        text: '¿Deseas salir? Los datos no guardados se perderán.',
+        title: T.cancelRegisterTitle,
+        text: T.cancelRegisterText,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#aaa',
-        confirmButtonText: 'Sí, salir'
+        confirmButtonText: T.cancelRegisterConfirm
     }).then(res => {
         if(res.isConfirmed){
             window.location.href = 'index.php?view=productos';
@@ -1123,9 +1161,9 @@ form.addEventListener('submit', function(e){
             
             // Si ya hay un error, no mostramos el Swal, solo marcamos los campos
             if(!hasError){
-                 Swal.fire({ 
-                    title:'Detalles de Producto requeridos', 
-                    text:'Para productos simples que usan Talla o Color (Ej: Unitalla/Rojo), debes llenar al menos uno de los campos "Talla Base" o "Color Base" para una mejor trazabilidad en el POS.', 
+                Swal.fire({ 
+                    title: T.productDetailsRequiredTitle, 
+                    text: T.productDetailsRequiredText, 
                     icon:'warning', 
                     confirmButtonColor:'#b4c24d' 
                 });
@@ -1212,19 +1250,15 @@ form.addEventListener('submit', function(e){
             }
         });
         if(badVariant){
-            Swal.fire({ title:'Error en variantes', text:'Revisa las variantes: cada una debe tener la identificación requerida (SKU, Talla, o Color), y costo/precio/cantidad válidos. Las filas con errores están resaltadas.', icon:'warning', confirmButtonColor:'#b4c24d' });
+            Swal.fire({ title: T.variantErrorsTitle, text: T.variantErrorsText, icon:'warning', confirmButtonColor:'#b4c24d' });
             e.preventDefault(); return;
         }
     }
 
      if(hasError){
-
-        Swal.fire({ title:'Campos incompletos', text:'Por favor completa los campos obligatorios en rojo.', icon:'error', confirmButtonColor:'#b4c24d' });
-
+        Swal.fire({ title: T.incompleteFieldsTitle, text: T.incompleteFieldsText, icon:'error', confirmButtonColor:'#b4c24d' });
         e.preventDefault();
-
         return;
-
     }
 
     // Fill empty SKUs for variants before submit (NOMBRE-TALLA-COLOR)

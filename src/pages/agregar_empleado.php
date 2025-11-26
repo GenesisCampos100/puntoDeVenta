@@ -1,5 +1,6 @@
 <?php 
-require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/translation.php";
 
 // Calcular un id_empleado por defecto
 $id_empleado = '';
@@ -224,60 +225,22 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
             exit();
         }
-
-        // Consulta para insertar el empleado
-        $sql = "INSERT INTO empleados 
-            (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
-            VALUES
-            (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            'id_empleado' => $id_empleado,
-            'nombre' => $nombre,
-            'apellido_paterno' => $apellido_paterno,
-            'apellido_materno' => $apellido_materno,
-            'celular' => $telefono,
-            'calle' => $calle,
-            'num_ext' => $num_ext,
-            'num_int' => $num_int,
-            'colonia' => $colonia,
-            'cp' => $cp,
-            'estado' => $estado,
-            'estatus' => $estatus,
-            'id_rol' => $id_rol
-        ]);
-
-        // Consulta para insertar el usuario asociado al empleado
-        $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
-            VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
-        $stmt_2 = $pdo->prepare($sql_2);
-        $stmt_2->execute([
-            'id_usuario' => NULL,
-            'correo' => $correo,
-            'contrasena' => $hash,
-            'id_empleado' => $id_empleado
-        ]);
-        
-        echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
-        exit();
     } catch (Exception $e) {
         echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
         exit();
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Empleados</title>
+    <title><?= __('add_employee_title') ?></title>
     
     <!-- Poppins Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -585,14 +548,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             to { transform: rotate(360deg); }
         }
     </style>
-</head>
 <body>
     <div class="form-container animate-in">
         <div class="form-card">
             <!-- Header -->
             <div class="form-header animate-in-delay-1">
-                <h1>Registro de Empleados</h1>
-                <p>Complete el formulario con los datos del nuevo empleado</p>
+                <h1><?= __('add_employee_title') ?></h1>
+                <p><?= __('add_employee_subtitle') ?></p>
             </div>
 
             <!-- Form -->
@@ -600,86 +562,86 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 <div class="form-body">
                     <!-- Información Personal -->
                     <div class="section animate-in-delay-2">
-                        <h2 class="section-title">Información Personal</h2>
+                        <h2 class="section-title"><?= __('personal_information') ?></h2>
                         
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <label class="form-label"><?= __('last_name_p') ?><span class="required">*</span></label>
                                 <input type="text" name="apellido_p" maxlength="50" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Apellido Materno</label>
+                                <label class="form-label"><?= __('last_name_m') ?></label>
                                 <input type="text" name="apellido_m" maxlength="50" class="form-input">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <label class="form-label"><?= __('names') ?><span class="required">*</span></label>
                             <input type="text" name="nombres" maxlength="50" class="form-input">
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <label class="form-label"><?= __('email') ?><span class="required">*</span></label>
                                 <input type="email" name="correo" maxlength="100" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Teléfono<span class="required">*</span></label>
-                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos">
+                                <label class="form-label"><?= __('phone') ?><span class="required">*</span></label>
+                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 <?= __('digits') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Contraseña<span class="required">*</span></label>
-                            <input type="password" name="contra" maxlength="255" class="form-input" placeholder="Mínimo 8 caracteres">
+                            <label class="form-label"><?= __('password') ?><span class="required">*</span></label>
+                            <input type="password" name="contra" maxlength="255" class="form-input" placeholder="<?= __('min_8_chars') ?>">
                         </div>
                     </div>
 
                     <!-- Dirección -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Dirección</h2>
+                        <h2 class="section-title"><?= __('address') ?></h2>
                         
                         <div class="grid-3">
                             <div class="form-group" style="grid-column: span 2;">
-                                <label class="form-label">Calle<span class="required">*</span></label>
+                                <label class="form-label"><?= __('street') ?><span class="required">*</span></label>
                                 <input type="text" name="calle" maxlength="100" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">No. Exterior<span class="required">*</span></label>
+                                <label class="form-label"><?= __('ext_num') ?><span class="required">*</span></label>
                                 <input type="text" name="num_ext" maxlength="10" class="form-input">
                             </div>
                         </div>
 
                         <div class="grid-3">
                             <div class="form-group">
-                                <label class="form-label">No. Interior</label>
+                                <label class="form-label"><?= __('int_num') ?></label>
                                 <input type="text" name="num_int" maxlength="10" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Colonia<span class="required">*</span></label>
+                                <label class="form-label"><?= __('colony') ?><span class="required">*</span></label>
                                 <input type="text" name="colonia" maxlength="100" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Código Postal</label>
-                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="5 dígitos">
+                                <label class="form-label"><?= __('zip_code') ?></label>
+                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="5 <?= __('digits') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Estado<span class="required">*</span></label>
+                            <label class="form-label"><?= __('state') ?><span class="required">*</span></label>
                             <input type="text" name="estado" maxlength="100" class="form-input">
                         </div>
                     </div>
 
                     <!-- Información Laboral -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Información Laboral</h2>
+                        <h2 class="section-title"><?= __('work_information') ?></h2>
                         
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Puesto<span class="required">*</span></label>
+                                <label class="form-label"><?= __('position') ?><span class="required">*</span></label>
                                 <select id="id_rol" name="id_rol" class="form-select">
-                                    <option value="">Seleccionar el puesto</option>
+                                    <option value=""><?= __('select_position') ?></option>
                                     <?php foreach ($roles as $rol): ?>
                                         <option value="<?= $rol['id_rol'] ?>">
                                             <?= htmlspecialchars($rol['nombre_rol']) ?>
@@ -688,20 +650,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Número de Empleado<span class="required">*</span></label>
+                                <label class="form-label"><?= __('employee_num') ?><span class="required">*</span></label>
                                 <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Estatus</label>
+                            <label class="form-label"><?= __('status') ?></label>
                             <div class="switch-container">
                                 <label class="switch">
                                     <input type="hidden" name="estatus" value="0">
                                     <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <span class="switch-label">Empleado activo</span>
+                                <span class="switch-label"><?= __('employee_active') ?></span>
                             </div>
                         </div>
                     </div>
@@ -709,12 +671,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
                 <!-- Footer -->
                 <div class="form-footer">
-                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="btnCancelar" class="btn btn-secondary"><?= __('cancel') ?></button>
                     <button type="submit" class="btn btn-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="btn-text">Guardar Empleado</span>
+                        <span class="btn-text"><?= __('save_employee') ?></span>
                     </button>
                 </div>
             </form>
@@ -734,19 +696,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     setTimeout(() => { input.style.animation = ''; }, 10);
                 });
 
-                // Client-side validation for required fields
                 const requiredFields = [
-                    { name: 'apellido_p', label: 'Apellido Paterno' },
-                    { name: 'nombres', label: 'Nombre' },
-                    { name: 'correo', label: 'Correo' },
-                    { name: 'contra', label: 'Contraseña' },
-                    { name: 'telefono', label: 'Teléfono' },
-                    { name: 'calle', label: 'Calle' },
-                    { name: 'num_ext', label: 'Número Exterior' },
-                    { name: 'colonia', label: 'Colonia' },
-                    { name: 'estado', label: 'Estado' },
-                    { name: 'id_rol', label: 'Puesto' },
-                    { name: 'num_empleado', label: 'Número de empleado' }
+                    { name: 'apellido_p', label: '<?= __('last_name_p') ?>' },
+                    { name: 'nombres', label: '<?= __('names') ?>' },
+                    { name: 'correo', label: '<?= __('email') ?>' },
+                    { name: 'contra', label: '<?= __('password') ?>' },
+                    { name: 'telefono', label: '<?= __('phone') ?>' },
+                    { name: 'calle', label: '<?= __('street') ?>' },
+                    { name: 'num_ext', label: '<?= __('ext_num') ?>' },
+                    { name: 'colonia', label: '<?= __('colony') ?>' },
+                    { name: 'estado', label: '<?= __('state') ?>' },
+                    { name: 'id_rol', label: '<?= __('position') ?>' },
+                    { name: 'num_empleado', label: '<?= __('employee_num') ?>' }
                 ];
 
                 let hasErrors = false;
@@ -757,16 +718,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     if (input && input.value.trim() === '') {
                         input.classList.add('error');
                         hasErrors = true;
-                        errors.push(`El campo ${field.label} es obligatorio`);
+                        errors.push(`<?= __('field_required') ?>: ${field.label}`);
                     }
                 });
 
                 if (hasErrors) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Formulario incompleto',
+                        title: '<?= __('incomplete_form') ?>',
                         html: errors.join('<br>'),
-                        confirmButtonText: 'Entendido',
+                        confirmButtonText: '<?= __('ok') ?>',
                         confirmButtonColor: '#b4c24d'
                     });
                     return false;
@@ -777,7 +738,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 const originalText = btnText.textContent;
                 
                 submitBtn.disabled = true;
-                btnText.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+                btnText.innerHTML = `<span class="loading-spinner"></span> <?= __('saving') ?>...`;
 
                 $.ajax({
                     url: "index.php?view=agregar_empleado",
@@ -807,10 +768,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                 btnText.textContent = originalText;
                             }
                         } catch (e) {
-                            console.error("Error al procesar JSON: ", e, response);
+                            console.error("<?= __('json_processing_error') ?>: ", e, response);
                             Swal.fire({
-                                title: 'Error',
-                                text: 'Ocurrió un error al procesar la respuesta',
+                                title: '<?= __('error_title') ?>',
+                                text: '<?= __('error_processing_response') ?>',
                                 icon: 'error',
                                 showConfirmButton: true
                             });
@@ -821,8 +782,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         Swal.fire({
-                            title: 'Error de conexión',
-                            text: 'No se pudo conectar con el servidor',
+                            title: '<?= __('connection_error_title') ?>',
+                            text: '<?= __('connection_error_text') ?>',
                             icon: 'error',
                             showConfirmButton: true
                         });
@@ -848,7 +809,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;
                 } catch (e) {
-                    console.error("Error al obtener el siguiente número de empleado: ", e);
+                    console.error("<?= __('error_fetching_employee_num') ?>: ", e);
                 }
             }
 
@@ -865,20 +826,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
                 Swal.fire({
-                    title: "¿Descartar cambios?",
-                    text: "Se eliminarán los datos ingresados para este empleado. ¿Desea continuar?",
+                    title: "<?= __('discard_changes_title') ?>",
+                    text: "<?= __('discard_changes_text') ?>",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#e15871",
                     cancelButtonColor: "#6b7280",
-                    confirmButtonText: "Sí, descartar",
-                    cancelButtonText: "Cancelar",
+                    confirmButtonText: "<?= __('yes_discard') ?>",
+                    cancelButtonText: "<?= __('cancel') ?>",
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Swal.fire({
-                            title: "Descartado",
-                            text: "Los datos fueron descartados.",
+                            title: "<?= __('discarded_title') ?>",
+                            text: "<?= __('discarded_text') ?>",
                             icon: "success",
                             timer: 900,
                             showConfirmButton: false
@@ -892,6 +853,4 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             const btnCancel = document.getElementById('btnCancelar');
             if (btnCancel) btnCancel.addEventListener('click', confirmDiscard);
         })();
-    </script>
-</body>
-</html>
+

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/translation.php';
 
 $cliente = [
   'nombre'=>'','apellido_paterno'=>'','apellido_materno'=>'','celular'=>'',
@@ -51,8 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       $_SESSION['form_cliente'] = $data;
       $msg = [];
       foreach ($serverErrors as $s) {
-        if ($s === 'correo_invalid') $msg[] = 'El correo es inválido.';
-        elseif ($s === 'celular_invalid') $msg[] = 'El celular debe contener exactamente 10 dígitos.';
+        if ($s === 'correo_invalid') $msg[] = __('error_email_invalid');
+        elseif ($s === 'celular_invalid') $msg[] = __('error_cellphone_invalid');
+        elseif ($s === 'nombre') $msg[] = __('error_name_required');
+        elseif ($s === 'apellido_paterno') $msg[] = __('error_lastname_p_required');
+        elseif ($s === 'celular') $msg[] = __('error_cellphone_required');
         else $msg[] = ucfirst(str_replace('_',' ',$s)).' es obligatorio.';
       }
       $_SESSION['form_errors'] = $msg;
@@ -83,18 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       exit;
     } catch (Exception $e) {
       $_SESSION['form_cliente'] = $data;
-      $_SESSION['form_errors'] = ['Error en el servidor: '.$e->getMessage()];
+      $_SESSION['form_errors'] = [__('server_error_prefix').$e->getMessage()];
       header('Location: index.php?view=agregar_cliente');
       exit;
     }
 }
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="<?php echo $lang; ?>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Agregar Cliente — Punto de Venta</title>
+  <title><?php echo __('add_client_page_title'); ?></title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -720,7 +724,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <div class="alert-content">
-          <div class="alert-title">Se encontraron errores en el formulario</div>
+          <div class="alert-title"><?php echo __('form_errors_title'); ?></div>
           <ul class="alert-list">
             <?php foreach($errors as $err): ?>
               <li><?=htmlspecialchars($err)?></li>
@@ -737,8 +741,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       <div class="card">
         <!-- Card Header -->
         <div class="card-header">
-          <h1 class="page-header-title">Agregar Cliente</h1>
-          <p class="page-header-subtitle">Complete la información del cliente. Los campos marcados con <span style="color: var(--accent); font-weight: 600;">*</span> son obligatorios.</p>
+          <h1 class="page-header-title"><?php echo __('add_client_header'); ?></h1>
+          <p class="page-header-subtitle"><?php echo __('add_client_subtitle'); ?></p>
         </div>
 
         <div class="card-body">
@@ -747,13 +751,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
           <div class="section animate-in-delay-3">
             <div class="section-header">
               <div class="section-icon">1</div>
-              <h2 class="section-title">Información Personal</h2>
+              <h2 class="section-title"><?php echo __('personal_info_section'); ?></h2>
             </div>
 
             <div class="grid grid-cols-3">
               <div class="form-group">
                 <label class="form-label">
-                  Nombre
+                  <?php echo __('name_label'); ?>
                   <span class="required">*</span>
                 </label>
                 <input 
@@ -762,13 +766,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                   id="nombre"
                   value="<?=htmlspecialchars($cliente['nombre'] ?? '')?>"
                   class="form-input <?= in_array('nombre', array_keys($errors)) ? 'error' : '' ?>"
-                  placeholder="Ej: Juan"
+                  placeholder="<?php echo __('name_placeholder'); ?>"
                 />
               </div>
 
               <div class="form-group">
                 <label class="form-label">
-                  Apellido Paterno
+                  <?php echo __('lastname_p_label'); ?>
                   <span class="required">*</span>
                 </label>
                 <input 
@@ -777,19 +781,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                   id="apellido_paterno"
                   value="<?=htmlspecialchars($cliente['apellido_paterno'] ?? '')?>"
                   class="form-input <?= in_array('apellido_paterno', array_keys($errors)) ? 'error' : '' ?>"
-                  placeholder="Ej: Pérez"
+                  placeholder="<?php echo __('lastname_p_placeholder'); ?>"
                 />
               </div>
 
               <div class="form-group">
-                <label class="form-label">Apellido Materno</label>
+                <label class="form-label"><?php echo __('lastname_m_label'); ?></label>
                 <input 
                   type="text" 
                   name="apellido_materno" 
                   id="apellido_materno"
                   value="<?=htmlspecialchars($cliente['apellido_materno'] ?? '')?>"
                   class="form-input"
-                  placeholder="Ej: García"
+                  placeholder="<?php echo __('lastname_m_placeholder'); ?>"
                 />
               </div>
             </div>
@@ -797,7 +801,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
             <div class="grid grid-cols-2">
               <div class="form-group">
                 <label class="form-label">
-                  Teléfono Celular
+                  <?php echo __('cellphone_label'); ?>
                   <span class="required">*</span>
                 </label>
                 <input 
@@ -806,20 +810,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                   id="celular"
                   value="<?=htmlspecialchars($cliente['celular'] ?? '')?>"
                   class="form-input <?= in_array('celular', array_keys($errors)) ? 'error' : '' ?>"
-                  placeholder="Ej: 5512345678"
+                  placeholder="<?php echo __('cellphone_placeholder'); ?>"
                 />
-                <div class="form-helper">10 dígitos sin espacios</div>
+                <div class="form-helper"><?php echo __('cellphone_helper'); ?></div>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Correo Electrónico</label>
+                <label class="form-label"><?php echo __('email_label'); ?></label>
                 <input 
                   type="email" 
                   name="correo" 
                   id="correo"
                   value="<?=htmlspecialchars($cliente['correo'] ?? '')?>"
                   class="form-input <?= in_array('correo', array_keys($errors)) ? 'error' : '' ?>"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="<?php echo __('email_placeholder'); ?>"
                 />
               </div>
             </div>
@@ -829,70 +833,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
           <div class="section animate-in-delay-3">
             <div class="section-header">
               <div class="section-icon">2</div>
-              <h2 class="section-title">Dirección</h2>
-              <span class="badge">Opcional</span>
+              <h2 class="section-title"><?php echo __('address_section'); ?></h2>
+              <span class="badge"><?php echo __('optional_badge'); ?></span>
             </div>
 
             <div class="grid grid-cols-3">
               <div class="form-group col-span-2">
-                <label class="form-label">Calle</label>
+                <label class="form-label"><?php echo __('street_label'); ?></label>
                 <input 
                   type="text" 
                   name="calle" 
                   id="calle"
                   value="<?=htmlspecialchars($cliente['calle'] ?? '')?>"
                   class="form-input"
-                  placeholder="Nombre de la calle"
+                  placeholder="<?php echo __('street_placeholder'); ?>"
                 />
               </div>
 
               <div class="form-group">
-                <label class="form-label">Número Exterior</label>
+                <label class="form-label"><?php echo __('num_ext_label'); ?></label>
                 <input 
                   type="text" 
                   name="num_ext" 
                   id="num_ext"
                   value="<?=htmlspecialchars($cliente['num_ext'] ?? '')?>"
                   class="form-input"
-                  placeholder="Núm. ext"
+                  placeholder="<?php echo __('num_ext_placeholder'); ?>"
                 />
               </div>
             </div>
 
             <div class="grid grid-cols-3">
               <div class="form-group">
-                <label class="form-label">Número Interior</label>
+                <label class="form-label"><?php echo __('num_int_label'); ?></label>
                 <input 
                   type="text" 
                   name="num_int" 
                   id="num_int"
                   value="<?=htmlspecialchars($cliente['num_int'] ?? '')?>"
                   class="form-input"
-                  placeholder="Núm. int"
+                  placeholder="<?php echo __('num_int_placeholder'); ?>"
                 />
               </div>
 
               <div class="form-group">
-                <label class="form-label">Colonia</label>
+                <label class="form-label"><?php echo __('colony_label'); ?></label>
                 <input 
                   type="text" 
                   name="colonia" 
                   id="colonia"
                   value="<?=htmlspecialchars($cliente['colonia'] ?? '')?>"
                   class="form-input"
-                  placeholder="Nombre de la colonia"
+                  placeholder="<?php echo __('colony_placeholder'); ?>"
                 />
               </div>
 
               <div class="form-group">
-                <label class="form-label">Código Postal</label>
+                <label class="form-label"><?php echo __('cp_label'); ?></label>
                 <input 
                   type="text" 
                   name="cp" 
                   id="cp"
                   value="<?=htmlspecialchars($cliente['cp'] ?? '')?>"
                   class="form-input"
-                  placeholder="C.P."
+                  placeholder="<?php echo __('cp_placeholder'); ?>"
                   maxlength="5"
                 />
               </div>
@@ -900,14 +904,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 
             <div class="grid grid-cols-3">
               <div class="form-group">
-                <label class="form-label">Estado</label>
+                <label class="form-label"><?php echo __('state_label'); ?></label>
                 <input 
                   type="text" 
                   name="estado" 
                   id="estado"
                   value="<?=htmlspecialchars($cliente['estado'] ?? '')?>"
                   class="form-input"
-                  placeholder="Estado"
+                  placeholder="<?php echo __('state_placeholder'); ?>"
                 />
               </div>
             </div>
@@ -948,10 +952,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
   <?php if($success): ?>
     Swal.fire({
       icon: 'success',
-      title: '¡Cliente creado!',
-      text: 'El cliente se ha registrado correctamente.',
+      title: '<?php echo __('js_client_created_title'); ?>',
+      text: '<?php echo __('js_client_created_text'); ?>',
       confirmButtonColor: '#b4c24d',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: '<?php echo __('js_accept_btn'); ?>'
     }).then(() => {
       window.location.href = 'index.php?view=clientes';
     });
@@ -1018,7 +1022,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       if (el && el.value.trim() === '') {
         el.classList.add('error');
         isValid = false;
-        errors.push(`El campo ${el.previousElementSibling.textContent.replace('*', '').trim()} es obligatorio`);
+        errors.push(`<?php echo __('js_field_required_prefix'); ?>${el.previousElementSibling.textContent.replace('*', '').trim()}<?php echo __('js_field_required_suffix'); ?>`);
       }
     });
 
@@ -1028,7 +1032,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       if (phoneEl.value.trim().length !== 10) {
         phoneEl.classList.add('error');
         isValid = false;
-        errors.push('El teléfono debe contener exactamente 10 dígitos');
+        errors.push('<?php echo __('js_phone_invalid'); ?>');
       }
     }
 
@@ -1039,7 +1043,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       if (!emailRegex.test(emailEl.value.trim())) {
         emailEl.classList.add('error');
         isValid = false;
-        errors.push('El correo electrónico no es válido');
+        errors.push('<?php echo __('js_email_invalid'); ?>');
       }
     }
 
@@ -1047,9 +1051,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
       e.preventDefault();
       Swal.fire({
         icon: 'error',
-        title: 'Formulario incompleto',
+        title: '<?php echo __('js_incomplete_form_title'); ?>',
         html: errors.join('<br>'),
-        confirmButtonText: 'Entendido',
+        confirmButtonText: '<?php echo __('js_understood_btn'); ?>',
         confirmButtonColor: '#b4c24d'
       });
       return false;
@@ -1061,14 +1065,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
   // Cancel button
   cancelBtn.addEventListener('click', function(){
     Swal.fire({
-      title: '¿Cancelar registro?',
-      text: "Los datos ingresados se perderán",
+      title: '<?php echo __('js_cancel_reg_title'); ?>',
+      text: "<?php echo __('js_cancel_reg_text'); ?>",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#e15871',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, cancelar',
-      cancelButtonText: 'Continuar editando'
+      confirmButtonText: '<?php echo __('js_yes_cancel_btn'); ?>',
+      cancelButtonText: '<?php echo __('js_continue_editing_btn'); ?>'
     }).then((result) => {
       if (result.isConfirmed) {
         window.location.href = 'index.php?view=clientes';

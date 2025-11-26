@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/translation.php";
 
 // Búsqueda de cliente (AJAX)
 if (isset($_GET['buscar_cliente'])) {
@@ -16,7 +17,12 @@ if (isset($_GET['buscar_cliente'])) {
     ");
     $like = "%$texto%";
     $sql->execute([$like, $like, $like]);
-    echo json_encode($sql->fetchAll(PDO::FETCH_ASSOC));
+    $clientes = $sql->fetchAll(PDO::FETCH_ASSOC);
+    // Aplicar traducción a nombres de clientes
+    foreach ($clientes as &$c) {
+        $c['nombre_completo'] = tr_content($c['nombre_completo']);
+    }
+    echo json_encode($clientes);
     exit;
 }
 
@@ -154,7 +160,7 @@ function normalizeCategory($name) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

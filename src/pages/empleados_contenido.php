@@ -1,6 +1,6 @@
 <?php 
-// empleados_contenido_enhanced.php - Premium Modern Design with All Improvements
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/translation.php';
 
 // AJAX: Get employee by ID
 if (isset($_GET['action']) && $_GET['action'] === 'getEmpleado') {
@@ -73,11 +73,11 @@ $stmt_roles = $pdo->query("SELECT id_rol, nombre_rol FROM roles");
 $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Empleados</title>
+  <title><?= __('employees_title') ?></title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
@@ -281,8 +281,8 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     <!-- Header -->
     <div class="mb-8 animate-slideDown">
       <div class="mb-6">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Empleados</h1>
-        <p class="text-gray-600 text-base">Administra y organiza tu equipo de trabajo de forma eficiente</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('employees_management') ?></h1>
+        <p class="text-gray-600 text-base"><?= __('employees_subtitle') ?></p>
       </div>
 
       <!-- Stats Cards -->
@@ -290,7 +290,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Total Empleados</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('total_employees') ?></p>
               <p class="text-3xl font-bold text-gray-900"><?= count($empleados) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -304,7 +304,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Activos</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('active') ?></p>
               <p class="text-3xl font-bold" style="color: #b4c24d;"><?= count(array_filter($empleados, fn($e) => $e['estatus'] == 1)) ?></p>
             </div>
             <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
@@ -318,7 +318,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-200 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Inactivos</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?= __('inactive') ?></p>
               <p class="text-3xl font-bold text-gray-900"><?= count(array_filter($empleados, fn($e) => $e['estatus'] == 0)) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -346,7 +346,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
               id="busqueda-input" 
               name="busqueda"
               type="text" 
-              placeholder="Buscar por nombre, correo o número..." 
+              placeholder="<?= __('search_employees_placeholder') ?>" 
               value="<?= htmlspecialchars($busqueda) ?>"
               class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
             />
@@ -363,7 +363,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
               </svg>
-              Filtrar
+              <?= __('filter') ?>
               <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -371,9 +371,9 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
             <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por puesto</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?= __('filter_by_position') ?></p>
                 <select name="puesto" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                  <option value="">-- Todos los puestos --</option>
+                  <option value=""><?= __('all_positions') ?></option>
                   <?php foreach ($puestos as $pu): ?>
                     <option value="<?= $pu['id_rol']?>" <?= ($puesto == $pu['id_rol']) ? 'selected' : '' ?>>
                       <?= htmlspecialchars($pu['nombre_rol']) ?>
@@ -390,7 +390,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
-              Ordenar
+              <?= __('sort') ?>
               <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -398,12 +398,12 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
             <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?= __('sort_by') ?></p>
                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                  <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                  <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                  <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
-                  <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
+                  <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>><?= __('name_az') ?></option>
+                  <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>><?= __('name_za') ?></option>
+                  <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>><?= __('employee_no_asc') ?></option>
+                  <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>><?= __('employee_no_desc') ?></option>
                 </select>
               </div>
             </div>
@@ -414,7 +414,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Agregar
+            <?= __('add') ?>
           </button>
         </div>
       </form>
@@ -425,7 +425,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="flex items-center gap-3">
             <input type="checkbox" id="selectAll" class="custom-checkbox" />
             <span class="text-sm font-semibold text-gray-700">
-              <span id="bulkSelectedCount">0</span> empleado(s) seleccionado(s)
+              <span id="bulkSelectedCount">0</span> <?= __('employees_selected') ?>
             </span>
           </div>
           <div class="flex gap-2">
@@ -433,10 +433,10 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              Eliminar
+              <?= __('delete') ?>
             </button>
             <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
-              Cancelar
+              <?= __('cancel') ?>
             </button>
           </div>
         </div>
@@ -452,12 +452,12 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
               <th class="px-6 py-4 text-left">
                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">No.</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre Completo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha de Ingreso</th>
-              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('employee_no_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('full_name_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('email_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('status_col') ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?= __('hire_date_col') ?></th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?= __('actions_col') ?></th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -474,7 +474,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                         <?= strtoupper(substr($emp['nombre_completo'], 0, 1)) ?>
                       </div>
                       <div>
-                        <p class="text-sm font-semibold text-gray-900"><?= htmlspecialchars($emp['nombre_completo']) ?></p>
+                        <p class="text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($emp['nombre_completo'])) ?></p>
                       </div>
                     </div>
                   </td>
@@ -485,14 +485,14 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        Activo
+                        <?= __('active') ?>
                       </span>
                     <?php else: ?>
                       <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(225, 88, 113, 0.1); color: #e15871;">
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
-                        Inactivo
+                        <?= __('inactive') ?>
                       </span>
                     <?php endif; ?>
                   </td>
@@ -500,13 +500,13 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                   <td class="px-6 py-4 text-right">
                     <div class="inline-flex gap-2">
                       <button onclick="openDetalle('<?= $emp['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                        Ver
+                        <?= __('view') ?>
                       </button>
                       <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                        Editar
+                        <?= __('edit') ?>
                       </a>
                       <button onclick="confirmDelete('<?= $emp['numero'] ?>', '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                        Eliminar
+                        <?= __('delete') ?>
                       </button>
                     </div>
                   </td>
@@ -519,8 +519,8 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                     <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                     </svg>
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                    <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2"><?= __('no_employees_found') ?></h3>
+                    <p class="text-gray-500"><?= __('try_adjusting_filters') ?></p>
                   </div>
                 </td>
               </tr>
@@ -547,7 +547,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
         <h3 class="text-xl font-bold text-white flex items-center gap-2">
           <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          Detalle del Empleado
+          <?= __('employee_details') ?>
         </h3>
         <button class="text-white/70 hover:text-white text-2xl leading-none transition-colors" onclick="closeDetalle()">&times;</button>
       </div>
@@ -558,7 +558,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="md:col-span-2 group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-              Nombre Completo
+              <?= __('full_name_col') ?>
             </p>
             <p id="d-nombre" class="text-lg font-semibold text-gray-800 border-b border-gray-100 pb-1">-</p>
           </div>
@@ -567,7 +567,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Correo Electrónico
+              <?= __('email_col') ?>
             </p>
             <p id="d-correo" class="text-base text-gray-700">-</p>
           </div>
@@ -576,7 +576,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              Celular
+              <?= __('phone') ?>
             </p>
             <p id="d-celular" class="text-base text-gray-700">-</p>
           </div>
@@ -585,7 +585,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              Puesto / Rol
+              <?= __('position') ?>
             </p>
             <p id="d-puesto" class="text-base text-gray-700">-</p>
           </div>
@@ -594,7 +594,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Estatus
+              <?= __('status_col') ?>
             </p>
             <p id="d-estatus" class="text-base font-medium">-</p>
           </div>
@@ -603,7 +603,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="md:col-span-2 group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              Dirección Completa
+              <?= __('address') ?>
             </p>
             <p id="d-direccion" class="text-base text-gray-700 border-b border-gray-100 pb-1">-</p>
           </div>
@@ -612,7 +612,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Código Postal
+              <?= __('zip_code') ?>
             </p>
             <p id="d-cp" class="text-base text-gray-700">-</p>
           </div>
@@ -621,7 +621,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Estado
+              <?= __('state') ?>
             </p>
             <p id="d-estado" class="text-base text-gray-700">-</p>
           </div>
@@ -630,7 +630,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           <div class="group">
             <p class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider mb-1 flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              Fecha de Ingreso
+              <?= __('hire_date_col') ?>
             </p>
             <p id="d-fecha" class="text-base text-gray-700">-</p>
           </div>
@@ -740,8 +740,8 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
                 <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2"><?= __('no_employees_found') ?></h3>
+                <p class="text-gray-500"><?= __('try_adjusting_search') ?></p>
               </div>
             </td>
           `;
@@ -761,7 +761,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       modal.classList.add('flex');
       
       // Reset fields
-      detalle.nombre.textContent = 'Cargando...';
+      detalle.nombre.textContent = '<?= __('loading') ?>...';
       detalle.correo.textContent = '-';
       detalle.celular.textContent = '-';
       detalle.puesto.textContent = '-';
@@ -776,7 +776,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       fetch(url)
         .then(response => { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
         .then(json => {
-          if (!json.success) { Swal.fire('Error', json.error || 'No se pudo obtener información', 'error'); closeDetalle(); return; }
+          if (!json.success) { Swal.fire('<?= __('error') ?>', json.error || '<?= __('could_not_get_info') ?>', 'error'); closeDetalle(); return; }
           const e = json.empleado;
           
           // Nombre completo
@@ -785,13 +785,13 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           
           detalle.correo.textContent = e.correo || '-';
           detalle.celular.textContent = e.celular || '-';
-          detalle.puesto.textContent = e.nombre_rol || 'Sin rol asignado';
+          detalle.puesto.textContent = e.nombre_rol || '<?= __('no_role_assigned') ?>';
           
           // Estatus con badge
           if (e.estatus == 1) {
-            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activo</span>';
+            detalle.estatus.innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><?= __('active') ?></span>`;
           } else {
-            detalle.estatus.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactivo</span>';
+            detalle.estatus.innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><?= __('inactive') ?></span>`;
           }
 
           // Dirección completa
@@ -807,7 +807,7 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
           detalle.estado.textContent = e.estado || '-';
           detalle.fecha.textContent = e.fecha || '-';
         })
-        .catch(err => { console.error(err); Swal.fire('Error','Error al cargar datos: '+err.message,'error'); closeDetalle(); });
+        .catch(err => { console.error(err); Swal.fire('<?= __('error') ?>','<?= __('error_loading_data') ?>: '+err.message,'error'); closeDetalle(); });
     }
     
     function closeDetalle(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
@@ -815,14 +815,14 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
     // ** CONFIRMACIÓN Y ELIMINACIÓN CON SWEETALERT **
     function confirmDelete(id, nombre) {
       Swal.fire({
-        title: '¿Eliminar empleado?',
-        html: `¿Estás seguro de eliminar a <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        title: '<?= __('confirm_delete_employee_title') ?>',
+        html: `<?= __('confirm_delete_employee_text') ?> <strong>${nombre}</strong>?<br><span class="text-sm text-gray-500"><?= __('action_cannot_be_undone') ?></span>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#e15871',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: '<?= __('yes_delete') ?>',
+        cancelButtonText: '<?= __('cancel') ?>',
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
@@ -844,8 +844,8 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       .then(json => {
         if (json.success) {
           Swal.fire({
-            title: 'Eliminado',
-            text: 'El empleado ha sido eliminado correctamente',
+            title: '<?= __('deleted') ?>',
+            text: '<?= __('employee_deleted_successfully') ?>',
             icon: 'success',
             confirmButtonColor: '#b4c24d',
             timer: 2000
@@ -862,12 +862,12 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
              setTimeout(() => window.location.reload(), 1000);
           }
         } else {
-          Swal.fire('Error', json.error || 'No se pudo eliminar el empleado', 'error');
+          Swal.fire('<?= __('error') ?>', json.error || '<?= __('could_not_delete_employee') ?>', 'error');
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        Swal.fire('Error', 'Error en el servidor', 'error');
+        Swal.fire('<?= __('error') ?>', '<?= __('server_error') ?>', 'error');
       });
     }
   </script>

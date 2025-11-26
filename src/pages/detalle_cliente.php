@@ -150,7 +150,7 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
           </div>
 
           <div>
-            <h2 class="text-lg font-bold"><?= htmlspecialchars($cliente['nombre'] . ' ' . $cliente['apellido_paterno'] . ' ' . $cliente['apellido_materno']) ?></h2>
+            <h2 class="text-lg font-bold"><?= tr_content(htmlspecialchars($cliente['nombre'] . ' ' . $cliente['apellido_paterno'] . ' ' . $cliente['apellido_materno'])) ?></h2>
             <p class="text-sm text-gray-600"><?= htmlspecialchars($cliente['correo'] ?: '-') ?></p>
             <p class="text-sm text-gray-500 mt-1"><?= htmlspecialchars($cliente['celular'] ?: '-') ?></p>
           </div>
@@ -169,7 +169,7 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
             <div class="text-sm text-gray-500">Dirección</div>
             <div class="mt-1 text-sm">
               <?= htmlspecialchars(trim(($cliente['calle'] ?? '') . ' ' . ($cliente['num_ext'] ?? '') . ' ' . ($cliente['num_int'] ?? ''))) ?><br>
-              <?= htmlspecialchars(trim(($cliente['colonia'] ?? '') . ' ' . ($cliente['cp'] ?? '') . ' ' . ($cliente['estado'] ?? ''))) ?>
+              <?= htmlspecialchars(trim(($cliente['colonia'] ?? '') . ' ' . ($cliente['cp'] ?? ''))) . ' ' . tr_content(htmlspecialchars($cliente['estado'] ?? '')) ?>
             </div>
           </div>
         </div>

@@ -39,7 +39,7 @@ if (empty($token) || empty($password) || empty($confirm_password)) {
         send_json_response(false, 'Todos los campos son obligatorios.');
     }
     $_SESSION['error'] = 'Todos los campos son obligatorios.';
-    header('Location: ../pages/confirmar_contra.html?token=' . urlencode($token));
+    header('Location: ../pages/confirmar_contra.php?token=' . urlencode($token));
     exit;
 }
 
@@ -48,7 +48,7 @@ if ($password !== $confirm_password) {
         send_json_response(false, 'Las contraseñas no coinciden.');
     }
     $_SESSION['error'] = 'Las contraseñas no coinciden.';
-    header('Location: ../pages/confirmar_contra.html?token=' . urlencode($token));
+    header('Location: ../pages/confirmar_contra.php?token=' . urlencode($token));
     exit;
 }
 
@@ -57,7 +57,7 @@ if (strlen($password) < 8) {
         send_json_response(false, 'La contraseña debe tener al menos 8 caracteres.');
     }
     $_SESSION['error'] = 'La contraseña debe tener al menos 8 caracteres.';
-    header('Location: ../pages/confirmar_contra.html?token=' . urlencode($token));
+    header('Location: ../pages/confirmar_contra.php?token=' . urlencode($token));
     exit;
 }
 
@@ -73,7 +73,7 @@ if (!$reset_request) {
         send_json_response(false, 'El token es inválido o ha expirado. Por favor, solicita un nuevo enlace de recuperación.');
     }
     $_SESSION['error'] = 'Token inválido o expirado.';
-    header('Location: ../pages/recuperar_contrasena.html');
+    header('Location: ../pages/recuperar_contrasena.php');
     exit;
 }
 

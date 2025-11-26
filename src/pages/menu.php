@@ -1,10 +1,12 @@
 <?php
-
 // Si no hay login, redirigir
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: pages/login.php");
     exit;
 }
+
+// Incluir el sistema de traducción
+require_once __DIR__ . '/../config/translation.php';
 
 // Incluir permisos
 require_once (__DIR__ . "/../config/permisos.php");
@@ -180,21 +182,31 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
       <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
     </div>
 
-    <!-- Botón de idioma -->
-    <div style="display:flex; align-items:center; gap:6px;">
+    <!-- Botón de idioma MEJORADO con funcionalidad de HEAD -->
+    <?php
+      // Lógica para construir la URL del cambio de idioma
+      $current_lang = isset($_GET['lang']) && $_GET['lang'] == 'en' ? 'en' : 'es';
+      $new_lang = $current_lang == 'es' ? 'en' : 'es';
+      
+      $query_params = $_GET;
+      $query_params['lang'] = $new_lang;
+      $url = 'index.php?' . http_build_query($query_params);
+    ?>
+    <a href="<?= $url ?>" 
+       title="<?= __('change_language') ?>"
+       style="display:flex; align-items:center; gap:6px; text-decoration:none; color:inherit;">
       <div id="languageToggle"
            style="width:38px; height:38px; 
                   display:flex; align-items:center; justify-content:center;
                   border-radius:50%; background:#0A2342; 
                   cursor:pointer; transition:all 0.3s ease; 
                   box-shadow:0 4px 12px rgba(0,0,0,0.2);"
-           onclick="toggleLanguage()"
            onmouseover="this.style.transform='scale(1.15)';"
            onmouseout="this.style.transform='scale(1)';">
-        <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
+        <img src="../public/img/idiomaIcon.png" alt="<?= __('language_icon_alt') ?>" style="width:18px; height:18px; filter:invert(1);">
       </div>
-      <span id="languageCode" style="font-weight:600; font-size:14px; color:#0A2342;">ES</span>
-    </div>
+      <span id="languageCode" style="font-weight:600; font-size:14px; color:#0A2342;"><?= strtoupper($current_lang) ?></span>
+    </a>
   </div>
 </header>
 
@@ -243,7 +255,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
             <a href="index.php?view=<?= $modulo_url ?>" 
                class="flex items-center gap-3 p-3.5 rounded-xl transition-all <?= $activo ?>">
               <?= $iconos[$modulo] ?? '' ?>
-              <span class="font-medium"><?= ucfirst($modulo) ?></span>
+              <span class="font-medium"><?= __($modulo_url) ?></span>
             </a>
           </li>
         <?php endforeach; ?>
@@ -265,7 +277,7 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
       </div>
       <div class="flex flex-col leading-tight">
         <span style="color:#b4c24d; font-weight:700; font-size:14px; letter-spacing:-0.02em;">
-          <?= htmlspecialchars($_SESSION['nombre_completo'] ?? '') ?>
+          <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
         </span>
         <span style="color:#cbd5e1; font-size:12px; font-weight:500;">
           <?= htmlspecialchars($_SESSION['rol'] ?? '') ?>

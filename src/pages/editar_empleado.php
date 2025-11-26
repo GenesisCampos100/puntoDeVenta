@@ -664,7 +664,7 @@
 
                         <div class="form-group">
                             <label class="form-label">Estado<span class="required">*</span></label>
-                            <input type="text" name="estado" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['estado'] ?? '') ?>">
+                            <input type="text" name="estado" maxlength="100" class="form-input" value="<?= tr_content(htmlspecialchars($empleado['estado'] ?? '')) ?>">
                         </div>
                     </div>
 
