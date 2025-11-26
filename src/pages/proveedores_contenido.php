@@ -28,14 +28,14 @@
 
     $busqueda = $_GET['busqueda'] ?? '';
     $categoria = $_GET['categoria'] ?? '';
-    $orden = $_GET['orden'] ?? 'p.nombre ASC';
-    $allowed_order = ['p.nombre ASC', 'p.nombre DESC', 'p.correo ASC', 'p.correo DESC'];
-    if (!in_array($orden, $allowed_order)) $orden = 'p.nombre ASC';
+    $orden = $_GET['orden'] ?? 'p.representante ASC';
+    $allowed_order = ['p.representante ASC', 'p.representante DESC', 'p.correo ASC', 'p.correo DESC'];
+    if (!in_array($orden, $allowed_order)) $orden = 'p.representante ASC';
     $vista_actual = $_GET['view'] ?? 'proveedores';
 
     $sql = "SELECT 
                 p.id_proveedor AS numero,
-                CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno) AS representante,
+                p.representante AS representante,
                 p.empresa AS empresa,
                 p.celular AS celular,
                 p.correo AS correo,
@@ -48,9 +48,8 @@
     ";
 
     if(!empty($busqueda)) $sql .= " AND (
-                                p.nombre LIKE :busqueda 
-                                OR p.apellido_paterno LIKE :busqueda
-                                OR p.apellido_materno LIKE :busqueda
+                                p.representante LIKE :busqueda 
+                                OR p.empresa LIKE :busqueda
                                 OR p.correo LIKE :busqueda)";
     if(!empty($categoria)) $sql .= " AND pr.id_categoria = :categoria";
 
@@ -453,7 +452,7 @@
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Representante</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Compra</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Catálogo</th>
                             <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
@@ -495,12 +494,12 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
                                         <button
-                                            onclick="window.location.href='index.php?view=compra_proveedor=<?= urlencode($pr['numero']) ?>'"
+                                            onclick="window.location.href='index.php?view=catalogo_proveedor&proveedor=<?= urlencode($pr['numero']) ?>'"
                                             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-shadow"
                                             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 18px rgba(31, 64, 24, 0.12);">
-                                            <!-- Shopping bag icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M8 7V5a4 4 0 018 0v2"/></svg>
-                                            <span>Compra</span>
+                                            <!-- Catalog icon -->
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M7 7v10M12 7v10M17 7v10"/></svg>
+                                            <span>Catálogo</span>
                                         </button>
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -525,8 +524,8 @@
                                         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo proveedor</p>
                                     </div>
                                 </td>
                             </tr>
@@ -732,7 +731,7 @@
                             <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
                             <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
                         </div>
                         </td>

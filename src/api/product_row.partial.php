@@ -23,7 +23,19 @@ if ($cantidad > $cantidad_min) {
     $stockClass = 'bg-red-50 text-red-700 ring-1 ring-red-600/20';
 }
 
-$imagen = !empty($producto['imagen']) ? "uploads/".htmlspecialchars($producto['imagen']) : "../uploads/sin-imagen.png";
+// Construir ruta absoluta para imágenes
+$imgName = htmlspecialchars($producto['imagen'] ?? '');
+if (!empty($imgName)) {
+    // Ruta absoluta desde la raíz del proyecto
+    $imagen = '/PrismaMK2C/src/uploads/' . $imgName;
+    // Verificar si existe, sino usar placeholder
+    $imgPath = __DIR__ . '/../../src/uploads/' . $producto['imagen'];
+    if (!file_exists($imgPath)) {
+        $imagen = '/PrismaMK2C/public/img/sin-imagen.png';
+    }
+} else {
+    $imagen = '/PrismaMK2C/public/img/sin-imagen.png';
+}
 $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
 ?>
 

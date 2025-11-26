@@ -1,5 +1,5 @@
 // js/caja.js - Gestión de Caja Principal
-// Conecta con api/caja_controller.php
+// Conecta con ../api/caja_controller.php
 
 // Estado global
 let expectedTotals = {
@@ -23,7 +23,7 @@ async function cargarTotales() {
         const formData = new FormData();
         formData.append('action', 'fetch_totales');
 
-        const response = await fetch('api/caja_controller.php', {
+        const response = await fetch('../api/caja_controller.php', {
             method: 'POST',
             body: formData
         });
@@ -210,7 +210,7 @@ async function handleSubmitMovimiento(e) {
     }
 
     try {
-        const response = await fetch('api/caja_controller.php', {
+        const response = await fetch('../api/caja_controller.php', {
             method: 'POST',
             body: formData
         });
@@ -293,7 +293,7 @@ async function handleSubmitCorte(e) {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch('api/caja_controller.php', {
+        const response = await fetch('../api/caja_controller.php', {
             method: 'POST',
             body: formData
         });
