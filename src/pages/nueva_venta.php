@@ -160,7 +160,7 @@ function normalizeCategory($name) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -176,147 +176,202 @@ function normalizeCategory($name) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
+    /* Reset y layout fijo */
+    html, body {
+        height: 100%;
+        overflow: hidden !important;
+        background: #f3f6fb;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Paleta corporativa (opción B) */
+    :root{
+        --primary: #0f2a44;    /* azul oscuro */
+        --primary-600: #0b2237;
+        --accent: #ff557f;     /* magenta suave */
+        --muted: #6b7280;
+        --border: #e6eef7;
+    }
+
+    /* Scrollbars internas */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+
+    /* Botones inmutables (evitar que el svg capture eventos) */
     button svg { pointer-events: none; }
 
-    /* Hover elegante para filas */
+    /* Hover para filas */
     .row-hover:hover {
-        background-color: rgba(0, 121, 255, 0.08);
+        background-color: rgba(15, 42, 68, 0.06);
+        transition: background-color 0.12s ease;
         cursor: pointer;
     }
 
-    /* Scroll estilizado */
-    #search-results::-webkit-scrollbar {
-        width: 8px;
+    /* Estilos para el encabezado de tablas */
+    .thead-primary {
+        background: linear-gradient(90deg, rgba(15,42,68,1) 0%, rgba(11,34,55,1) 100%);
+        color: white;
     }
-    #search-results::-webkit-scrollbar-thumb {
-        background: #cfcfcf;
-        border-radius: 20px;
-    }
+
+    /* Sombras POS profesionales */
+    .card-shadow { box-shadow: 0 6px 18px -8px rgba(15,42,68,0.12); }
+
+    /* Clases utilitarias extras */
+    .text-primary { color: var(--primary); }
+    .bg-primary { background-color: var(--primary); }
+    .bg-accent { background-color: var(--accent); }
 </style>
-
 </head>
-<body class="bg-gray-100 font-sans">
 
-<!-- =======================
-          LAYOUT GENERAL
-=========================== -->
-<div class="flex h-screen">
+<body class="h-screen overflow-hidden font-sans antialiased">
 
-    <!-- =======================
-            SECCIÓN IZQUIERDA
-    ============================ -->
-    <div class="w-3/4 p-6">
+<div class="flex h-full">
 
-        <!-- 🔵 BÚSQUEDA -->
-        <div class="mb-4">
-            <label class="text-sm font-semibold text-gray-700">Código del Producto:</label>
+    <!-- ================================
+                PANEL IZQUIERDO
+    ================================== -->
+    <div class="w-3/4 p-6 flex flex-col overflow-hidden">
 
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
-                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21 21l-4.35-4.35m1.6-5.15a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
-                </svg>
+        <!-- Top: buscador y acciones rápidas -->
+        <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+                <label class="text-sm font-semibold text-gray-700">Código del Producto</label>
 
-                <input 
-                    id="search-input" 
-                    type="text"
-                    placeholder="Ingresa o busca un producto..."
-                    class="w-full border bg-white border-gray-300 rounded-lg pl-10 pr-4 py-3 text-lg shadow-sm focus:outline-none focus:border-blue-600"
-                >
+                <div class="relative mt-2">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
+                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-4.35-4.35m1.6-5.15a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+                    </svg>
+
+                    <input 
+                        id="search-input" 
+                        type="text"
+                        placeholder="Ingresa código, nombre o SKU..."
+                        class="w-full border bg-white border-gray-200 rounded-xl pl-12 pr-4 py-3 text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[rgba(15,42,68,0.12)] focus:border-primary transition"
+                    >
+                </div>
             </div>
+
+            
         </div>
 
-        <!-- 🟦 RESULTADOS DE BÚSQUEDA -->
-        <div id="search-results" class="hidden border border-gray-300 rounded-lg bg-white shadow max-h-64 overflow-y-auto">
+        <!-- 🟦 RESULTADOS (SCROLL INTERNO) -->
+        <div id="search-results" 
+             class="hidden border border-gray-200 rounded-xl bg-white shadow-lg mt-4 overflow-y-auto card-shadow"
+             style="max-height:260px;">
+             
             <table class="w-full text-sm">
-                <thead class="bg-blue-600 text-white">
+                <thead class="thead-primary text-left">
                     <tr>
-                        <th class="py-2 px-3 text-left">Código</th>
-                        <th class="py-2 px-3 text-left">Descripción</th>
-                        <th class="py-2 px-3 text-left">Talla / Color</th>
-                        <th class="py-2 px-3 text-center">Precio</th>
-                        <th class="py-2 px-3 text-center">Depto</th>
-                        <th class="py-2 px-3 text-center">Stock</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Código</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Descripción</th>
+                        <th class="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider">Talla / Color</th>
+                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Precio</th>
+                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Depto</th>
+                        <th class="py-3 px-4 text-center text-xs font-semibold uppercase tracking-wider">Stock</th>
                     </tr>
                 </thead>
-
-                <tbody id="search-body">
-                    <!-- FILAS DINÁMICAS -->
-                </tbody>
+                <tbody id="search-body" class="text-gray-700"></tbody>
             </table>
         </div>
 
         <!-- 🧾 CARRITO / TICKET -->
-        <div class="mt-8">
-            <h2 class="text-xl font-bold mb-3 text-gray-700">Ticket 1</h2>
+        <div class="mt-6 flex-1 flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-primary">Ticket 1</h2>
+                <div class="text-sm text-muted">Caja: <span class="font-semibold">Principal</span></div>
+            </div>
 
-            <table class="w-full text-sm bg-white shadow rounded-lg overflow-hidden">
-                <thead class="bg-gray-200 border-b border-gray-300">
-    <tr class="text-gray-700">
-        <th class="py-2 px-3 text-left">Código</th>
-        <th class="py-2 px-3 text-left">Nombre</th>
-        <th class="py-2 px-3 text-left">Talla/Color</th>
-        <th class="py-2 px-3 text-center">Precio</th>
-        <th class="py-2 px-3 text-center">Cant.</th>
-        <th class="py-2 px-3 text-center">Total</th>
-        <th class="py-2 px-3 text-center">Desc.</th>
-        <th class="py-2 px-3 text-center">Eliminar</th>
-    </tr>
-</thead>
-<tbody id="cart-rows"></tbody>
-            </table>
+            <div class="bg-white rounded-xl overflow-hidden flex-1 flex flex-col border border-gray-200 card-shadow">
+                <div class="p-4 border-b border-gray-100">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr class="text-gray-700 text-sm">
+                                <th class="py-2 px-3 text-left">Código</th>
+                                <th class="py-2 px-3 text-left">Nombre</th>
+                                <th class="py-2 px-3 text-left">Talla/Color</th>
+                                <th class="py-2 px-3 text-center">Precio</th>
+                                <th class="py-2 px-3 text-center">Cant.</th>
+                                <th class="py-2 px-3 text-center">Total</th>
+                                <th class="py-2 px-3 text-center">Desc.</th>
+                                <th class="py-2 px-3 text-center">Eliminar</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <!-- 🟧 CONTENEDOR CON SCROLL -->
+                <div class="overflow-y-auto" style="max-height:340px;">
+                    <table class="w-full text-sm">
+                        <tbody id="cart-rows" class="divide-y divide-gray-100 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>
 
-    <!-- =======================
-             PANEL DERECHO
-    ============================ -->
-    <div class="w-1/4 bg-white border-l shadow-xl p-6 flex flex-col">
+    <!-- ================================
+                PANEL DERECHO
+    ================================== -->
+    <div class="w-1/4 bg-white border-l border-gray-100 shadow-lg p-6 flex flex-col rounded-l-xl card-shadow">
 
-    <div id="vista-producto" class="w-full mb-4 hidden">
-    <div class="bg-white shadow rounded-lg p-3">
-        <img id="vista-producto-img" class="w-full h-40 object-cover rounded-md">
-        <div id="vista-producto-nombre" class="mt-2 font-semibold text-gray-700"></div>
-        <div id="vista-producto-detalles" class="text-sm text-gray-500"></div>
+    <!-- CLIENTE SELECCIONADO -->
+    <div id="selected-client" class="mb-4 p-3 bg-gray-100 rounded-xl shadow-sm flex justify-between items-center">
+        <div>
+            <p class="text-gray-700 font-semibold">Cliente:</p>
+            <p id="client-name" class="text-lg text-primary">Público General</p>
+            <p id="client-phone" class="text-sm text-gray-500"></p>
+        </div>
+        <button id="remove-client" class="text-gray-400 hover:text-red-500 text-xl font-bold ml-4" title="Eliminar cliente">&times;</button>
     </div>
-</div>
 
+        <h2 class="text-xl font-bold text-primary mb-4">Opciones</h2>
 
-        <h2 class="text-xl font-bold text-gray-700 mb-6">Opciones</h2>
+        <!-- IMAGEN DEL PRODUCTO SELECCIONADO -->
+        <div id="preview-producto" class="w-full mb-6 hidden">
+            <div class="bg-white rounded-xl border border-gray-200 p-3">
+                <img id="preview-img"
+                     src=""
+                     alt="Producto seleccionado"
+                     class="w-full h-56 object-contain rounded-lg border shadow-sm bg-white">
+            </div>
+        </div>
 
         <!-- CLIENTE -->
         <button id="client-btn" 
-            class="w-full py-3 mb-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+            class="w-full py-3 mb-3 bg-[var(--primary)] text-white text-lg font-semibold rounded-xl shadow hover:bg-[var(--primary-600)] transition">
             Cliente
         </button>
 
         <!-- DESCUENTO -->
         <button id="discount-btn" 
-            class="w-full py-3 mb-3 bg-yellow-500 text-white text-lg font-semibold rounded-lg shadow hover:bg-yellow-600 transition">
+            class="w-full py-3 mb-3 bg-[var(--accent)] text-white text-lg font-semibold rounded-xl shadow hover:brightness-95 transition">
             Descuento
         </button>
 
         <!-- PAGO -->
         <button id="pay-btn" 
-            class="w-full py-3 mb-6 bg-green-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-green-700 transition">
+            class="w-full py-3 mb-6 bg-green-600 text-white text-lg font-semibold rounded-xl shadow hover:bg-green-700 transition">
             Pagar
         </button>
 
-        <!-- 🧮 TOTALES -->
-        <div class="mt-auto border-t pt-6">
+        <!-- DIVISOR -->
+        <div class="border-t border-gray-100 pt-6 mt-auto">
             <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
                 <span>Subtotal:</span>
-                <span id="subtotal">$0.00</span>
+                <span id="subtotal" class="text-right">$0.00</span>
             </div>
 
             <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
                 <span>Descuento:</span>
-                <span id="discount">$0.00</span>
+                <span id="discount" class="text-right text-red-500">$0.00</span>
             </div>
 
-            <div class="flex justify-between text-4xl font-extrabold text-blue-600 mt-4">
+            <div class="flex justify-between text-4xl font-extrabold text-primary mt-4 tracking-tight">
                 <span>Total:</span>
                 <span id="total">$0.00</span>
             </div>
@@ -330,11 +385,7 @@ function normalizeCategory($name) {
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
-<?php
-// Importar los modales de ventas
-require_once __DIR__ . "/../scripts/modales_venta.php";
-?>
-
+<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
 
 </body>
 </html>

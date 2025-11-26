@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
 
+
     // ELEMENTOS DEL DOM
     const subtotalEl = document.getElementById("subtotal");
     const discountEl = document.getElementById("discount");
@@ -24,6 +25,67 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchResults = document.getElementById("search-results");
     const searchBody = document.getElementById("search-body");
     const cartRows = document.getElementById("cart-rows");
+
+    // Función para mostrar el cliente seleccionado
+    function setSelectedClient(cliente) {
+        const nameEl = document.getElementById('client-name');
+        const phoneEl = document.getElementById('client-phone');
+
+        if (cliente) {
+            nameEl.textContent = cliente.nombre_completo;
+            phoneEl.textContent = cliente.celular || '';
+            localStorage.setItem('selectedClient', JSON.stringify(cliente));
+        } else {
+            nameEl.textContent = 'Público General';
+            phoneEl.textContent = '';
+            localStorage.removeItem('selectedClient');
+        }
+    }
+
+    // Cargar cliente al iniciar
+    const savedClient = localStorage.getItem('selectedClient');
+    if (savedClient) {
+        setSelectedClient(JSON.parse(savedClient));
+    } else {
+        setSelectedClient(null);
+    }
+
+    // ==============================
+    // Selección desde el modal
+    // ==============================
+    $(document).on('click', '.seleccionarCliente', function () {
+        const cliente = {
+            id_cliente: $(this).data('id'),
+            nombre_completo: $(this).data('nombre'),
+            celular: $(this).closest('tr').find('td').eq(2).text()
+        };
+
+        setSelectedClient(cliente);
+
+        // Cerrar modal
+        $('#modalClientes').addClass('hidden');
+    });
+
+    // ==============================
+    // Eliminar cliente seleccionado
+    // ==============================
+    $('#remove-client').on('click', function () {
+        setSelectedClient(null);
+    });
+
+
+    // ---------- PREVIEW DEL PRODUCTO (opciones)
+    function actualizarPreview(producto) {
+        if (!producto || !producto.imagen) {
+            document.getElementById("preview-producto").classList.add("hidden");
+            return;
+        }
+
+        const ruta = "../uploads/" + producto.imagen;
+        document.getElementById("preview-img").src = ruta;
+        document.getElementById("preview-producto").classList.remove("hidden");
+    }
+
 
     let selectedClient = null;
     try {
@@ -80,7 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cart.forEach((item, index) => {
             const row = document.createElement("tr");
-            row.className = "border-b";
+            row.className = "border-b cart-row";   // ← agregado
+            row.dataset.index = index;             // ← agregado
 
             const tdCodigo = document.createElement("td");
             tdCodigo.className = "py-2 px-3";
@@ -231,7 +294,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         saveCart();
+
+        actualizarPreview(prod);
     };
+
+
+    // AL HACER CLICK EN UNA FILA DEL CARRITO → MOSTRAR PREVIEW
+    $(document).on("click", ".cart-row", function () {
+        const index = $(this).data("index");
+        const producto = cart[index];
+        actualizarPreview(producto);
+    });
+
+    // CARGAR TODO AL INICIAR
+    renderCart();
 
     clearCartBtn?.addEventListener('click', () => {
         cart = [];
