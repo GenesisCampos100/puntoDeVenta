@@ -567,6 +567,12 @@ body.dark-mode .btn-primary {
   border: none !important;
 }
 
+body.dark-mode .btn-primary:hover {
+  background-color:  #b4c24d  !important; /* verde */
+  color: white !important;
+  border: none !important;
+}
+
 body.dark-mode main,
 body.dark-mode .content {
     background-color: #121212 !important;

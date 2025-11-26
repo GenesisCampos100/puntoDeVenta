@@ -350,8 +350,8 @@ body.dark-mode .btn-agregar {
     border: none !important;
 }
 
-body.dark-mode .btn-agregar:hover {
-    background-color: #46c06c !important;
+body.dark-mode .btn-add:hover {
+    background-color: #b4c24d !important;
 }
 
 /* BOTÓN AGREGAR EN MODO OSCURO */
