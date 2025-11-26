@@ -217,16 +217,19 @@ document.addEventListener("DOMContentLoaded", () => {
             item.color == (prod.color ?? '')
         );
 
-        if (existente) existente.quantity += 1;
+        if (existente) existente.quantity++;
         else cart.push({
             cod_barras: prod.cod_barras,
             name: prod.nom_producto,
             price: parseFloat(prod.precio),
             quantity: 1,
-            variantName: `${prod.marca || ""} ${prod.categoria || ""}`,
-            imagen: prod.imagen || null,
+            talla: prod.talla ?? '',
+            color: prod.color ?? '',
+            categoria: prod.categoria ?? '',
+            imagen: prod.imagen ?? null,
             discount: null
         });
+
         saveCart();
     };
 
@@ -297,14 +300,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // BÚSQUEDA DE PRODUCTOS
     searchInput?.addEventListener("input", function () {
         const texto = this.value.trim();
-        if (texto.length < 1) { searchResults?.classList.add("hidden"); searchBody.innerHTML = ""; return; }
+        if (texto.length < 1) {
+            searchResults?.classList.add("hidden");
+            searchBody.innerHTML = "";
+            return;
+        }
 
         fetch(`pages/nueva_venta.php?buscar_producto=${encodeURIComponent(texto)}`)
             .then(res => res.json())
             .then(data => {
                 searchBody.innerHTML = "";
                 if (!data || data.length === 0) {
-                    searchBody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
+                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
                     searchResults?.classList.remove("hidden");
                     return;
                 }
@@ -313,20 +320,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     const tr = document.createElement("tr");
                     tr.className = "row-hover cursor-pointer";
                     tr.innerHTML = `
-                        <td class="py-2 px-3">${prod.cod_barras}</td>
-                        <td class="py-2 px-3">${prod.nom_producto}</td>
-                        <td class="py-2 px-3 text-center">$${parseFloat(prod.precio).toFixed(2)}</td>
-                        <td class="py-2 px-3 text-center">${prod.categoria ?? ""}</td>
-                        <td class="py-2 px-3 text-center">${prod.stock ?? 0}</td>
-                    `;
+                    <td class="py-2 px-3">${prod.cod_barras}</td>
+                    <td class="py-2 px-3">${prod.nom_producto}</td>
+                    <td class="py-2 px-3 text-center">${prod.talla} / ${prod.color}</td>
+                    <td class="py-2 px-3 text-center">$${parseFloat(prod.precio).toFixed(2)}</td>
+                    <td class="py-2 px-3 text-center">${prod.categoria ?? ''}</td>
+                    <td class="py-2 px-3 text-center">${prod.stock}</td>
+                `;
+
+                    // Agregar al carrito la variante específica
                     tr.addEventListener("click", () => addToCart({
                         cod_barras: prod.cod_barras,
                         nom_producto: prod.nom_producto,
                         precio: parseFloat(prod.precio),
-                        talla: prod.talla ?? '',
-                        color: prod.color ?? '',
+                        talla: prod.talla,
+                        color: prod.color,
                         cantidad: 1,
-                        imagen: prod.imagen ?? null
+                        imagen: prod.imagen
                     }));
 
                     searchBody.appendChild(tr);
@@ -336,5 +346,6 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(err => console.error("Error en búsqueda:", err));
     });
+
 
 });

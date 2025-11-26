@@ -88,6 +88,33 @@ $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Agrupar productos con variantes
+// Traer productos con variantes
+$sql = "SELECT 
+            p.cod_barras AS producto_cod_barras,
+            p.nom_producto AS producto_nombre,
+            p.descripcion,
+            p.imagen AS producto_imagen,
+            p.talla AS producto_talla,
+            p.color AS producto_color,
+            p.precio AS producto_precio,
+            p.cantidad AS producto_cantidad,
+            c.nombre AS categoria,
+            v.id_variante AS id_variante,
+            v.cod_barras AS variante_cod_barras,
+            v.talla AS variante_talla,
+            v.color AS variante_color,
+            v.imagen AS variante_imagen,
+            v.precio AS variante_precio,
+            v.cantidad AS variante_cantidad
+        FROM productos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
+        ORDER BY p.nom_producto ASC";
+
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar productos con variantes
 $productos = [];
 foreach ($rows as $row) {
     $codigo = $row['producto_cod_barras'];
@@ -117,6 +144,7 @@ foreach ($rows as $row) {
         ];
     }
 }
+
 
 // Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
@@ -200,6 +228,7 @@ function normalizeCategory($name) {
                     <tr>
                         <th class="py-2 px-3 text-left">Código</th>
                         <th class="py-2 px-3 text-left">Descripción</th>
+                        <th class="py-2 px-3 text-left">Talla / Color</th>
                         <th class="py-2 px-3 text-center">Precio</th>
                         <th class="py-2 px-3 text-center">Depto</th>
                         <th class="py-2 px-3 text-center">Stock</th>
@@ -252,19 +281,19 @@ function normalizeCategory($name) {
         <h2 class="text-xl font-bold text-gray-700 mb-6">Opciones</h2>
 
         <!-- CLIENTE -->
-        <button id="cliente-btn" 
+        <button id="client-btn" 
             class="w-full py-3 mb-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-blue-700 transition">
             Cliente
         </button>
 
         <!-- DESCUENTO -->
-        <button id="descuento-btn" 
+        <button id="discount-btn" 
             class="w-full py-3 mb-3 bg-yellow-500 text-white text-lg font-semibold rounded-lg shadow hover:bg-yellow-600 transition">
             Descuento
         </button>
 
         <!-- PAGO -->
-        <button id="pago-btn" 
+        <button id="pay-btn" 
             class="w-full py-3 mb-6 bg-green-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-green-700 transition">
             Pagar
         </button>
@@ -273,17 +302,17 @@ function normalizeCategory($name) {
         <div class="mt-auto border-t pt-6">
             <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
                 <span>Subtotal:</span>
-                <span id="subtotal-text">$0.00</span>
+                <span id="subtotal">$0.00</span>
             </div>
 
             <div class="flex justify-between text-lg font-semibold text-gray-700 mb-2">
                 <span>Descuento:</span>
-                <span id="descuento-text">$0.00</span>
+                <span id="discount">$0.00</span>
             </div>
 
             <div class="flex justify-between text-4xl font-extrabold text-blue-600 mt-4">
                 <span>Total:</span>
-                <span id="total-text">$0.00</span>
+                <span id="total">$0.00</span>
             </div>
         </div>
 
@@ -295,6 +324,10 @@ function normalizeCategory($name) {
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
+<?php
+// Importar los modales de ventas
+require_once __DIR__ . "/../scripts/modales_venta.php";
+?>
 
 
 </body>
