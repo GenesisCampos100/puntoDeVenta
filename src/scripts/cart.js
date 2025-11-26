@@ -1,374 +1,340 @@
-// cart.js - manejo del carrito y UI lateral (con variantes y modal clientes integrados)
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-const STORAGE_KEY = 'cart';
-const CLIENT_KEY = 'selectedClient';
+    // CONSTANTES / STORAGE KEYS
+    const STORAGE_KEY = "cart";
+    const CLIENT_KEY = "selectedClient";
 
-// parsear carrito seguro
-let cart = [];
-try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ cart = []; localStorage.removeItem(STORAGE_KEY); }
-
-let globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
-
-// elementos UI
-const cartContainer = document.getElementById("cart-items");
-const subtotalEl = document.getElementById("subtotal");
-const discountEl = document.getElementById("discount");
-const totalEl = document.getElementById("total");
-const clearCartBtn = document.getElementById("clear-cart");
-const payBtn = document.getElementById("pay-btn");
-
-let selectedClient = null;
-try { selectedClient = JSON.parse(localStorage.getItem(CLIENT_KEY)) || null; } catch(e){ selectedClient = null; }
-
-// --------------------
-// utilidades
-// --------------------
-function saveCart() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-    updateCart();
-}
-
-function getItemDiscountAmount(item) {
-    if (!item.discount) return 0;
-    if (typeof item.discount === "object") {
-        return item.discount.type === "percent"
-            ? item.price * item.quantity * (item.discount.value / 100)
-            : Number(item.discount.value) || 0;
-    }
-    return Number(item.discount) || 0;
-}
-
-function recalcTotals() {
-    let subtotal = 0, individualDiscounts = 0;
-    cart.forEach(item => {
-        subtotal += (parseFloat(item.price)||0) * (parseInt(item.quantity)||0);
-        individualDiscounts += getItemDiscountAmount(item);
-    });
-    const subtotalAfterIndividual = subtotal - individualDiscounts;
-    const globalType = localStorage.getItem("globalDiscountType") || "percent";
-    let globalDiscountAmount = (globalType === "percent") ? subtotalAfterIndividual * (globalDiscount/100) : globalDiscount;
-    const totalDiscount = individualDiscounts + globalDiscountAmount;
-    const total = subtotal - totalDiscount;
-
-    if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-    if (discountEl) discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
-    if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
-}
-
-// --------------------
-// render carrito
-// --------------------
-function updateCart() {
-    if (!cartContainer) return;
-    cartContainer.innerHTML = '';
-
-    const clienteInfo = document.getElementById('cliente_info');
-    const clienteNombreEl = document.getElementById('cliente_nombre');
-    const clienteIdInput = document.getElementById('cliente_id');
-    const hiddenIdClienteForm = document.getElementById('id_cliente');
-
-    if (selectedClient) {
-        clienteInfo?.classList.remove('hidden');
-        if (clienteNombreEl) clienteNombreEl.textContent = selectedClient.nombre;
-        if (clienteIdInput) clienteIdInput.value = selectedClient.id;
-        if (hiddenIdClienteForm) hiddenIdClienteForm.value = selectedClient.id;
-    } else {
-        clienteInfo?.classList.add('hidden');
-        if (clienteNombreEl) clienteNombreEl.textContent = 'No hay cliente seleccionado';
-        if (clienteIdInput) clienteIdInput.value = '';
-        if (hiddenIdClienteForm) hiddenIdClienteForm.value = '';
+    // CARGAR CARRITO DESDE LOCALSTORAGE
+    let cart = [];
+    try {
+        cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch (e) {
+        cart = [];
+        localStorage.removeItem(STORAGE_KEY);
     }
 
-    if (!cart.length) {
-        cartContainer.innerHTML = `<div class="text-center text-gray-500 py-10"><p class="text-lg font-medium">🛒 Tu carrito está vacío</p><p class="text-sm mt-2">Agrega productos desde el catálogo.</p></div>`;
-        recalcTotals();
-        return;
+    let globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
+
+    // ELEMENTOS DEL DOM
+    const subtotalEl = document.getElementById("subtotal");
+    const discountEl = document.getElementById("discount");
+    const totalEl = document.getElementById("total");
+    const clearCartBtn = document.getElementById("clear-cart");
+    const payBtn = document.getElementById("pay-btn");
+    const searchResults = document.getElementById("search-results");
+    const searchBody = document.getElementById("search-body");
+    const cartRows = document.getElementById("cart-rows");
+
+    let selectedClient = null;
+    try {
+        selectedClient = JSON.parse(localStorage.getItem(CLIENT_KEY)) || null;
+    } catch (e) {
+        selectedClient = null;
     }
 
-cart.forEach((item, index) => {
-    const itemDiscount = getItemDiscountAmount(item);
-    const itemTotal = (parseFloat(item.price)||0) * (parseInt(item.quantity)||0) - itemDiscount;
+    // FUNCIONES UTILITARIAS
+    function saveCart() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+        updateCart();
+    }
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'relative flex items-start justify-between bg-white shadow-sm hover:shadow-lg rounded-2xl p-3 mb-3 w-full max-w-[450px] transition-shadow duration-200';
-    wrapper.innerHTML = `
-    ${itemDiscount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow">-$${itemDiscount.toFixed(2)}</span>` : ''}
-    <div class="flex items-start gap-3 w-full">
-        <img src="${item.img}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover shadow-sm flex-shrink-0">
-        <div class="flex flex-col w-full min-w-0">
-            <div class="flex justify-between items-start">
-                <p class="font-semibold text-gray-800 text-base line-clamp-2 flex-1 min-w-0">${item.name}</p>
-                <div class="flex gap-2 mt-1 flex-shrink-0">
-                    <!-- Botón Descuento más grande -->
-                    <button class="discount-btn p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition" title="Descuento">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8"/>
-                        </svg>
-                    </button>
-                    <!-- Botón Eliminar más grande -->
-                    <button class="remove-btn p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition" title="Eliminar">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <p class="text-sm text-gray-500 mt-1 truncate">Talla: <span class="font-medium">${item.size}</span>, Color: <span class="font-medium">${item.color}</span></p>
-            <div class="flex w-full mt-2 items-center justify-between">
-                <div class="flex items-center gap-1">
-                    <button class="decrease-btn bg-gray-200 px-2 py-0.5 rounded-lg hover:bg-gray-300 transition">−</button>
-                    <input type="number" class="quantity-input font-medium w-14 text-center border rounded px-2 py-1" min="1" value="${item.quantity}">
-                    <button class="increase-btn bg-gray-200 px-2 py-0.5 rounded-lg hover:bg-gray-300 transition">+</button>
-                </div>
-                <div class="flex justify-end items-end w-1/2 mt-2">
-                    <p class="font-bold text-lg md:text-xl text-gray-700">$${itemTotal.toFixed(2)}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
-
-    // Eventos
-    wrapper.querySelector('.increase-btn').addEventListener('click', () => { item.quantity++; saveCart(); });
-    wrapper.querySelector('.decrease-btn').addEventListener('click', () => { if(item.quantity>1)item.quantity--; saveCart(); });
-    const qtyInput = wrapper.querySelector('.quantity-input');
-    qtyInput.addEventListener('change', () => { item.quantity = Math.max(1, parseInt(qtyInput.value)||1); saveCart(); });
-    wrapper.querySelector('.remove-btn').addEventListener('click', () => { cart.splice(index,1); saveCart(); });
-    wrapper.querySelector('.discount-btn').addEventListener('click', () => { window.openProductDiscountModal(index, item.discount || 0); });
-
-    cartContainer.appendChild(wrapper);
-});
-
-
-
-    recalcTotals();
-}
-
-// --------------------
-// agregar desde grid
-// --------------------
-document.querySelectorAll('.add-to-cart').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const article = btn.closest('.producto');
-        const code = article.dataset.code;
-        const name = article.dataset.name;
-        const price = parseFloat(article.dataset.price);
-        const img = article.dataset.img;
-        const category = article.dataset.category;
-        const sizeSelect = article.querySelector('.variant-size');
-        const colorSelect = article.querySelector('.variant-color');
-        const size = sizeSelect ? sizeSelect.value : 'Única';
-        const color = colorSelect ? colorSelect.value : 'Sin color';
-        const variants = article.dataset.variants ? JSON.parse(article.dataset.variants) : [];
-
-        const product = { cod_barras: code, code, name, price, img, category, size, color, variants, quantity:1, discount:0 };
-
-        const existingIndex = cart.findIndex(i=>i.cod_barras===product.cod_barras && i.size===size && i.color===color);
-        if(existingIndex>=0) cart[existingIndex].quantity +=1;
-        else cart.push(product);
-        saveCart();
-    });
-});
-
-// --------------------
-// VARIANTES: actualizar stock según selección (moved here)
-// --------------------
-function attachVariantHandlers() {
-    document.querySelectorAll('.producto').forEach(card => {
-        // evitar reinyectar listeners si ya existen
-        if (card.dataset._variantsAttached === '1') return;
-
-        let variants = [];
-        try { variants = JSON.parse(card.dataset.variants || '[]'); } catch(e) { variants = []; }
-
-        const sizeSelect = card.querySelector('.variant-size');
-        const colorSelect = card.querySelector('.variant-color');
-        const stockText = card.querySelector('.stock-text');
-
-        function updateStock() {
-            if (!variants.length) {
-                // si no hay variantes, mostrar stock del producto si existe el atributo data-stock
-                if (stockText) {
-                    const baseStock = card.dataset.stock ?? '';
-                    stockText.textContent = baseStock !== '' ? `Stock: ${baseStock}` : '';
-                }
-                return;
-            }
-            const talla = sizeSelect ? sizeSelect.value : '';
-            const color = colorSelect ? colorSelect.value : '';
-            const variante = variants.find(v => {
-                const vt = (v.talla || '').toString();
-                const vc = (v.color || '').toString();
-                return vt === (talla || '') && vc === (color || '');
-            });
-            if (stockText) stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
+    function getItemDiscountAmount(item) {
+        if (!item.discount) return 0;
+        if (typeof item.discount === "object") {
+            return item.discount.type === "percent"
+                ? item.price * item.quantity * (item.discount.value / 100)
+                : Number(item.discount.value) || 0;
         }
+        return Number(item.discount) || 0;
+    }
 
-        if (sizeSelect) sizeSelect.addEventListener('change', updateStock);
-        if (colorSelect) colorSelect.addEventListener('change', updateStock);
+    // CALCULAR TOTALES
+    function recalcTotals() {
+        let subtotal = 0;
+        let individualDiscounts = 0;
 
-        // marcar para no volver a adjuntar
-        card.dataset._variantsAttached = '1';
-        // actualizar al cargar
-        updateStock();
+        cart.forEach(item => {
+            subtotal += parseFloat(item.price) * item.quantity;
+            individualDiscounts += getItemDiscountAmount(item);
+        });
+
+        const subtotalAfterIndividual = subtotal - individualDiscounts;
+        const globalType = localStorage.getItem("globalDiscountType") || "percent";
+        const globalDiscountAmount =
+            globalType === "percent"
+                ? subtotalAfterIndividual * (globalDiscount / 100)
+                : globalDiscount;
+
+        const totalDiscount = individualDiscounts + globalDiscountAmount;
+        const total = subtotal - totalDiscount;
+
+        if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+        if (discountEl) discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
+        if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
+    }
+
+    // RENDER DEL CARRITO (TABLA POS)
+    function renderCart() {
+        if (!cartRows) return;
+        cartRows.innerHTML = "";
+
+        cart.forEach((item, index) => {
+            const row = document.createElement("tr");
+            row.className = "border-b";
+
+            const tdCodigo = document.createElement("td");
+            tdCodigo.className = "py-2 px-3";
+            tdCodigo.textContent = item.cod_barras;
+
+            const tdProducto = document.createElement("td");
+            tdProducto.className = "py-2 px-3";
+            tdProducto.textContent = item.name;
+
+            const tdVariant = document.createElement("td");
+            tdVariant.className = "py-2 px-3 text-center";
+            tdVariant.textContent = `${item.talla ?? ''} / ${item.color ?? ''}`;
+            row.appendChild(tdVariant);
+
+
+            const tdPrecio = document.createElement("td");
+            tdPrecio.className = "py-2 px-3 text-center";
+            tdPrecio.textContent = "$" + parseFloat(item.price).toFixed(2);
+
+            const tdQty = document.createElement("td");
+            tdQty.className = "py-2 px-3 text-center";
+            tdQty.innerHTML = `
+            <div class="flex items-center justify-center gap-1">
+                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="decreaseQuantity(${index})">-</button>
+                <span class="px-2 font-semibold">${item.quantity}</span>
+                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="increaseQuantity(${index})">+</button>
+            </div>
+        `;
+
+            const itemTotal = item.price * item.quantity - getItemDiscountAmount(item);
+            const tdTotal = document.createElement("td");
+            tdTotal.className = "py-2 px-3 text-center font-bold";
+            tdTotal.textContent = "$" + itemTotal.toFixed(2);
+
+            const tdDesc = document.createElement("td");
+            tdDesc.className = "py-2 px-3 text-center";
+            tdDesc.innerHTML = `<button class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs" onclick="editItemDiscount(${index})">%</button>`;
+
+            const tdDel = document.createElement("td");
+            tdDel.className = "py-2 px-3 text-center";
+            tdDel.innerHTML = `<button class="text-red-600 text-lg" onclick="removeItem(${index})">×</button>`;
+
+            row.append(tdCodigo, tdProducto, tdVariant, tdPrecio, tdQty, tdTotal, tdDesc, tdDel);
+            cartRows.appendChild(row);
+        });
+
+        recalcTotals();
+    }
+
+
+    // UPDATE GENERAL
+    function updateTotals() { recalcTotals(); }
+    function updateCart() { renderCart(); }
+
+    // FUNCIONES PARA BOTONES (+ / - / X)
+    window.increaseQuantity = function (index) { cart[index].quantity++; saveCart(); };
+    window.decreaseQuantity = function (index) { if (cart[index].quantity > 1) cart[index].quantity--; saveCart(); };
+    window.removeItem = function (index) { cart.splice(index, 1); saveCart(); };
+    window.editItemDiscount = function (index) {
+        const modal = document.getElementById("discount-modal");
+        if (!modal) return;
+        modal.dataset.index = index;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    };
+
+    // CLIENTE: CAMBIAR/ELIMINAR Y MODAL CLIENTE
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'eliminarCliente') {
+            localStorage.removeItem(CLIENT_KEY);
+            selectedClient = null;
+            updateCart();
+        }
+        if (e.target && e.target.id === 'cambiarCliente') {
+            const modal = document.getElementById('modalClientes');
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        }
     });
-}
 
-// ejecutar attach al inicio y después de posibles cambios dinámicos
-attachVariantHandlers();
-
-// --------------------
-// cliente: cambiar/eliminar y modal cliente (moved cliente modal handlers here)
-// --------------------
-document.addEventListener('click', (e) => {
-  if (e.target && e.target.id === 'eliminarCliente') {
-    localStorage.removeItem(CLIENT_KEY);
-    selectedClient = null;
-    updateCart();
-  }
-  if (e.target && e.target.id === 'cambiarCliente') {
-    const modal = document.getElementById('modalClientes');
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-  }
-});
-
-// abrir modal cliente desde botón del header/carrito (si existe botón con id client-btn)
-const clientBtn = document.getElementById('client-btn');
-if (clientBtn) {
-    clientBtn.addEventListener('click', () => {
+    const clientBtn = document.getElementById('client-btn');
+    if (clientBtn) clientBtn.addEventListener('click', () => {
         const modal = document.getElementById('modalClientes');
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     });
-}
 
-// cerrar modal cliente
-const cerrarModalBtn = document.getElementById('cerrar-modal-cliente');
-if (cerrarModalBtn) {
-    cerrarModalBtn.addEventListener('click', () => {
+    const cerrarModalBtn = document.getElementById('cerrar-modal-cliente');
+    if (cerrarModalBtn) cerrarModalBtn.addEventListener('click', () => {
         const modal = document.getElementById('modalClientes');
         if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     });
-}
 
-// búsqueda dentro del modal (filtro de filas) - vanilla JS
-const buscarClienteInput = document.getElementById('buscarCliente');
-if (buscarClienteInput) {
-    buscarClienteInput.addEventListener('input', () => {
+    const buscarClienteInput = document.getElementById('buscarCliente');
+    if (buscarClienteInput) buscarClienteInput.addEventListener('input', () => {
         const q = buscarClienteInput.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('#tablaClientes tbody tr, #tablaClientes tr');
-        rows.forEach(row => {
-            const text = (row.textContent || '').toLowerCase();
-            row.style.display = text.includes(q) ? '' : 'none';
+        document.querySelectorAll('#tablaClientes tbody tr, #tablaClientes tr').forEach(row => {
+            row.style.display = (row.textContent || '').toLowerCase().includes(q) ? '' : 'none';
         });
     });
-}
 
-// seleccionar cliente desde la tabla (delegación)
-document.addEventListener('click', (e) => {
-    const sel = e.target.closest && e.target.closest('.seleccionarCliente');
-    if (sel) {
-        const id = sel.dataset.id ?? sel.getAttribute('data-id');
-        const nombre = sel.dataset.nombre ?? sel.getAttribute('data-nombre');
-        const telefono = sel.dataset.telefono ?? sel.getAttribute('data-telefono') ?? '';
-        if (id && nombre) {
-            window.guardarCliente(id, nombre, telefono);
+    document.addEventListener('click', (e) => {
+        const sel = e.target.closest && e.target.closest('.seleccionarCliente');
+        if (sel) {
+            const id = sel.dataset.id ?? sel.getAttribute('data-id');
+            const nombre = sel.dataset.nombre ?? sel.getAttribute('data-nombre');
+            const telefono = sel.dataset.telefono ?? sel.getAttribute('data-telefono') ?? '';
+            if (id && nombre) window.guardarCliente(id, nombre, telefono);
+            const modal = document.getElementById('modalClientes');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
-        const modal = document.getElementById('modalClientes');
-        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-    }
-});
+    });
 
-// exponer guardarCliente globalmente
-window.guardarCliente = function(id, nombre, telefono = '') {
-  selectedClient = { id: String(id), nombre: String(nombre), telefono: telefono };
-  localStorage.setItem(CLIENT_KEY, JSON.stringify(selectedClient));
-  updateCart();
-};
+    window.guardarCliente = function (id, nombre, telefono = '') {
+        selectedClient = { id: String(id), nombre: String(nombre), telefono };
+        localStorage.setItem(CLIENT_KEY, JSON.stringify(selectedClient));
+        updateCart();
+    };
 
-// recibir descuentos desde modal.js
-document.addEventListener('applyProductDiscount', e => {
-  const { index, value, type } = e.detail;
-  if (cart[index]) {
-    cart[index].discount = { value, type };
-    saveCart();
-  }
-});
-document.addEventListener('applyGlobalDiscount', e => {
-  globalDiscount = e.detail.value || 0;
-  localStorage.setItem('globalDiscount', globalDiscount);
-  localStorage.setItem('globalDiscountType', e.detail.type || 'percent');
-  recalcTotals();
-});
+    // RECIBIR DESCUENTOS DESDE modal.js
+    document.addEventListener('applyProductDiscount', e => {
+        const { index, value, type } = e.detail;
+        if (cart[index]) { cart[index].discount = { value, type }; saveCart(); }
+    });
+    document.addEventListener('applyGlobalDiscount', e => {
+        globalDiscount = e.detail.value || 0;
+        localStorage.setItem('globalDiscount', globalDiscount);
+        localStorage.setItem('globalDiscountType', e.detail.type || 'percent');
+        recalcTotals();
+    });
 
+    window.addToCart = function (prod) {
+        let existente = cart.find(item =>
+            item.cod_barras == prod.cod_barras &&
+            item.talla == (prod.talla ?? '') &&
+            item.color == (prod.color ?? '')
+        );
 
-// --------------------
-// limpiar carrito
-// --------------------
-clearCartBtn?.addEventListener('click', () => { cart=[]; localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('globalDiscount'); saveCart(); });
+        if (existente) existente.quantity += 1;
+        else cart.push({
+            cod_barras: prod.cod_barras,
+            name: prod.nom_producto,
+            price: parseFloat(prod.precio),
+            quantity: 1,
+            variantName: `${prod.marca || ""} ${prod.categoria || ""}`,
+            imagen: prod.imagen || null,
+            discount: null
+        });
+        saveCart();
+    };
 
-// --------------------
-// abrir modal de pago
-// --------------------
-payBtn?.addEventListener("click", () => {
-    const paymentModal = document.getElementById('payment-modal');
-    // setear inputs del modal
-    document.getElementById("cart-data-input").value = JSON.stringify(cart);
-    document.getElementById("cliente-input").value = selectedClient?.id||"";
-    document.getElementById("descuento-general-input").value = globalDiscount;
-    document.getElementById("descuento-general-type").value = localStorage.getItem("globalDiscountType") || "percent";
-    // calcular subtotal y total
-    let subtotal = 0, individualDiscounts=0;
-    cart.forEach(item=>{subtotal+=item.price*item.quantity; individualDiscounts+=getItemDiscountAmount(item);});
-    const subtotalAfterIndividual = subtotal - individualDiscounts;
-    const globalType = localStorage.getItem("globalDiscountType")||"percent";
-    let globalDiscountAmount = globalType==="percent"? subtotalAfterIndividual*(globalDiscount/100):globalDiscount;
-    const total = subtotal - (individualDiscounts+globalDiscountAmount);
-    document.getElementById("subtotal-input").value = subtotal.toFixed(2);
-    document.getElementById("total-input").value = total.toFixed(2);
+    clearCartBtn?.addEventListener('click', () => {
+        cart = [];
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('globalDiscount');
+        saveCart();
+    });
 
-    paymentModal?.classList.remove('hidden');
-});
+    // ABRIR MODAL DE PAGO
+    payBtn?.addEventListener("click", () => {
+        const paymentModal = document.getElementById('payment-modal');
+        document.getElementById("cart-data-input").value = JSON.stringify(cart);
+        document.getElementById("cliente-input").value = selectedClient?.id || "";
+        document.getElementById("descuento-general-input").value = globalDiscount;
+        document.getElementById("descuento-general-type").value = localStorage.getItem("globalDiscountType") || "percent";
 
-// --------------------
-// recibir venta desde modal.js
-// --------------------
-document.addEventListener('processPayment', async (e)=>{
-    const { metodo, referencia, monto } = e.detail;
-    const formData = new FormData();
-    formData.append('cart_data', JSON.stringify(cart));
-    formData.append('tipo_pago', metodo);
-    formData.append('id_cliente', selectedClient?.id||'');
-    formData.append('descuento_general', document.getElementById("descuento-general-input").value);
-    formData.append('tipo_descuento_general', document.getElementById("descuento-general-type").value);
-    formData.append('subtotal', document.getElementById("subtotal-input").value);
-    formData.append('total', document.getElementById("total-input").value);
-    formData.append('monto', monto||document.getElementById("total-input").value);
-    formData.append('referencia', referencia||"");
+        let subtotal = 0, individualDiscounts = 0;
+        cart.forEach(item => { subtotal += item.price * item.quantity; individualDiscounts += getItemDiscountAmount(item); });
+        const subtotalAfterIndividual = subtotal - individualDiscounts;
+        const globalType = localStorage.getItem("globalDiscountType") || "percent";
+        let globalDiscountAmount = globalType === "percent" ? subtotalAfterIndividual * (globalDiscount / 100) : globalDiscount;
+        const total = subtotal - (individualDiscounts + globalDiscountAmount);
+        document.getElementById("subtotal-input").value = subtotal.toFixed(2);
+        document.getElementById("total-input").value = total.toFixed(2);
 
-    try {
-        const r = await fetch('scripts/procesar_venta.php', { method:'POST', body: formData });
-        const data = await r.json();
-        if(data.status==='success'){
-            alert(`✅ Venta registrada. Total: $${data.total}`);
-            cart=[]; localStorage.removeItem('cart'); localStorage.removeItem('globalDiscount'); updateCart();
-            document.getElementById('payment-modal')?.classList.add('hidden');
-        } else {
-            alert(`❌ ${data.message||'Error al registrar la venta'}`);
-            console.error('Error procesar_venta:', data);
+        paymentModal?.classList.remove('hidden');
+    });
+
+    document.addEventListener('processPayment', async (e) => {
+        const { metodo, referencia, monto } = e.detail;
+        const formData = new FormData();
+        formData.append('cart_data', JSON.stringify(cart));
+        formData.append('tipo_pago', metodo);
+        formData.append('id_cliente', selectedClient?.id || '');
+        formData.append('descuento_general', document.getElementById("descuento-general-input").value);
+        formData.append('tipo_descuento_general', document.getElementById("descuento-general-type").value);
+        formData.append('subtotal', document.getElementById("subtotal-input").value);
+        formData.append('total', document.getElementById("total-input").value);
+        formData.append('monto', monto || document.getElementById("total-input").value);
+        formData.append('referencia', referencia || "");
+
+        try {
+            const r = await fetch('scripts/procesar_venta.php', { method: 'POST', body: formData });
+            const data = await r.json();
+            if (data.status === 'success') {
+                alert(`✅ Venta registrada. Total: $${data.total}`);
+                cart = []; localStorage.removeItem('cart'); localStorage.removeItem('globalDiscount'); updateCart();
+                document.getElementById('payment-modal')?.classList.add('hidden');
+            } else alert(`❌ ${data.message || 'Error al registrar la venta'}`);
+        } catch (err) {
+            console.error('Error fetch procesar_venta:', err);
+            alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
         }
-    } catch(err){
-        console.error('Error fetch procesar_venta:', err);
-        alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
-    }
-});
+    });
 
-// cerrar modales con Escape (mejora)
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
-  }
-});
+    // CERRAR MODALES CON ESCAPE
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
+    });
 
-updateCart();
+    // INICIALIZAR
+    updateCart();
+
+    const searchInput = document.getElementById("search-input");
+
+    // BÚSQUEDA DE PRODUCTOS
+    searchInput?.addEventListener("input", function () {
+        const texto = this.value.trim();
+        if (texto.length < 1) { searchResults?.classList.add("hidden"); searchBody.innerHTML = ""; return; }
+
+        fetch(`pages/nueva_venta.php?buscar_producto=${encodeURIComponent(texto)}`)
+            .then(res => res.json())
+            .then(data => {
+                searchBody.innerHTML = "";
+                if (!data || data.length === 0) {
+                    searchBody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
+                    searchResults?.classList.remove("hidden");
+                    return;
+                }
+
+                data.forEach(prod => {
+                    const tr = document.createElement("tr");
+                    tr.className = "row-hover cursor-pointer";
+                    tr.innerHTML = `
+                        <td class="py-2 px-3">${prod.cod_barras}</td>
+                        <td class="py-2 px-3">${prod.nom_producto}</td>
+                        <td class="py-2 px-3 text-center">$${parseFloat(prod.precio).toFixed(2)}</td>
+                        <td class="py-2 px-3 text-center">${prod.categoria ?? ""}</td>
+                        <td class="py-2 px-3 text-center">${prod.stock ?? 0}</td>
+                    `;
+                    tr.addEventListener("click", () => addToCart({
+                        cod_barras: prod.cod_barras,
+                        nom_producto: prod.nom_producto,
+                        precio: parseFloat(prod.precio),
+                        talla: prod.talla ?? '',
+                        color: prod.color ?? '',
+                        cantidad: 1,
+                        imagen: prod.imagen ?? null
+                    }));
+
+                    searchBody.appendChild(tr);
+                });
+
+                searchResults?.classList.remove("hidden");
+            })
+            .catch(err => console.error("Error en búsqueda:", err));
+    });
+
 });

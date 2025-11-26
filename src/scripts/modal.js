@@ -21,7 +21,7 @@
       const value = parseFloat(discountInput.value) || 0;
       const type = discountType.value || 'percent';
       localStorage.setItem("globalDiscount", String(value));
-      localStorage.setItem("discountType", type);
+      localStorage.setItem("globalDiscountType", type);
       discountModal?.classList.add("hidden");
       document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
     });
@@ -108,18 +108,134 @@
     const paymentModal = document.getElementById('payment-modal');
     const cancelPayment = document.getElementById('cancel-payment');
     const paymentForm = document.getElementById('payment-form');
+    const confirmPayment = document.getElementById("confirm-payment");
+
+    // Inputs y alertas
+    const montoEfectivo = document.getElementById("monto-efectivo");
+    const referenciaTarjeta = document.getElementById("referencia-tarjeta");
+    const mixtoEfectivo = document.getElementById("mixto-efectivo");
+    const mixtoTarjeta = document.getElementById("mixto-tarjeta");
+    const mixtoReferencia = document.getElementById("mixto-referencia");
+    const alertaEfectivo = document.getElementById("alerta-efectivo");
+    const cambioEfectivo = document.getElementById("cambio-efectivo");
+    const alertaMixto = document.getElementById("alerta-mixto");
+    const cambioMixto = document.getElementById("cambio-mixto");
+
+    const paymentInputs = [
+      montoEfectivo,
+      referenciaTarjeta,
+      mixtoEfectivo,
+      mixtoTarjeta,
+      mixtoReferencia
+    ];
+
+    function getTotal() {
+    // Suponiendo que guardaste el total en localStorage
+    const total = parseFloat(localStorage.getItem("lastTotal")) || 0;
+    return total;
+}
+
+     function validarPago() {
+      const total = getTotal();
+      const metodo = document.querySelector("input.payment-method:checked")?.value?.toLowerCase();
+      if (!metodo) return;
+      if (!confirmPayment) return;
+
+      confirmPayment.disabled = true;
+
+      if (metodo === "efectivo") {
+    const monto = parseFloat(montoEfectivo.value) || 0;
+    if (metodo === "efectivo") {
+    const monto = parseFloat(montoEfectivo.value) || 0;
+    const total = getTotal();
+
+    if (monto < total) {
+        alertaEfectivo?.classList.remove("hidden");
+        cambioEfectivo.textContent = "0.00";
+        confirmPayment.disabled = true;
+    } else {
+        alertaEfectivo?.classList.add("hidden");
+        // calcular cambio correctamente
+        cambioEfectivo.textContent = (monto - total).toFixed(2);
+        confirmPayment.disabled = false;
+    }
+}
+
+
+
+      } else if (metodo === "tarjeta") {
+        confirmPayment.disabled = referenciaTarjeta.value.trim() === "";
+      } else if (metodo === "mixto") {
+        const efec = parseFloat(mixtoEfectivo.value) || 0;
+        const tarj = parseFloat(mixtoTarjeta.value) || 0;
+        const ref = mixtoReferencia.value.trim();
+        const suma = efec + tarj;
+
+        if (suma < total || ref === "") {
+          alertaMixto?.classList.remove("hidden");
+          if(alertaMixto) alertaMixto.textContent = `Faltan: $${(total - suma).toFixed(2)}`;
+          confirmPayment.disabled = true;
+        } else {
+          alertaMixto?.classList.add("hidden");
+          confirmPayment.disabled = false;
+        }
+      }
+    }
+
+    paymentInputs.forEach(input => input?.addEventListener("input", validarPago));
+    document.querySelectorAll(".payment-method").forEach(radio => radio.addEventListener("change", () => {
+      const metodo = (radio.value || '').toLowerCase();
+      updatePaymentFields(metodo);
+      const tipoPagoHidden = document.getElementById('tipo_pago');
+      if(tipoPagoHidden) tipoPagoHidden.value = metodo;
+    }));
 
     payBtn?.addEventListener('click', () => {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const client = JSON.parse(localStorage.getItem("selectedClient")) || null;
       const globalDiscount = parseFloat(localStorage.getItem("globalDiscount")) || 0;
-      const discountTypeVal = localStorage.getItem("discountType") || "percent";
+      const discountTypeVal = localStorage.getItem("globalDiscountType") || "percent";
+
       document.getElementById("cart-data-input")?.setAttribute("value", JSON.stringify(cart));
       document.getElementById("cliente-input")?.setAttribute("value", client?.id ?? "");
       document.getElementById("descuento-general-input")?.setAttribute("value", globalDiscount);
       document.getElementById("descuento-general-type")?.setAttribute("value", discountTypeVal);
+
       paymentModal?.classList.remove("hidden");
+
+      const selected = document.querySelector(".payment-method:checked");
+      const method = selected ? (selected.value || '').toLowerCase() : 'efectivo';
+      updatePaymentFields(method);
+      inicializarPago();
+
+      const subtotal = parseFloat(localStorage.getItem("lastTotal")) || 0;
+      const totalPagarEl = document.getElementById("total-pagar");
+      if(totalPagarEl) totalPagarEl.textContent = subtotal.toFixed(2);
     });
+
+    const closePayment = document.getElementById("close-payment");
+    closePayment?.addEventListener("click", () => paymentModal?.classList.add("hidden"));
+    cancelPayment?.addEventListener("click", () => paymentModal?.classList.add("hidden"));
+    paymentModal?.addEventListener('click', e => { if(e.target===paymentModal) paymentModal.classList.add("hidden"); });
+
+    function updatePaymentFields(method) {
+      document.getElementById("efectivo-section")?.classList.toggle("hidden", method !== "efectivo");
+      document.getElementById("tarjeta-section")?.classList.toggle("hidden", method !== "tarjeta");
+      document.getElementById("mixto-section")?.classList.toggle("hidden", method !== "mixto");
+
+      if (montoEfectivo) montoEfectivo.closest('div')?.classList.toggle('hidden', method !== 'efectivo');
+      if (referenciaTarjeta) referenciaTarjeta.closest('div')?.classList.toggle('hidden', method !== 'tarjeta');
+      if (mixtoEfectivo) mixtoEfectivo.closest('div')?.classList.toggle('hidden', method !== 'mixto');
+      if (mixtoTarjeta) mixtoTarjeta.closest('div')?.classList.toggle('hidden', method !== 'mixto');
+      if (mixtoReferencia) mixtoReferencia.closest('div')?.classList.toggle('hidden', method !== 'mixto');
+
+      if (alertaEfectivo) alertaEfectivo.classList.toggle('hidden', method !== 'efectivo');
+      if (cambioEfectivo) cambioEfectivo.closest('p')?.classList.toggle('hidden', method !== 'efectivo');
+      if (alertaMixto) alertaMixto.classList.toggle('hidden', method !== 'mixto');
+      if (cambioMixto) cambioMixto.closest('p')?.classList.toggle('hidden', true);
+
+      validarPago();
+    }
 
     paymentForm?.addEventListener("submit", async e => {
       e.preventDefault();
@@ -128,6 +244,11 @@
       confirmBtn.disabled = true;
 
       const formData = new FormData(paymentForm);
+      // si existe un hidden tipo_pago (opcional), actualizar su valor
+      const tipoPagoHidden = document.getElementById('tipo_pago');
+      const selectedMethod = (document.querySelector(".payment-method:checked")?.value || '').toLowerCase();
+      if (tipoPagoHidden) tipoPagoHidden.value = selectedMethod;
+
       try {
         const res = await fetch("scripts/procesar_venta.php", { method: "POST", body: formData, credentials: 'same-origin' });
         const text = await res.text();
@@ -153,21 +274,18 @@
             const cancelBtn = document.getElementById('cancel-ticket');
 
             if (ticketIframe) {
-              // asignar src al iframe (misma-origin) para que cargue ticket.php con sus estilos
               ticketIframe.src = ticketUrl;
             }
 
             ticketModal?.classList.remove('hidden');
             ticketModal?.classList.add('flex');
 
-            // Desactivar el botón de imprimir hasta que el iframe cargue
             if (printBtn) printBtn.disabled = true;
 
             const cleanup = () => {
               ticketModal?.classList.add('hidden');
               ticketModal?.classList.remove('flex');
               if (ticketIframe) {
-                // limpiar src y onload
                 ticketIframe.onload = null;
                 ticketIframe.src = '';
               }
@@ -177,13 +295,11 @@
             if (closeBtn) closeBtn.onclick = cleanup;
             if (cancelBtn) cancelBtn.onclick = cleanup;
 
-            // Cerrar al hacer click fuera del contenido
             const outsideHandler = (ev) => {
               if (ev.target === ticketModal) cleanup();
             };
             ticketModal?.addEventListener('click', outsideHandler);
 
-            // Habilitar impresión y ajustar altura del iframe cuando termine de cargar
             if (ticketIframe) {
               ticketIframe.onload = () => {
                 try {
@@ -192,7 +308,6 @@
                     doc.documentElement.scrollHeight || 0,
                     (doc.body && doc.body.scrollHeight) || 0
                   );
-                  // Ajustar la altura del iframe al contenido para que el scrollbar quede en el contenedor exterior
                   ticketIframe.style.height = contentHeight + 'px';
                 } catch (e) {
                   console.error('No se pudo ajustar la altura del iframe:', e);
@@ -233,103 +348,76 @@
       }
     });
 
-    cancelPayment?.addEventListener('click', () => paymentModal?.classList.add("hidden"));
-    paymentModal?.addEventListener('click', e => { 
-      if (e.target === paymentModal) paymentModal.classList.add("hidden"); 
+    /* ===========================
+         DETALLE DE VENTA
+    ============================ */
+    const ventaModal = document.getElementById('venta-modal');
+    const ventaDetalles = document.getElementById('venta-detalles');
+    const closeVentaModal = document.getElementById('close-venta-modal');
+
+    document.addEventListener('click', async (e) => {
+      if (e.target && e.target.classList.contains('ver-detalle-btn')) {
+        const idVenta = e.target.dataset.id;
+        if (!idVenta) return alert('❌ No se encontró ID de venta');
+
+        try {
+          const res = await fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`);
+          const data = await res.json();
+
+          if (!data.success) {
+            console.error(data);
+            return alert('❌ Error al obtener detalle de venta');
+          }
+
+          ventaDetalles.innerHTML = '';
+
+          data.productos.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'flex justify-between p-2 border-b';
+            div.innerHTML = `
+              <div>
+                <p class="font-semibold">${item.nombre}</p>
+                ${item.descuento > 0 ? `<p class="text-sm text-green-600">Descuento: ${parseFloat(item.descuento).toFixed(2)}</p>` : ''}
+              </div>
+              <div class="text-right">
+                <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
+              </div>
+            `;
+            ventaDetalles.appendChild(div);
+          });
+
+          const clienteDiv = document.createElement('p');
+          clienteDiv.className = 'font-medium mt-2';
+          clienteDiv.textContent = `Cliente: ${data.cliente || 'Sin cliente'}`;
+          ventaDetalles.appendChild(clienteDiv);
+
+          if (data.empleado) {
+            const empleadoDiv = document.createElement('p');
+            empleadoDiv.className = 'font-medium mt-1';
+            empleadoDiv.textContent = `Empleado: ${data.empleado}`;
+            ventaDetalles.appendChild(empleadoDiv);
+          }
+
+          if (data.total !== undefined) {
+            const totalDiv = document.createElement('p');
+            totalDiv.className = 'font-bold mt-2';
+            totalDiv.textContent = `Total: $${parseFloat(data.total).toFixed(2)}`;
+            ventaDetalles.appendChild(totalDiv);
+          }
+
+          ventaModal.classList.remove('hidden');
+
+        } catch (err) {
+          console.error(err);
+          alert('❌ Error al cargar el detalle de venta');
+        }
+      }
     });
 
-    document.querySelectorAll(".payment-method").forEach(radio => {
-      radio.addEventListener("change", () => {
-        const metodo = radio.value;
-        const efectivo = document.getElementById("efectivo-section");
-        const tarjeta = document.getElementById("tarjeta-section");
-        const mixto = document.getElementById("mixto-section");
-        efectivo?.classList.add("hidden");
-        tarjeta?.classList.add("hidden");
-        mixto?.classList.add("hidden");
-        if (metodo === "EFECTIVO") efectivo?.classList.remove("hidden");
-        if (metodo === "TARJETA") tarjeta?.classList.remove("hidden");
-        if (metodo === "MIXTO") mixto?.classList.remove("hidden");
-      });
+    closeVentaModal?.addEventListener('click', () => ventaModal?.classList.add("hidden"));
+    ventaModal?.addEventListener('click', e => { 
+      if (e.target === ventaModal) ventaModal.classList.add("hidden"); 
     });
-
-/* ===========================
-     DETALLE DE VENTA
-============================ */
-const ventaModal = document.getElementById('venta-modal');
-const ventaDetalles = document.getElementById('venta-detalles');
-const closeVentaModal = document.getElementById('close-venta-modal');
-
-document.addEventListener('click', async (e) => {
-  if (e.target && e.target.classList.contains('ver-detalle-btn')) {
-    const idVenta = e.target.dataset.id;
-    if (!idVenta) return alert('❌ No se encontró ID de venta');
-
-    try {
-      const res = await fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`);
-      const data = await res.json();
-
-      if (!data.success) {
-        console.error(data);
-        return alert('❌ Error al obtener detalle de venta');
-      }
-
-      // Limpiar contenido previo
-      ventaDetalles.innerHTML = '';
-
-      // Renderizar productos con descuento
-      data.productos.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'flex justify-between p-2 border-b';
-        div.innerHTML = `
-          <div>
-            <p class="font-semibold">${item.nombre}</p>
-            ${item.descuento > 0 ? `<p class="text-sm text-green-600">Descuento: ${parseFloat(item.descuento).toFixed(2)}</p>` : ''}
-          </div>
-          <div class="text-right">
-            <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
-          </div>
-        `;
-        ventaDetalles.appendChild(div);
-      });
-
-      // Mostrar cliente
-      const clienteDiv = document.createElement('p');
-      clienteDiv.className = 'font-medium mt-2';
-      clienteDiv.textContent = `Cliente: ${data.cliente || 'Sin cliente'}`;
-      ventaDetalles.appendChild(clienteDiv);
-
-      // Mostrar empleado
-      if (data.empleado) {
-        const empleadoDiv = document.createElement('p');
-        empleadoDiv.className = 'font-medium mt-1';
-        empleadoDiv.textContent = `Empleado: ${data.empleado}`;
-        ventaDetalles.appendChild(empleadoDiv);
-      }
-
-      // Mostrar total
-      if (data.total !== undefined) {
-        const totalDiv = document.createElement('p');
-        totalDiv.className = 'font-bold mt-2';
-        totalDiv.textContent = `Total: $${parseFloat(data.total).toFixed(2)}`;
-        ventaDetalles.appendChild(totalDiv);
-      }
-
-      // Abrir modal
-      ventaModal.classList.remove('hidden');
-
-    } catch (err) {
-      console.error(err);
-      alert('❌ Error al cargar el detalle de venta');
-    }
-  }
-});
-
-// Cerrar modal
-closeVentaModal?.addEventListener('click', () => ventaModal?.classList.add("hidden"));
-ventaModal?.addEventListener('click', e => { 
-  if (e.target === ventaModal) ventaModal.classList.add("hidden"); 
-});
 
   }); // fin DOMContentLoaded
 })(); // fin IIFE
