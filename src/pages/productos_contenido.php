@@ -610,352 +610,43 @@ foreach($productos as $p) {
         </div>
     </div>
 
-    <script>
-/* ==========================
-   CONFIGURACIÓN
-   ========================== */
-const API_URL = '../api/inventario_api.php';
-const $tablaCuerpo = $("#tabla-productos");
-const $barraBusqueda = $("#busqueda");
-const $selectCategoria = $("#categoria");
-const $selectOrden = $("#orden");
-const $tabsButtons = $("#tabs .tab-btn");
-const $clearSearchBtn = $("#clear-search");
-
-// Helper debounce
-function debounce(fn, wait=300){
-    let t;
-    return function(...args){
-        clearTimeout(t);
-        t = setTimeout(()=> fn.apply(this, args), wait);
-    };
-}
-
-/* ==========================
-   FUNCIÓN CENTRAL: Cargar productos vía AJAX
-   ========================== */
-function cargarProductos() {
-    const activeTab = $("#tabs .tab-activa").data("status") || "activo";
-    const params = {
-        action: "filtrar",
-        busqueda: $barraBusqueda.val() || '',
-        categoria: $selectCategoria.val() || '',
-        orden: $selectOrden.val() || 'nom_asc',
-        tab: activeTab
-    };
-
-    $.ajax({
-        url: API_URL,
-        method: "GET",
-        data: params,
-        // *** IMPORTANTE: Especificar que esperas JSON ***
-        dataType: "json", 
-        
-        beforeSend: function() {
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500"><?= __('loading_products') ?></td></tr>`);
-        },
-        success: function(res) {
-            // Verifica si el resultado es nulo o si la respuesta es HTML (no JSON)
-            if (typeof res !== 'object' || res === null) {
-                // Si la respuesta no es un objeto JSON, muestra el contenido crudo
-                const rawContent = (typeof res === 'string' && res.length > 0) ? res.substring(0, 100) + '...' : 'Respuesta no JSON o vacía';
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error de formato: ${rawContent}</td></tr>`);
-                console.error("Respuesta no es JSON:", res);
-                return;
-            }
-
-            if (res.success) {
-                $tablaCuerpo.html(res.html);
-                // Reactivar lucide
-                try { if (window.lucide) lucide.createIcons(); } catch(e){}
-            } else {
-                // Muestra el mensaje de error del servidor PHP
-                $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">Error del API: ${res.message || 'Error desconocido'}</td></tr>`);
-                console.error("Error lógico del API:", res.message, res);
-            }
-        },
-        error: function(xhr, status, err) {
-            console.error("AJAX error:", status, err, xhr.responseText);
-            // Muestra un mensaje detallado del error de comunicación
-            const httpStatus = xhr.status || 'N/A';
-            const errorMsg = `Error HTTP ${httpStatus}. Revisa la consola para el detalle del servidor.`;
-            $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-red-500">${errorMsg}</td></tr>`);
-        }
-    });
-}
-
-/* ==========================
-   Eventos: búsqueda, filtros y tabs
-   ========================== */
-$barraBusqueda.on("input", debounce(function(){
-    const val = $(this).val().trim();
-    if (val.length) $clearSearchBtn.show(); else $clearSearchBtn.hide();
-    cargarProductos();
-}, 350));
-
-$clearSearchBtn.on("click", function(){
-    $barraBusqueda.val('');
-    $(this).hide();
-    cargarProductos();
-});
-
-$selectCategoria.on("change", cargarProductos);
-$selectOrden.on("change", cargarProductos);
-
-// Tabs
-$tabsButtons.on("click", function(){
-    $tabsButtons.removeClass("tab-activa bg-blue-500 text-white");
-    $(this).addClass("tab-activa bg-blue-500 text-white");
-    cargarProductos();
-});
-
-/* ==========================
-   Botón agregar producto
-   ========================== */
-$("#btnAgregarProducto").on("click", function(){
-    // Si quieres abrir página de agregar:
-    window.location.href = "index.php?view=agregar_producto";
-});
-
-/* ==========================
-   Delegación de eventos para filas renderizadas por AJAX
-   ========================== */
-
-// 1. Ver detalles (Botón: .btn-detalle)
-// Llama al API para obtener detalles completos y historial, luego abre el modal.
-$(document).on("click", ".btn-detalle", function(e){
-    e.preventDefault();
-    const $btn = $(this);
-    const id = $btn.data('id');
-    const tipo = $btn.data('tipo'); // 'producto' o 'variante'
-    const nombre = $btn.data('nombre');
-    
-    // Llama a la nueva función que hace el AJAX y luego abre el modal.
-    fetchDetalle(id, tipo, nombre);
-});
-
-// Apertura directa del modal con data-details (botón: .open-modal-btn)
-$(document).on('click', '.open-modal-btn', function(e){
-    e.preventDefault();
-    const raw = $(this).attr('data-details');
-    try {
-        const obj = JSON.parse(raw);
-        openCustomModalFromJSON(obj);
-    } catch(err) {
-        console.error('JSON inválido en data-details:', err, raw);
-        Swal.fire('<?= __('error') ?>', '<?= __('cannot_read_product_info') ?>', 'error');
-    }
-});
-
-// 2. Ajuste de stock (Botón: .btn-ajuste)
-$(document).on("click", ".btn-ajuste", function(){
-    const $btn = $(this);
-    const id = $btn.data("id");
-    // Si no hay data-id, este botón usa onclick inline; evitar doble ejecución
-    if (typeof id === 'undefined') { return; }
-    const nombre = $btn.data("nombre");
-    const tipo = $btn.data("tipo"); // 'producto' o 'variante'
-    const isVar = tipo === 'variante';
-
-    // openMovimientoModal(cod_entidad, type, nombre, hasVariantes)
-    openMovimientoModal(id, tipo, nombre, isVar);
-});
-
-// 3. Toggle activo/inactivo (Botón: .btn-toggle)
-// CRÍTICO: Se cambia el selector de .toggle-active a .btn-toggle 
-// y el atributo de data-active a data-estado.
-$(document).on("click", ".btn-toggle", function(e){
-    e.preventDefault();
-    const $btn = $(this);
-    const id = $btn.data("id");
-    // Usamos 'data-estado' que generaste en el PHP (0 o 1)
-    const currentStatus = parseInt($btn.data("estado"), 10);
-    const newStatus = currentStatus === 1 ? 0 : 1;
-    const nombre = $btn.data("nombre");
-
-    const accion = newStatus === 1 ? 'activar' : 'descatalogar';
-
-    Swal.fire({
-        title: `¿Confirmar ${accion} "${nombre}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: '<?= __('yes_continue') ?>',
-        cancelButtonText: '<?= __('cancel') ?>'
-    }).then(result => {
-        if (!result.isConfirmed) return;
-        $.post(API_URL, { action: "toggle_activo", id: id, status: newStatus }, function(res){
-            if (res.success) {
-                Swal.fire('Hecho', res.message || 'Estado cambiado', 'success');
-                cargarProductos(); // Recargar para actualizar la tabla
-            } else {
-                Swal.fire('<?= __('error') ?>', res.message || '<?= __('could_not_change_status') ?>', 'error');
-            }
-        }, "json").fail(() => {
-            Swal.fire('<?= __('error') ?>', '<?= __('could_not_connect_server') ?>', 'error');
-        });
-    });
-});
-
-
-/* ==========================
-   Modal: abrir con data-details (robusto)
-   ========================== */
-function openCustomModalFromJSON(obj) {
-    if (!obj) return;
-    const isVariant = !!(obj.id_variante || obj.sku && (obj.talla !== undefined || obj.color !== undefined));
-
-    // Nombre del producto
-    const nombre = obj.nom_producto || obj.producto_nombre || 'Sin nombre';
-    $("#modal-nombre").text(nombre);
-    
-    // Traducir categoría con helper (asume que tr_category está disponible en servidor)
-    const categoria = obj.categoria || 'Sin categoría';
-    $("#modal-categoria").text(categoria);
-    
-    $("#modal-codigo").text(obj.cod_barras || obj.sku || 'N/A');
-
-    // Imagen
-    const imageKey = obj.imagen || obj.producto_imagen || null;
-    $("#modal-img").attr('src', imageKey ? ("uploads/" + imageKey) : "../uploads/sin-imagen.png");
-
-    // Precios y stock
-    const precio = (typeof obj.precio !== 'undefined' && obj.precio !== null) ? parseFloat(obj.precio).toFixed(2)
-                 : (typeof obj.precio_unitario !== 'undefined' ? parseFloat(obj.precio_unitario).toFixed(2) : '—');
-    const costo = (typeof obj.costo !== 'undefined' && obj.costo !== null) ? parseFloat(obj.costo).toFixed(2) : '—';
-    const stock = (typeof obj.cantidad !== 'undefined') ? obj.cantidad : '—';
-    const stockMin = (typeof obj.cantidad_min !== 'undefined') ? obj.cantidad_min : '—';
-
-    $("#modal-precio").text(precio);
-    $("#modal-costo").text(costo);
-    $("#modal-stock").text(stock);
-    $("#modal-stock-min").text(stockMin);
-
-    const $btnEliminar = $("#modal-btn-eliminar");
-    const $btnEditar = $("#modal-btn-editar");
-
-    if (isVariant) {
-        const idVar = obj.id_variante ?? obj.sku;
-        $btnEditar.attr('href', `index.php?view=editar_variante&id=${encodeURIComponent(idVar)}&prod_cod_barras=${encodeURIComponent(obj.id_producto ?? obj.cod_barras)}`);
-        $btnEliminar.attr('data-id', idVar).attr('data-type','variante');
-    } else {
-        const idProd = obj.id_producto ?? obj.producto_cod_barras ?? obj.cod_barras;
-        $btnEditar.attr('href', `index.php?view=editar_producto&id=${encodeURIComponent(idProd)}`);
-        $btnEliminar.attr('data-id', idProd).attr('data-type','producto');
-    }
-
-    $("#modal").fadeIn(120).removeClass('hidden').css('display','flex');
-}
-
-function cerrarModal(){
-    $("#modal").fadeOut(120, function(){ $(this).addClass('hidden'); });
-}
-
-
-/**
- * Llama al API para obtener detalles completos (incluyendo historial).
- * Una vez obtenidos, usa openCustomModalFromJSON(obj) para mostrarlo.
- */
-function fetchDetalle(id, tipo, nombre) {
-    // Puedes mostrar un spinner o mensaje de carga aquí
-    
-    $.ajax({
-        url: API_URL,
-        method: 'GET',
-        // Asegúrate de que tu inventario_api.php tiene el 'case fetch_historial'
-        data: { action: 'fetch_historial', id: id, type: tipo }, 
-        dataType: 'json',
-        success: function(res) {
-            if (res.success && res.data) {
-                // Combina los datos de respuesta con un fallback para el nombre
-                const fullObj = { 
-                    ...res.data, 
-                    historial: res.historial,
-                    // Asegura que la función modal tenga el nombre si el API falla en devolverlo
-                    nom_producto: res.data.nom_producto || nombre,
-                    producto_nombre: res.data.producto_nombre || nombre,
-                };
-                
-                // Abre el modal utilizando tu función existente
-                openCustomModalFromJSON(fullObj);
-
-                // NOTA: Si tu modal requiere que el historial se renderice por separado, 
-                // aquí deberás llamar a esa función (ej: renderizarHistorial(res.historial))
-                
-            } else {
-                Swal.fire('Error', res.message || `No se encontraron detalles para ${nombre}.`, 'error');
-            }
-        },
-        error: function() {
-            Swal.fire('Error', 'Falla de comunicación al obtener los detalles.', 'error');
-        }
-    });
-}
-
-/* ==========================
-   Confirmación eliminación
-   ========================== */
-let deleteId = null;
-let deleteType = null;
-
-function confirmarEliminar(element) {
-    deleteId = $(element).attr('data-id');
-    deleteType = $(element).attr('data-type');
-
-    if (!deleteId || !deleteType) return console.error("Falta id o tipo.");
-
-    $("#confirmMessage").text('<?= __('are_you_sure_delete_undone') ?>');
-    $("#confirmModal").removeClass('hidden').fadeIn(120).css('display','flex');
-}
-
-$("#cancelBtn").on("click", function(){
-    $("#confirmModal").fadeOut(120, function(){ $(this).addClass('hidden'); });
-});
-
-$("#confirmBtn").on("click", function(){
-    if (!deleteId || !deleteType) return;
-    // Redirige a tu script de eliminación (si tienes uno)
-    window.location.href = `pages/productos_eliminar.php?type=${encodeURIComponent(deleteType)}&id=${encodeURIComponent(deleteId)}`;
-});
-
-/* ==========================
-   Ajuste de stock (prompt simple con fetch)
-   ========================== */
-function openMovimientoModal(cod_entidad, type, nombre, hasVariantes){
-    Swal.fire({
-        title: `<?= __('adjust_stock_for') ?>: ${nombre}`,
-        input: 'number',
-        inputLabel: '<?= __('quantity_pos_neg') ?>',
-        inputPlaceholder: '<?= __('quantity_placeholder') ?>',
-        showCancelButton: true,
-        preConfirm: (value) => {
-            if (value === '' || value === null || isNaN(value)) {
-                Swal.showValidationMessage('<?= __('enter_valid_quantity') ?>');
-            } else return parseInt(value,10);
-        }
-    }).then(res => {
-        if (!res.isConfirmed) return;
-        const cantidad = parseInt(res.value,10);
-        const fd = new FormData();
-        fd.append('cod_entidad', cod_entidad);
-        fd.append('cantidad', cantidad);
-        fd.append('ajusteEsVariante', (type === 'variante') ? 'true' : 'false');
-
-        fetch(API_URL + '?action=ajustar_stock', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('<?= __('done') ?>', data.message || '<?= __('adjustment_registered') ?>', 'success');
-                    if (typeof data.nuevo_stock !== 'undefined') {
-                        const target = document.getElementById('stock-' + cod_entidad);
-                        if (target) {
-                            target.textContent = data.nuevo_stock + ' <?= __('units') ?>';
-                            const min = parseInt(target.dataset.min || -1,10);
-                            if (min >= 0 && data.nuevo_stock <= min) {
-                                target.classList.remove('bg-green-50','text-green-800');
-                                target.classList.add('bg-red-100','text-red-600');
-                            } else {
-                                target.classList.remove('bg-red-100','text-red-600');
-                                target.classList.add('bg-green-50','text-green-800');
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-slideUp delay-200 border border-gray-100">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Precio</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
+                    <?php 
+                        // Renderizado Inicial PHP
+                        if (!empty($productos)) {
+                            foreach ($productos as $producto) {
+                                // Ajuste de claves para compatibilidad con partial
+                                $producto['nombre_categoria'] = $producto['categoria'];
+                                
+                                include __DIR__ . '/../api/product_row.partial.php';
+                                
+                                if (($producto['tiene_variante'] > 0) && isset($variantesPorProducto[$producto['id_producto']])) {
+                                    echo '<tr id="variants-' . $producto['id_producto'] . '" class="hidden transition-all duration-300 ease-in-out">';
+                                    echo '<td colspan="5" class="p-0 border-t-0">';
+                                    echo '<div class="px-6 py-4 bg-gray-50/80 border-y border-gray-100 shadow-inner">';
+                                    echo '<table class="w-full">';
+                                    echo '<tbody class="divide-y divide-gray-200/50">';
+                                    foreach ($variantesPorProducto[$producto['id_producto']] as $var) {
+                                        $var['producto_nombre'] = $producto['nom_producto'];
+                                        $var['categoria'] = $producto['categoria'];
+                                        $var['id_producto'] = $producto['id_producto'];
+                                        include __DIR__ . '/../api/variant_row.partial.php';
+                                    }
+                                    echo '</tbody></table></div></td></tr>';
+                                }
                             }
                         }
                     }
@@ -980,6 +671,110 @@ $(document).on('click', '.toggle-variants', function(){
     }
 });
 
+<!-- Modal Detalles (Premium) -->
+<div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="absolute inset-0 modal-backdrop" onclick="cerrarModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-scaleIn">
+        
+        <!-- Header con gradiente -->
+        <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-6 h-6" style="color: #b4c24d;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Detalle del Producto
+            </h3>
+            <button onclick="cerrarModal()" class="text-white/70 hover:text-white text-2xl leading-none transition-colors">&times;</button>
+        </div>
+        
+        <!-- Modal Header Image -->
+        <div class="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 group overflow-hidden">
+            <img id="modal-img" src="" alt="Producto" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <span id="modal-categoria" class="inline-block px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-wider mb-3 border border-white/20"></span>
+                <h3 id="modal-nombre" class="text-2xl font-bold leading-tight"></h3>
+            </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Price Section -->
+            <div class="flex justify-between items-end border-b-2 border-gray-100 pb-6">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Precio de Venta</p>
+                    <p class="text-4xl font-bold tracking-tight" style="color: #b4c24d;">$<span id="modal-precio"></span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Costo</p>
+                    <p class="text-xl font-semibold text-gray-600">$<span id="modal-costo"></span></p>
+                </div>
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 rounded-xl border border-blue-200/50 hover:border-blue-300 transition-all">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5" style="color: #2d4353;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        </svg>
+                        <p class="text-xs text-gray-600 uppercase font-bold">Código / SKU</p>
+                    </div>
+                    <p id="modal-codigo" class="font-mono text-gray-900 font-bold text-sm truncate"></p>
+                </div>
+                <div class="bg-gradient-to-br from-pink-50 to-pink-100/50 p-5 rounded-xl border border-pink-200/50 hover:border-pink-300 transition-all">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5" style="color: #e15871;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <p class="text-xs text-gray-600 uppercase font-bold">Existencias</p>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="modal-stock" class="text-2xl font-bold text-gray-900"></span>
+                        <span class="text-xs text-gray-500 font-medium">Min: <span id="modal-stock-min"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Editar
+                </a>
+                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2" style="color: #e15871;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación Eliminación -->
+<div id="confirmModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all scale-100 animate-scaleIn text-center">
+        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-3">¿Estás seguro?</h3>
+        <p id="confirmMessage" class="text-gray-600 mb-8 leading-relaxed">Esta acción eliminará el producto permanentemente y no se puede deshacer.</p>
+        <div class="flex gap-3">
+            <button id="cancelBtn" class="flex-1 px-5 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">Cancelar</button>
+            <button id="confirmBtn" class="flex-1 px-5 py-3.5 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración Global para JS
+    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
+    console.log("API URL Configurada:", BASE_URL);
 </script>
-</body>
-</html>
+<script src="js/productos.js?v=<?= time() ?>"></script>

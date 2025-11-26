@@ -453,7 +453,7 @@
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Representante</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Compra</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Catálogo</th>
                             <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
@@ -503,12 +503,12 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
                                         <button
-                                            onclick="window.location.href='index.php?view=compra_proveedor=<?= urlencode($pr['numero']) ?>'"
+                                            onclick="window.location.href='index.php?view=catalogo_proveedor&proveedor=<?= urlencode($pr['numero']) ?>'"
                                             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-shadow"
                                             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 18px rgba(31, 64, 24, 0.12);">
-                                            <!-- Shopping bag icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M8 7V5a4 4 0 018 0v2"/></svg>
-                                            <span>Compra</span>
+                                            <!-- Catalog icon -->
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M7 7v10M12 7v10M17 7v10"/></svg>
+                                            <span>Catálogo</span>
                                         </button>
                                     </td>
                                     <td class="px-6 py-4 text-right">
