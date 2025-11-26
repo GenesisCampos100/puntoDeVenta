@@ -1,16 +1,17 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/translation.php";
 
     $estatus = 1;
     if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         try {
             /* --- Validación de campos obligatorios --- */
             $campos_obligatorios = [
-                'apellido_p' => 'Apellido Paterno',
-                'nombres' => 'Nombre(s)',
-                'correo' => 'Correo',
-                'telefono' => 'Teléfono',
-                'empresa' => 'Empresa'
+                'apellido_p' => __('last_name_p'),
+                'nombres' => __('names'),
+                'correo' => __('email'),
+                'telefono' => __('phone'),
+                'empresa' => __('company')
             ];
 
             foreach ($campos_obligatorios as $campo => $etiqueta) {
@@ -27,20 +28,20 @@
 
             $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
             if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno)) {
-                echo json_encode(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
+                echo json_encode(["error" => __('names_letters_only'), "icon" => "warning"]);
                 exit;
             }
 
             // Validar apellido materno solo si no está vacío
             if ($apellido_materno !== "" && !preg_match($regexNombre, $apellido_materno)) {
-                echo json_encode(["error" => "El apellido materno solo debe contener letras.", "icon" => "warning"]);
+                echo json_encode(["error" => __('maternal_lastname_letters'), "icon" => "warning"]);
                 exit;
             }
 
             /* --- Validar correo --- */
             $correo = trim(filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL));
             if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-                echo json_encode(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
+                echo json_encode(["error" => __('valid_email_required'), "icon" => "warning"]);
                 exit;
             } else {
                 try {
@@ -49,11 +50,11 @@
                     $existe = $stmt->fetchColumn();
                     
                     if ($existe > 0) {
-                        echo json_encode(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
+                        echo json_encode(["error" => __('email_already_registered'), "icon" => "error"]);
                         exit;
                     }
                 } catch (PDOException $e) {
-                    echo json_encode(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
+                    echo json_encode(["error" => __('error_verifying_email') . " " . $e->getMessage(), "icon" => "error"]);
                     exit;
                 }
             }
@@ -63,7 +64,7 @@
 
             $regexTelefono = "/^[0-9]{10}$/";
             if (!preg_match($regexTelefono, $telefono)) { 
-                echo json_encode(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
+                echo json_encode(["error" => __('phone_must_be_numeric'), "icon" => "warning"]);
                 exit;
             }
 
@@ -72,7 +73,7 @@
 
             $regexEmpresa = "/^[A-Za-z0-9ÁÉÍÓÚáéíóúÑñ\\s.,&-]+$/u";
             if (!preg_match($regexEmpresa, $empresa)) {
-                echo json_encode(["error" => "El nombre de la empresa contiene caracteres inválidos.", "icon" => "warning"]);
+                echo json_encode(["error" => __('company_invalid_chars'), "icon" => "warning"]);
                 exit;
             }
 
@@ -97,24 +98,24 @@
                     'estatus' => $estatus
                 ]);
 
-                echo json_encode(["success" => "Proveedor registrado correctamente.", "redirect" => "index.php?view=proveedores", "icon" => "success"]);
+                echo json_encode(["success" => __('supplier_registered'), "redirect" => "index.php?view=proveedores", "icon" => "success"]);
                 exit();
             } catch (Exception $e) {
-                echo json_encode(["error" => "Error al registrar al proveedor: " . $e->getMessage(), "icon" => "error"]);
+                echo json_encode(["error" => __('error_registering_supplier') . " " . $e->getMessage(), "icon" => "error"]);
                 exit();
             }
         } catch (Exception $e) {
-            echo json_encode(["error" => "Error inesperado: " . $e->getMessage(), "icon" => "error"]);
+            echo json_encode(["error" => __('unexpected_error') . " " . $e->getMessage(), "icon" => "error"]);
             exit();
         }
     }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= htmlspecialchars(current_lang()) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Proveedor</title>
+    <title><?= __('add_supplier_title') ?></title>
     <!-- Poppins Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CDN -->
@@ -430,8 +431,8 @@
         <div class="form-card">
             <!-- Header -->
             <div class="form-header animate-in-delay-1">
-                <h1>Registro de Proveedores</h1>
-                <p>Complete el formulario con los datos del nuevo proveedor</p>
+                <h1><?= __('add_supplier_title') ?></h1>
+                <p><?= __('supplier_form_subtitle') ?></p>
             </div>
 
             <!-- Form -->
@@ -439,54 +440,54 @@
                 <div class="form-body">
                     <!-- Información Personal -->
                     <div class="section animate-in-delay-2">
-                        <h2 class="section-title">Información Personal</h2>
+                        <h2 class="section-title"><?= __('personal_info') ?></h2>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <label class="form-label"><?= __('last_name_p') ?><span class="required">*</span></label>
                                 <input type="text" name="apellido_p" maxlength="50" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Apellido Materno</label>
+                                <label class="form-label"><?= __('last_name_m') ?></label>
                                 <input type="text" name="apellido_m" maxlength="50" class="form-input">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <label class="form-label"><?= __('names') ?><span class="required">*</span></label>
                             <input type="text" name="nombres" maxlength="50" class="form-input">
                         </div>
                     </div>
 
                     <!-- Información Laboral -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Información Laboral</h2>
+                        <h2 class="section-title"><?= __('work_info') ?></h2>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <label class="form-label"><?= __('email') ?><span class="required">*</span></label>
                                 <input type="email" name="correo" maxlength="100" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Teléfono<span class="required">*</span></label>
+                                <label class="form-label"><?= __('phone') ?><span class="required">*</span></label>
                                 <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Empresa<span class="required">*</span></label>
+                            <label class="form-label"><?= __('company') ?><span class="required">*</span></label>
                             <input type="text" name="empresa" maxlength="50" class="form-input">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Estatus</label>
+                            <label class="form-label"><?= __('status') ?></label>
                             <div class="switch-container">
                                 <label class="switch">
                                     <input type="hidden" name="estatus" value="0">
                                     <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <span class="switch-label">Proveedor activo</span>
+                                <span class="switch-label"><?= __('supplier_active') ?></span>
                             </div>
                         </div>
                     </div>
@@ -494,12 +495,12 @@
 
                 <!-- Footer -->
                 <div class="form-footer">
-                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="btnCancelar" class="btn btn-secondary"><?= __('cancel') ?></button>
                     <button type="submit" class="btn btn-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span class="btn-text">Guardar Proveedor</span>
+                        <span class="btn-text"><?= __('save_supplier') ?></span>
                     </button>
                 </div>
             </form>
@@ -518,11 +519,11 @@
                 });
 
                 const requiredFields = [
-                    { name: 'apellido_p', label: 'Apellido Paterno' },
-                    { name: 'nombres', label: 'Nombre(s)' },
-                    { name: 'correo', label: 'Correo' },
-                    { name: 'telefono', label: 'Teléfono' },
-                    { name: 'empresa', label: 'Empresa' }
+                    { name: 'apellido_p', label: '<?= __('last_name_p') ?>' },
+                    { name: 'nombres', label: '<?= __('names') ?>' },
+                    { name: 'correo', label: '<?= __('email') ?>' },
+                    { name: 'telefono', label: '<?= __('phone') ?>' },
+                    { name: 'empresa', label: '<?= __('company') ?>' }
                 ];
 
                 let hasError = false;
@@ -540,9 +541,9 @@
                 if (hasError) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Formulario incompleto',
+                        title: '<?= __('incomplete_form') ?>',
                         html: errors.join('<br>'),
-                        confirmButtonText: 'Entendido',
+                        confirmButtonText: '<?= __('understood') ?>',
                         confirmButtonColor: '#b4c24d'
                     });
                     return false;
@@ -553,7 +554,7 @@
                 const originalText = btnText ? btnText.textContent : '';
 
                 submitButton.disabled = true;
-                if (btnText) btnText.innerHTML = '<div class="loading-spinner"></div> Guardando...';
+                if (btnText) btnText.innerHTML = '<div class="loading-spinner"></div> <?= __('saving') ?>';
 
                 $.ajax({
                     url: 'index.php?view=agregar_proveedor',
@@ -585,8 +586,8 @@
                         } catch (e) {
                             console.error("Error al procesar JSON: ", e, response);
                             Swal.fire({
-                                title: 'Error',
-                                text: 'Ocurrió un error al procesar la respuesta',
+                                title: '<?= __('error') ?>',
+                                text: '<?= __('processing_error') ?>',
                                 icon: 'error',
                                 showConfirmButton: true
                             });
@@ -597,8 +598,8 @@
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         Swal.fire({
-                            title: 'Error de conexión',
-                            text: 'No se pudo conectar con el servidor',
+                            title: '<?= __('connection_error') ?>',
+                            text: '<?= __('could_not_connect') ?>',
                             icon: 'error',
                             showConfirmButton: true
                         });
@@ -613,20 +614,20 @@
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
                 Swal.fire({
-                    title: "¿Descartar cambios?",
-                    text: "Se eliminarán los datos ingresados para este proveedor. ¿Desea continuar?",
+                    title: "<?= __('discard_changes_supplier') ?>",
+                    text: "<?= __('discard_changes_supplier_text') ?>",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#e15871",
                     cancelButtonColor: "#6b7280",
-                    confirmButtonText: "Sí, descartar",
-                    cancelButtonText: "Cancelar",
+                    confirmButtonText: "<?= __('yes_discard') ?>",
+                    cancelButtonText: "<?= __('cancel') ?>",
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Swal.fire({
-                            title: "Descartado",
-                            text: "Los datos fueron descartados.",
+                            title: "<?= __('discarded') ?>",
+                            text: "<?= __('discarded_text') ?>",
                             icon: "success",
                             timer: 900,
                             showConfirmButton: false

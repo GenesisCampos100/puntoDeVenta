@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/translation.php';
 
 $proveedor_id = $_GET['proveedor'] ?? '';
 $orden_get = $_GET['orden'] ?? 'nom_asc';
@@ -70,11 +71,11 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= htmlspecialchars(current_lang()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Catálogo: <?= htmlspecialchars($proveedor_nombre) ?></title>
+    <title><?= __('supplier_catalog_of') ?> <?= htmlspecialchars(tr_content($proveedor_nombre)) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>body{font-family:Poppins, sans-serif;background:#f7fafc;}</style>
@@ -83,21 +84,21 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="max-w-6xl mx-auto">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold">Catálogo de <?= htmlspecialchars($proveedor_nombre) ?></h1>
-                <p class="text-sm text-gray-600">Empresa: <?= htmlspecialchars($prov['empresa'] ?? '-') ?></p>
+                <h1 class="text-2xl font-bold"><?= __('supplier_catalog_of') ?> <?= htmlspecialchars(tr_content($proveedor_nombre)) ?></h1>
+                <p class="text-sm text-gray-600"><?= __('company_label') ?> <?= htmlspecialchars($prov['empresa'] ?? '-') ?></p>
             </div>
             <div class="flex items-center gap-2">
                 <form method="GET" action="<?= htmlspecialchars($_SERVER['SCRIPT_NAME'] . '?view=catalogo_proveedor') ?>" class="inline-flex items-center gap-2">
                     <input type="hidden" name="view" value="catalogo_proveedor">
                     <input type="hidden" name="proveedor" value="<?= htmlspecialchars($proveedor_id) ?>">
                     <select name="orden" onchange="this.form.submit()" class="px-3 py-2 rounded border">
-                        <option value="nom_asc" <?= ($orden_get=='nom_asc')? 'selected':'' ?>>Nombre A-Z</option>
-                        <option value="nom_desc" <?= ($orden_get=='nom_desc')? 'selected':'' ?>>Nombre Z-A</option>
-                        <option value="precio_asc" <?= ($orden_get=='precio_asc')? 'selected':'' ?>>Precio: Menor</option>
-                        <option value="precio_desc" <?= ($orden_get=='precio_desc')? 'selected':'' ?>>Precio: Mayor</option>
+                        <option value="nom_asc" <?= ($orden_get=='nom_asc')? 'selected':'' ?>><?= __('name_az_suppliers') ?></option>
+                        <option value="nom_desc" <?= ($orden_get=='nom_desc')? 'selected':'' ?>><?= __('name_za_suppliers') ?></option>
+                        <option value="precio_asc" <?= ($orden_get=='precio_asc')? 'selected':'' ?>><?= __('price_asc') ?></option>
+                        <option value="precio_desc" <?= ($orden_get=='precio_desc')? 'selected':'' ?>><?= __('price_desc') ?></option>
                     </select>
                 </form>
-                <a href="index.php?view=proveedores" class="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">Volver a proveedores</a>
+                <a href="index.php?view=proveedores" class="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"><?= __('back_to_suppliers') ?></a>
             </div>
         </div>
 
@@ -106,10 +107,10 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Stock</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= __('product') ?></th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"><?= __('category') ?></th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase"><?= __('stock') ?></th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"><?= __('price') ?></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -123,11 +124,11 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-gray-400">--</div>
                                         <?php endif; ?>
                                         <div>
-                                            <div class="font-semibold text-gray-900"><?= htmlspecialchars($p['nom_producto']) ?></div>
-                                            <?php if (!empty($p['marca'])): ?><div class="text-xs text-gray-500">Marca: <?= htmlspecialchars($p['marca']) ?></div><?php endif; ?>
+                                            <div class="font-semibold text-gray-900"><?= htmlspecialchars(tr_content($p['nom_producto'])) ?></div>
+                                            <?php if (!empty($p['marca'])): ?><div class="text-xs text-gray-500"><?= __('brand_label') ?>: <?= htmlspecialchars($p['marca']) ?></div><?php endif; ?>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-4 text-center text-sm text-gray-700"><?= htmlspecialchars($p['categoria'] ?? '-') ?></td>
+                                    <td class="px-4 py-4 text-center text-sm text-gray-700"><?= htmlspecialchars(tr_category($p['categoria'] ?? '-')) ?></td>
                                     <td class="px-4 py-4 text-center text-sm text-gray-700"><?= htmlspecialchars($p['cantidad']) ?></td>
                                     <td class="px-6 py-4 text-right text-sm font-semibold text-gray-900">$<?= number_format($p['precio'],2) ?></td>
                                 </tr>
@@ -135,7 +136,7 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php else: ?>
                             <tr>
                                 <td colspan="4" class="px-6 py-12 text-center text-gray-600">
-                                    No se encontraron productos para este proveedor.
+                                    <?= __('no_products_for_supplier') ?>
                                 </td>
                             </tr>
                         <?php endif; ?>
