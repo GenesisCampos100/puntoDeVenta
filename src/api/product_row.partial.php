@@ -25,6 +25,8 @@ if ($cantidad > $cantidad_min) {
 
 $imagen = !empty($producto['imagen']) ? "uploads/".htmlspecialchars($producto['imagen']) : "../uploads/sin-imagen.png";
 $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
+// Detectar si el usuario es Cajero (solo puede ver detalles)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <tr class="group hover:bg-gray-50 transition-colors duration-200 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'opacity-60 bg-gray-50'; ?>" 
@@ -85,28 +87,30 @@ $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
                     data-details='<?= $jsonProducto ?>'>
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
             </button>
-            
-            <?php if (!$tieneVariantes): ?>
-                <button class="btn-ajuste p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
-                    title="Ajustar Stock"
-                    data-id="<?= $pid ?>"
-                    data-type="producto"
-                    data-nombre="<?= htmlspecialchars($nombre) ?>">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+
+            <?php if (!$esCajero): ?>
+                <?php if (!$tieneVariantes): ?>
+                    <button class="btn-ajuste p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
+                        title="Ajustar Stock"
+                        data-id="<?= $pid ?>"
+                        data-type="producto"
+                        data-nombre="<?= htmlspecialchars($nombre) ?>">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    </button>
+                <?php endif; ?>
+
+                <button class="toggle-active p-2 rounded-lg transition-all <?= $is_active ? 'text-gray-400 hover:text-red-600 hover:bg-red-50' : 'text-green-600 bg-green-50 hover:bg-green-100' ?>" 
+                        title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
+                        data-id="<?= $pid ?>" 
+                        data-type="producto" 
+                        data-active="<?= $is_active ? 'true' : 'false' ?>">
+                    <?php if ($is_active): ?>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    <?php else: ?>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <?php endif; ?>
                 </button>
             <?php endif; ?>
-            
-            <button class="toggle-active p-2 rounded-lg transition-all <?= $is_active ? 'text-gray-400 hover:text-red-600 hover:bg-red-50' : 'text-green-600 bg-green-50 hover:bg-green-100' ?>" 
-                    title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
-                    data-id="<?= $pid ?>" 
-                    data-type="producto" 
-                    data-active="<?= $is_active ? 'true' : 'false' ?>">
-                <?php if ($is_active): ?>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                <?php else: ?>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <?php endif; ?>
-            </button>
         </div>
     </td>
 </tr>

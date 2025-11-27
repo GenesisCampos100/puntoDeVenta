@@ -21,6 +21,8 @@ if ($cantidadVar > $cantidadMinVar) {
 }
 
 $jsonVariante = htmlspecialchars(json_encode($var), ENT_QUOTES, 'UTF-8');
+// Detectar si el usuario es Cajero (solo puede ver detalles)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <tr class="hover:bg-white transition-colors">
@@ -63,22 +65,24 @@ $jsonVariante = htmlspecialchars(json_encode($var), ENT_QUOTES, 'UTF-8');
                     data-details='<?= $jsonVariante ?>'>
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
             </button>
-            
-            <button class="btn-ajuste p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-all" 
-                    title="Ajustar Stock"
-                    data-id="<?= $skuVar ?>"
-                    data-type="variante"
-                    data-nombre="<?= htmlspecialchars($var['producto_nombre'] . ' (' . $talla . '/' . $color . ')') ?>">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-            </button>
-            
-            <button class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all" 
-                    title="Eliminar Variante"
-                    onclick="confirmarEliminar(this)"
-                    data-id="<?= $vid ?>" 
-                    data-type="variante">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </button>
+
+            <?php if (!$esCajero): ?>
+                <button class="btn-ajuste p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-all" 
+                        title="Ajustar Stock"
+                        data-id="<?= $skuVar ?>"
+                        data-type="variante"
+                        data-nombre="<?= htmlspecialchars($var['producto_nombre'] . ' (' . $talla . '/' . $color . ')') ?>">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                </button>
+
+                <button class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all" 
+                        title="Eliminar Variante"
+                        onclick="confirmarEliminar(this)"
+                        data-id="<?= $vid ?>" 
+                        data-type="variante">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+            <?php endif; ?>
         </div>
     </td>
 </tr>

@@ -85,6 +85,8 @@ $stockBajo = 0;
 foreach($productos as $p) {
     if($p['cantidad'] <= $p['cantidad_min']) $stockBajo++;
 }
+// Detectar si el usuario es Cajero (no debe poder agregar/editar/eliminar)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <!-- Dependencias -->
@@ -286,12 +288,21 @@ foreach($productos as $p) {
                     <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio: Mayor</option>
                 </select>
 
-                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span class="hidden sm:inline">Nuevo Producto</span>
-                </button>
+                <?php if ($esCajero): ?>
+                    <button id="btnAgregarProducto" disabled class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200 opacity-50 cursor-not-allowed" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);" title="No autorizado">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                    </button>
+                <?php else: ?>
+                    <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -420,18 +431,20 @@ foreach($productos as $p) {
 
             <!-- Action Buttons -->
             <div class="flex gap-3">
-                <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    Editar
-                </a>
-                <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2" style="color: #e15871;">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Eliminar
-                </button>
+                <?php if (!$esCajero): ?>
+                    <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Editar
+                    </a>
+                    <button id="modal-btn-eliminar" onclick="confirmarEliminar(this)" class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2" style="color: #e15871;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Eliminar
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
     </div>
