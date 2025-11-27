@@ -10,32 +10,36 @@
 
     $id_rol = (int)$_GET['id_rol'];
 
-    // Determinar prefijo según rol (coincide con la lógica en agregar_empleado.php)
-    switch ($id_rol) {
-        case 1: $prefijo = 'A'; break; // Admin
-        case 2: $prefijo = 'G'; break; // Gerente
-        case 3: $prefijo = 'C'; break; // Cajero
-        default: $prefijo = 'X'; break;
+    // Obtener el nombre del rol para generar el prefijo
+    $prefijo = 'EMP';
+    try {
+        $stmtRol = $pdo->prepare("SELECT nombre_rol FROM roles WHERE id_rol = :id_rol");
+        $stmtRol->execute(['id_rol' => $id_rol]);
+        $rolData = $stmtRol->fetch(PDO::FETCH_ASSOC);
+        
+        if ($rolData && !empty($rolData['nombre_rol'])) {
+            // Usar las primeras 3 letras del nombre del rol en mayúsculas
+            $prefijo = strtoupper(substr($rolData['nombre_rol'], 0, 3));
+        }
+    } catch (Exception $e) {
+        // Si hay error, usar EMP por defecto
+        $prefijo = 'EMP';
     }
 
     try {
-        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY CAST(SUBSTRING(id_empleado,2) AS UNSIGNED) ASC";
+        $sql = "SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['prefijo' => $prefijo . '%']);
-        $todos = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $lastEmp = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Crear un array con los números usados
-        $usados = array_map(function($id) {
-            return (int)substr($id, 1); // quitar prefijo y convertir a entero
-        }, $todos);
-
-        // Buscar el primer número disponible
-        $numero = 1;
-        while (in_array($numero, $usados)) {
-            $numero++;
+        if ($lastEmp) {
+            // Extraer el número del último empleado y sumar 1
+            $lastNum = (int) substr($lastEmp['id_empleado'], strlen($prefijo));
+            $next = $prefijo . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            // Si no hay empleados con este prefijo, empezar en 0001
+            $next = $prefijo . '0001';
         }
-
-        $next = $prefijo . str_pad($numero, 4, '0', STR_PAD_LEFT);
         echo json_encode(['next' => $next]);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);

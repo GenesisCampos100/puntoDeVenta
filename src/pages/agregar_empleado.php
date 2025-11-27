@@ -8,8 +8,19 @@
 // Calcular un id_empleado por defecto
 $id_empleado = '';
 
-$stmt = $pdo->query("SELECT * FROM roles");
-$roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Cargar roles desde la base de datos
+try {
+    $stmt = $pdo->query("SELECT * FROM roles ORDER BY id_rol ASC");
+    $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Verificar que se cargaron roles
+    if (empty($roles)) {
+        error_log("ADVERTENCIA: No se encontraron roles en la base de datos");
+    }
+} catch (PDOException $e) {
+    error_log("ERROR al cargar roles: " . $e->getMessage());
+    $roles = [];
+}
 
 // Función auxiliar para enviar respuestas JSON limpias
 function send_json_response($data) {
@@ -687,11 +698,28 @@ body.dark-mode .content {
                                 <label class="form-label"><?= __('position') ?><span class="required">*</span></label>
                                 <select id="id_rol" name="id_rol" class="form-select">
                                     <option value=""><?= __('select_position') ?></option>
-                                    <?php foreach ($roles as $rol): ?>
-                                        <option value="<?= $rol['id_rol'] ?>">
-                                            <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                    <?php 
+                                    if (!empty($roles)) {
+                                        foreach ($roles as $rol): 
+                                            // Mapeo de nombres de roles a traducciones amigables
+                                            $nombre_mostrar = $rol['nombre_rol'];
+                                            if ($rol['nombre_rol'] === 'super_admin') {
+                                                $nombre_mostrar = 'Super Administrador';
+                                            } elseif ($rol['nombre_rol'] === 'gerente') {
+                                                $nombre_mostrar = 'Gerente';
+                                            } elseif ($rol['nombre_rol'] === 'cajero') {
+                                                $nombre_mostrar = 'Cajero';
+                                            }
+                                    ?>
+                                        <option value="<?= htmlspecialchars($rol['id_rol']) ?>">
+                                            <?= htmlspecialchars($nombre_mostrar) ?>
                                         </option>
-                                    <?php endforeach; ?>
+                                    <?php 
+                                        endforeach;
+                                    } else {
+                                        echo '<option value="" disabled>No hay roles disponibles</option>';
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -922,7 +950,7 @@ body.dark-mode .content {
             async function fetchNext(idRol) {
                 if (!idRol) return;
                 try {
-                    const resp = await fetch('scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
+                    const resp = await fetch('src/scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
                     if (!resp.ok) throw new Error('Error en la petición');
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;
