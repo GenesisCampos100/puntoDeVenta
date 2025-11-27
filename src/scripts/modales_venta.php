@@ -180,17 +180,17 @@
 <!-- MODAL DESCUENTO GENERAL -->
 <div id="discount-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento General</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?php echo __('general_discount'); ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
                 <option value="amount">$</option>
             </select>
-            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="<?php echo __('value'); ?>">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('apply'); ?></button>
         </div>
     </div>
 </div>
@@ -198,17 +198,17 @@
 <!-- MODAL DESCUENTO POR PRODUCTO -->
 <div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flexitems-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?php echo __('product_discount'); ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
                 <option value="amount">$</option>
             </select>
-            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="<?php echo __('value'); ?>">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('apply'); ?></button>
         </div>
     </div>
 </div>
@@ -217,7 +217,7 @@
 <div id="ticket-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-start justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-6 w-auto max-w-[95%] md:max-w-md animate-slide overflow-hidden mt-12">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold" style="color: var(--secondary);">Ticket de Venta</h2>
+            <h2 class="text-xl font-bold" style="color: var(--secondary);"><?php echo __('sale_ticket'); ?></h2>
             <button id="close-ticket-modal" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
 
@@ -230,8 +230,8 @@
         </div>
 
         <div class="flex justify-end gap-3">
-            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Imprimir</button>
+            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('print'); ?></button>
         </div>
     </div>
 </div>
@@ -241,19 +241,19 @@
 
     <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-primary">Buscar Producto</h2>
+            <h2 class="text-2xl font-bold text-primary"><?php echo __('search_product_title'); ?></h2>
             <button id="cerrar-modal-producto" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
-        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar producto por nombre, código o SKU...">
+        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="<?php echo __('search_product_placeholder'); ?>">
         <div class="overflow-y-auto max-h-96">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100 sticky top-0">
                     <tr>
-                        <th class="p-3 border-b-2 font-semibold">Código</th>
-                        <th class="p-3 border-b-2 font-semibold">Producto</th>
-                        <th class="p-3 border-b-2 font-semibold">Precio</th>
-                        <th class="p-3 border-b-2 font-semibold">Stock</th>
-                        <th class="p-3 border-b-2 font-semibold">Acción</th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('code_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('product_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('price_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('stock_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('actions'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="tablaProductosModal"></tbody>
