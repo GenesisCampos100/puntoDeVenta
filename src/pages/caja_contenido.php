@@ -426,19 +426,19 @@ body.dark-mode .save-btn svg {
 
             <!-- Diferencia Live -->
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-between items-center shadow-inner">
-                <span class="text-sm font-bold text-gray-600">Diferencia Calculada:</span>
+                <span class="text-sm font-bold text-gray-600"><?php echo __('calculated_difference'); ?>:</span>
                 <span id="corte-diferencia" class="text-xl font-bold text-gray-400">$0.00</span>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Comentarios (Opcional)</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?php echo __('comments_optional'); ?></label>
                 <textarea name="comentarios" rows="2" 
-                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="Observaciones sobre el cuadre..."></textarea>
+                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="<?php echo __('observations_placeholder'); ?>"></textarea>
             </div>
 
             <button type="submit" class="w-full py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                Finalizar Corte
+                <?php echo __('finalize_cut'); ?>
             </button>
         </form>
     </div>
