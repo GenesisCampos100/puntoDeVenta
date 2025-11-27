@@ -289,4 +289,4 @@ require_once __DIR__ . '/../config/translation.php';
     </div>
 </div>
 
-<script src="../js/caja.js?v=<?= time() ?>"></script>
+<script src="src/js/caja.js?v=<?= time() ?>"></script>
