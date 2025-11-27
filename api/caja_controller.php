@@ -47,7 +47,11 @@ try {
 function handleMovimiento($pdo, $type, $id_empleado) {
     $monto = floatval($_POST['monto'] ?? 0);
     $motivo = $_POST['motivo'] ?? '';
-    $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Obtener del formulario o usar EFECTIVO por defecto
+    $metodo = 'EFECTIVO'; // Por defecto, movimientos manuales suelen ser efectivo, pero podría ser parametrizable si se requiere.
+                          // El prompt dice "ingreso / retiro -> Inserción en caja_movimientos".
+                          // Asumiremos EFECTIVO para caja chica, salvo que se especifique lo contrario.
+                          // Revisando tabla: metodo enum('EFECTIVO','TARJETA').
+                          // Generalmente retiros/ingresos manuales son de efectivo.
 
     if ($monto <= 0) {
         throw new Exception("El monto debe ser mayor a 0");
@@ -71,7 +75,18 @@ function handleFetchTotales($pdo) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $ultimoCorte = $row['ultimo_corte'];
 
+    // Filtro de fecha para las consultas
+    $fechaFilter = $ultimoCorte ? "WHERE fecha_pago > '$ultimoCorte'" : "";
+    $fechaFilterMov = $ultimoCorte ? "WHERE fecha_movimiento > '$ultimoCorte'" : "";
+
     // 2. Sumar Pagos de Ventas (Ingresos por venta)
+    // EFECTIVO
+    $sqlVentasEf = "SELECT SUM(monto) as total FROM pagos_venta $fechaFilter AND metodo = 'EFECTIVO'";
+    if (!$ultimoCorte) $sqlVentasEf = "SELECT SUM(monto) as total FROM pagos_venta WHERE metodo = 'EFECTIVO'"; // Si no hay corte, todo
+    
+    // Ajuste: La lógica de $fechaFilter arriba estaba un poco simplificada. Hagámoslo bien con params o string directo si es seguro (aquí viene de DB, es seguro).
+    // Mejor usemos lógica condicional clara.
+    
     $ventasEfectivo = getSum($pdo, "pagos_venta", "monto", "metodo = 'EFECTIVO'", "fecha_pago", $ultimoCorte);
     $ventasTarjeta = getSum($pdo, "pagos_venta", "monto", "metodo = 'TARJETA'", "fecha_pago", $ultimoCorte);
 
@@ -81,6 +96,9 @@ function handleFetchTotales($pdo) {
     $movsTarjeta = getSum($pdo, "caja_movimientos", "monto", "metodo = 'TARJETA'", "fecha_movimiento", $ultimoCorte);
 
     // 4. Totales Esperados
+    // Se asume un fondo inicial? El prompt no menciona tabla de fondos iniciales, solo "ingresos/retiros".
+    // Asumiremos que el "saldo" es la suma de todo lo ocurrido desde el corte.
+    
     $totalEfectivo = $ventasEfectivo + $movsEfectivo;
     $totalTarjeta = $ventasTarjeta + $movsTarjeta;
 

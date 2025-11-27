@@ -1,73 +1,14 @@
 <?php
+// src/pages/caja_contenido.php
+require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/translation.php';
 ?>
-<!DOCTYPE html>
-<html lang="<?= $_SESSION['lang'] ?? 'es' ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= __('cash_register_title') ?></title>
-    <link rel="stylesheet" href="./styles/caja.css">
-    <link rel="stylesheet" href="./styles/modo-oscuro.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <style>
-    body { 
-            font-family: 'Poppins', sans-serif; 
-            padding-left: 120px; /* Compensa el ancho del sidebar */
-        }
-  </style>
-</head>
-<body>
-  <main class="contenedor">
-    <h2 class="titulo"><?= __('main_cash_register') ?></h2>
-    <p class="subtitulo"><?= __('cash_register_subtitle') ?></p>
-
-    <div class="acciones">
-      <button class="btn ingreso">
-        <span style="color:#16a34a;">⬆</span> <?= __('cash_in') ?>
-      </button>
-
-      <button class="btn retiro">
-        <span style="color:#dc2626;">⬇</span> <?= __('cash_out') ?>
-      </button>
-
-      <button class="btn corte">
-        💵 <?= __('close_cash_register') ?>
-      </button>
-    </div>
-
-    <!-- Tarjetas de información -->
-    <div class="tarjetas">
-      <div class="tarjeta efectivo">
-        <h3><?= __('expected_cash') ?></h3>
-        <p class="monto" id="efectivo-esperado">$0.00</p>
-        <small><?= __('sales_income_withdrawals') ?></small>
-      </div>
-
-      <div class="tarjeta tarjeta-credito">
-        <h3><?= __('expected_card') ?></h3>
-        <p class="monto" id="tarjeta-esperado">$0.00</p>
-        <small><?= __('card_sales') ?></small>
-      </div>
-
-      <div class="tarjeta total">
-        <h3><?= __('total_expected') ?></h3>
-        <p class="monto total-monto" id="total-esperado">$0.00</p>
-        <small><?= __('cash_card') ?></small>
-      </div>
-    </div>
-
-    <!-- Historial de movimientos -->
-    <div class="historial">
-      <h3><?= __('movement_history') ?></h3>
-      <div id="lista-movimientos">
-        <!-- Movimientos dinámicos -->
-      </div>
-    </div>
-  </main>
+<!-- Dependencias (Mismas que productos) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
     tailwind.config = {
@@ -123,13 +64,13 @@ require_once __DIR__ . '/../config/translation.php';
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-slideUp">
         <div>
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Caja Principal</h1>
-            <p class="text-gray-600 text-base">Gestión de flujo de efectivo y cortes de caja</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('main_cashier_title') ?></h1>
+            <p class="text-gray-600 text-base"><?= __('cash_flow_management') ?></p>
         </div>
         
         <div class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-100 shadow-sm">
             <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-            <span class="text-sm font-semibold tracking-wide">Caja Abierta</span>
+            <span class="text-sm font-semibold tracking-wide"><?= __('register_open') ?></span>
         </div>
     </div>
 
@@ -140,9 +81,9 @@ require_once __DIR__ . '/../config/translation.php';
         <div class="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-gray-100 relative overflow-hidden group">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Efectivo Esperado</p>
+                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider"><?= __('expected_cash') ?></p>
                     <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-efectivo">$0.00</h3>
-                    <p class="text-xs text-gray-400 mt-2 font-medium">Ventas + Ingresos - Retiros</p>
+                    <p class="text-xs text-gray-400 mt-2 font-medium"><?= __('sales_income_withdrawals') ?></p>
                 </div>
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -154,154 +95,13 @@ require_once __DIR__ . '/../config/translation.php';
             </div>
         </div>
 
-    <section class="caja-contenedor">
-      <div class="caja">
-        <table>
-          <tr><td><?= __('cash') ?></td><td>$1,250</td></tr>
-          <tr><td><?= __('credit_card') ?></td><td>$1,250</td></tr>
-          <tr><td><?= __('debit_card') ?></td><td>$1,250</td></tr>
-          <tr class="total"><td><?= __('total') ?>:</td><td>$3,750</td></tr>
-        </table>
-      </div>
-
-      <div class="efectivo">
-       <h3><?= __('cash') ?></h3>
-      <div class="fila">
-        <p><?= __('income') ?></p>
-        <h4>$0.00</h4>
-       </div>
-      </div>
-
-    </section>
-  </main>
-
-  <!-- Modal Ingreso -->
-  <div class="modal" id="modalIngreso">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><?= __('modal_cash_in_title') ?></h3>
-        <span class="close">&times;</span>
-      </div>
-      <div class="modal-body">
-        <label style="color:#696969;"><?= __('amount') ?></label>
-        <input style="color:#696969;" type="number" placeholder="$ 0.00">
-
-        <label style="color:#696969;"><?= __('reason_optional') ?></label>
-        <input style="color:#696969;" type="text" placeholder="<?= __('reason_placeholder_in') ?>">
-
-        <p><b><?= __('performed_by') ?>: </b></p>
-        <p style="margin-top:4px; font-size:14px; color:#666;">
-        <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="cancelar"><?= __('cancel') ?></button>
-        <button class="confirmar"><?= __('confirm') ?></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Retiro -->
-  <div class="modal" id="modalRetiro">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><?= __('modal_cash_out_title') ?></h3>
-        <span class="close">&times;</span>
-      </div>
-      <div class="modal-body">
-        <label style="color:#696969;"><?= __('amount') ?></label>
-        <input style="color:#696969;" type="number" placeholder="$ 0.00">
-
-        <label style="color:#696969;"><?= __('reason_optional') ?></label>
-        <input style="color:#696969;" type="text" placeholder="<?= __('reason_placeholder_out') ?>">
-
-        <p><b><?= __('performed_by') ?>: </b></p>
-        <p style="margin-top:4px; font-size:14px; color:#666;">
-        <?= tr_content(htmlspecialchars($_SESSION['nombre_completo'] ?? '')) ?>
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="cancelar"><?= __('cancel') ?></button>
-        <button class="confirmar"><?= __('confirm') ?></button>
-      </div>
-    </div>
-  </div>
-
-
- <!-- Modal Corte de Caja -->
-<div class="modal" id="modalCorte">
-  <div class="modal-content modal-corte">
-    <div class="modal-header">
-      <h3><?= __('close_cash_register_title') ?></h3>
-      <span class="close">&times;</span>
-    </div>
-
-    <div class="modal-body">
-      <p style="color:#666; margin-bottom:16px;">
-        <?= __('close_cash_register_desc') ?>
-      </p>
-
-      <table class="tabla-corte">
-        <thead>
-          <tr>
-            <th><?= __('payment_method') ?></th>
-            <th><?= __('manual_count') ?></th>
-            <th><?= __('expected_total') ?></th>
-            <th><?= __('difference') ?></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>💵 <?= __('cash') ?></td>
-            <td><input type="number" placeholder="$0.00"></td>
-            <td>$1,250.00</td>
-            <td>$0.00</td>
-          </tr>
-          <tr>
-            <td>💳 <?= __('credit_card') ?></td>
-            <td><input type="number" placeholder="$0.00"></td>
-            <td>$800.00</td>
-            <td>$0.00</td>
-          </tr>
-          <tr>
-            <td>🏧 <?= __('debit_card') ?></td>
-            <td><input type="number" placeholder="$0.00"></td>
-            <td>$1,200.00</td>
-            <td>$0.00</td>
-          </tr>
-          <tr>
-            <td>💸 <?= __('transfer') ?></td>
-            <td><input type="number" placeholder="$0.00"></td>
-            <td>$500.00</td>
-            <td>$0.00</td>
-          </tr>
-          <tr class="total">
-            <td><strong><?= __('total') ?></strong></td>
-            <td>$0.00</td>
-            <td><strong>$3,750.00</strong></td>
-            <td>$0.00</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <label for="comentarios" style="color:#555; margin-top:16px; display:block;">
-        <?= __('comments_optional') ?>
-      </label>
-      <textarea id="comentarios" placeholder="<?= __('comments_placeholder') ?>"></textarea>
-    </div>
-
-    <div class="modal-footer">
-      <button class="cancelar"><?= __('cancel') ?></button>
-      <button class="confirmar"><?= __('continue') ?></button>
-    </div>
-  </div>
         <!-- Tarjeta Card -->
         <div class="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-gray-100 relative overflow-hidden group">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Tarjeta Esperado</p>
+                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider"><?= __('expected_card') ?></p>
                     <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-tarjeta">$0.00</h3>
-                    <p class="text-xs text-gray-400 mt-2 font-medium">Pagos procesados con tarjeta</p>
+                    <p class="text-xs text-gray-400 mt-2 font-medium"><?= __('card_payments_processed') ?></p>
                 </div>
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -316,21 +116,21 @@ require_once __DIR__ . '/../config/translation.php';
         <!-- Actions Card -->
         <div class="rounded-2xl shadow-lg p-6 text-white flex flex-col justify-between relative overflow-hidden" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <div class="relative z-10">
-                <h3 class="text-xl font-bold mb-1">Acciones Rápidas</h3>
-                <p class="text-gray-300 text-sm mb-6">Gestiona los movimientos del día</p>
+                <h3 class="text-xl font-bold mb-1"><?= __('quick_actions') ?></h3>
+                <p class="text-gray-300 text-sm mb-6"><?= __('manage_daily_movements') ?></p>
             </div>
             <div class="grid grid-cols-2 gap-3 relative z-10">
                 <button onclick="abrirModalMovimiento('ingreso')" class="bg-white/10 hover:bg-white/20 border border-white/10 p-3 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                     <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
-                    <span class="text-xs font-bold">Ingreso</span>
+                    <span class="text-xs font-bold"><?= __('cash_deposit') ?></span>
                 </button>
                 <button onclick="abrirModalMovimiento('retiro')" class="bg-white/10 hover:bg-white/20 border border-white/10 p-3 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                     <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
-                    <span class="text-xs font-bold">Retiro</span>
+                    <span class="text-xs font-bold"><?= __('cash_withdrawal') ?></span>
                 </button>
                 <button onclick="abrirModalCorte()" class="col-span-2 p-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-white" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>
-                    Realizar Corte de Caja
+                    <?= __('perform_cash_cut') ?>
                 </button>
             </div>
             <!-- Decorative Background -->
@@ -346,10 +146,10 @@ require_once __DIR__ . '/../config/translation.php';
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
         </div>
         <div>
-            <h4 class="text-base font-bold text-gray-900">Información del Turno</h4>
+            <h4 class="text-base font-bold text-gray-900"><?= __('shift_information') ?></h4>
             <p class="text-sm text-gray-600 mt-1 leading-relaxed">
-                Último corte registrado: <span id="last-cut-date" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Cargando...</span>. 
-                Los totales mostrados corresponden a los movimientos realizados después de esta fecha.
+                <?= __('last_cut_registered') ?>: <span id="last-cut-date" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded"><?= __('loading_text') ?></span>. 
+                <?= __('totals_after_cut') ?>
             </p>
         </div>
     </div>
@@ -362,7 +162,7 @@ require_once __DIR__ . '/../config/translation.php';
         <!-- Header con gradiente -->
         <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <h3 class="text-xl font-bold text-white flex items-center gap-2" id="modal-mov-title">
-                Registrar Movimiento
+                <?= __('register_movement') ?>
             </h3>
             <button onclick="cerrarModal('modalMovimiento')" class="text-white/70 hover:text-white bg-white/10 p-2 rounded-full transition-all hover:bg-white/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -373,7 +173,7 @@ require_once __DIR__ . '/../config/translation.php';
             <input type="hidden" id="mov-action" name="action">
             
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Monto</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?= __('movement_amount') ?></label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                     <input type="number" step="0.01" id="mov-monto" name="monto" required 
@@ -382,27 +182,25 @@ require_once __DIR__ . '/../config/translation.php';
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Método</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?= __('movement_method') ?></label>
                 <div class="relative">
                     <select id="mov-metodo" name="metodo" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 appearance-none">
-                        <option value="EFECTIVO">Efectivo</option>
-                        <option value="TARJETA">Tarjeta</option>
+                        <option value="EFECTIVO"><?= __('cash_method') ?></option>
+                        <option value="TARJETA"><?= __('card_method') ?></option>
                     </select>
                     <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </div>
             </div>
 
-</body>
-</html>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Motivo / Descripción</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?= __('reason_description') ?></label>
                 <textarea id="mov-motivo" name="motivo" rows="2" required 
-                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="Ej: Pago de proveedor, Cambio inicial..."></textarea>
+                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="<?= __('reason_placeholder') ?>"></textarea>
             </div>
 
             <button type="submit" class="w-full py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-4 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Guardar Movimiento
+                <?= __('save_movement') ?>
             </button>
         </form>
     </div>
@@ -418,8 +216,8 @@ require_once __DIR__ . '/../config/translation.php';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-white">Corte de Caja</h3>
-                    <p class="text-xs text-white/70 font-medium">Cierre de turno y arqueo</p>
+                    <h3 class="text-xl font-bold text-white"><?= __('cash_cut') ?></h3>
+                    <p class="text-xs text-white/70 font-medium"><?= __('shift_close_count') ?></p>
                 </div>
             </div>
             <button onclick="cerrarModal('modalCorte')" class="text-white/70 hover:text-white bg-white/10 p-2 rounded-full transition-all hover:bg-white/20">
@@ -434,15 +232,15 @@ require_once __DIR__ . '/../config/translation.php';
             <div class="grid grid-cols-2 gap-6">
                 <!-- Esperado (Read Only) -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">Sistema (Esperado)</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2"><?= __('system_expected') ?></h4>
                     
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Efectivo</label>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1"><?= __('cash_method') ?></label>
                         <input type="text" id="corte-efectivo-esp" name="efectivo_esperado" readonly 
                                class="w-full px-3 py-2.5 rounded-lg bg-gray-50 border-2 border-gray-100 text-gray-500 font-mono font-bold text-right cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Tarjeta</label>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1"><?= __('card_method') ?></label>
                         <input type="text" id="corte-tarjeta-esp" name="tarjeta_esperado" readonly 
                                class="w-full px-3 py-2.5 rounded-lg bg-gray-50 border-2 border-gray-100 text-gray-500 font-mono font-bold text-right cursor-not-allowed">
                     </div>
@@ -450,10 +248,10 @@ require_once __DIR__ . '/../config/translation.php';
 
                 <!-- Contado (Input) -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider border-b border-[#b4c24d]/20 pb-2">Real (Contado)</h4>
+                    <h4 class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider border-b border-[#b4c24d]/20 pb-2"><?= __('real_counted') ?></h4>
                     
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Efectivo</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1"><?= __('cash_method') ?></label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">$</span>
                             <input type="number" step="0.01" id="corte-efectivo-real" name="efectivo_contado" required 
@@ -461,7 +259,7 @@ require_once __DIR__ . '/../config/translation.php';
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tarjeta</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1"><?= __('card_method') ?></label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">$</span>
                             <input type="number" step="0.01" id="corte-tarjeta-real" name="tarjeta_contado" required 
@@ -473,25 +271,22 @@ require_once __DIR__ . '/../config/translation.php';
 
             <!-- Diferencia Live -->
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-between items-center shadow-inner">
-                <span class="text-sm font-bold text-gray-600">Diferencia Calculada:</span>
+                <span class="text-sm font-bold text-gray-600"><?= __('calculated_difference') ?>:</span>
                 <span id="corte-diferencia" class="text-xl font-bold text-gray-400">$0.00</span>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Comentarios (Opcional)</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?= __('comments_optional') ?></label>
                 <textarea name="comentarios" rows="2" 
-                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="Observaciones sobre el cuadre..."></textarea>
+                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="<?= __('observations_placeholder') ?>"></textarea>
             </div>
 
             <button type="submit" class="w-full py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                Finalizar Corte
+                <?= __('finalize_cut') ?>
             </button>
         </form>
     </div>
 </div>
 
 <script src="../js/caja.js?v=<?= time() ?>"></script>
-
-</body>
-</html>
