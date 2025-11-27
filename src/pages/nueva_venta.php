@@ -181,22 +181,9 @@ $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC
 function normalizeCategory($name) {
     return strtolower(trim(preg_replace('/\s+/', '', $name)));
 }
+
+require_once __DIR__ . "/../includes/layout.php";
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Punto de Venta - Caja</title>
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     :root {
@@ -400,12 +387,12 @@ body.dark-mode #pay-btn:hover {
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
-                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
+                        <h2 class="text-lg font-bold text-slate-800"><?php echo __('sale_ticket'); ?></h2>
+                        <p class="text-xs text-slate-500 font-medium"><?php echo __('folio'); ?>: #NEW</p>
                     </div>
                 </div>
                 <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-                    Caja Principal
+                    <?php echo __('main_register'); ?>
                 </div>
             </div>
 

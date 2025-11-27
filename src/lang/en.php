@@ -797,6 +797,8 @@ return [
     'total_to_pay' => 'Total to Pay',
     'apply_discount' => 'Apply Discount',
     'charge' => 'Charge',
+    'folio' => 'Folio',
+    'main_register' => 'Main Register',
     
     // Cash register: modal titles and buttons
     // Cash: modal titles and buttons

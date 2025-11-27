@@ -788,6 +788,8 @@ return [
     'total_to_pay' => 'Total a Pagar',
     'apply_discount' => 'Aplicar Descuento',
     'charge' => 'Cobrar',
+    'folio' => 'Folio',
+    'main_register' => 'Caja Principal',
     
     // Caja: títulos de modales y botones
     'register_income_title' => 'Registrar Ingreso',
