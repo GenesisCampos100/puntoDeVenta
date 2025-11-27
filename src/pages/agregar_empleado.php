@@ -22,8 +22,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             'num_ext' => 'Número Exterior',
             'colonia' => 'Colonia',
             'estado' => 'Estado',
-            'id_rol' => 'Puesto',
-            'num_empleado' => 'Número de empleado'
+            'id_rol' => 'Puesto'
         ];
 
         foreach ($campos_obligatorios as $campo => $etiqueta) {
@@ -143,6 +142,30 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
         /* --- Validar numero de empleado --- */
         $id_empleado = trim(filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING));
+        
+        // Si el número de empleado está vacío, generarlo automáticamente
+        if (empty($id_empleado)) {
+            // Obtener el prefijo del rol
+            $stmtRol = $pdo->prepare("SELECT nombre_rol FROM roles WHERE id_rol = :id_rol");
+            $stmtRol->execute(['id_rol' => $id_rol]);
+            $rolData = $stmtRol->fetch(PDO::FETCH_ASSOC);
+            $prefijo = 'EMP';
+            if ($rolData && !empty($rolData['nombre_rol'])) {
+                $prefijo = strtoupper(substr($rolData['nombre_rol'], 0, 3));
+            }
+            
+            // Buscar el último número de empleado con este prefijo
+            $stmtLast = $pdo->prepare("SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1");
+            $stmtLast->execute(['prefijo' => $prefijo . '%']);
+            $lastEmp = $stmtLast->fetch(PDO::FETCH_ASSOC);
+            
+            if ($lastEmp) {
+                $lastNum = (int) substr($lastEmp['id_empleado'], strlen($prefijo));
+                $id_empleado = $prefijo . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $id_empleado = $prefijo . '0001';
+            }
+        }
 
         try {
             $stmt = $pdo->prepare("SELECT * FROM empleados WHERE id_empleado = :id_empleado");
@@ -241,6 +264,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -650,8 +674,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label"><?= __('employee_num') ?><span class="required">*</span></label>
-                                <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly>
+                                <label class="form-label"><?= __('employee_num') ?> <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400;">(<?= __('auto_generated') ?>)</span></label>
+                                <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly placeholder="<?= __('will_be_generated') ?>">
                             </div>
                         </div>
 
@@ -697,17 +721,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 });
 
                 const requiredFields = [
-                    { name: 'apellido_p', label: '<?= __('last_name_p') ?>' },
-                    { name: 'nombres', label: '<?= __('names') ?>' },
-                    { name: 'correo', label: '<?= __('email') ?>' },
-                    { name: 'contra', label: '<?= __('password') ?>' },
-                    { name: 'telefono', label: '<?= __('phone') ?>' },
-                    { name: 'calle', label: '<?= __('street') ?>' },
-                    { name: 'num_ext', label: '<?= __('ext_num') ?>' },
-                    { name: 'colonia', label: '<?= __('colony') ?>' },
-                    { name: 'estado', label: '<?= __('state') ?>' },
-                    { name: 'id_rol', label: '<?= __('position') ?>' },
-                    { name: 'num_empleado', label: '<?= __('employee_num') ?>' }
+                    { name: 'apellido_p', label: '<?= __("last_name_p") ?>' },
+                    { name: 'nombres', label: '<?= __("names") ?>' },
+                    { name: 'correo', label: '<?= __("email") ?>' },
+                    { name: 'contra', label: '<?= __("password") ?>' },
+                    { name: 'telefono', label: '<?= __("phone") ?>' },
+                    { name: 'calle', label: '<?= __("street") ?>' },
+                    { name: 'num_ext', label: '<?= __("ext_num") ?>' },
+                    { name: 'colonia', label: '<?= __("colony") ?>' },
+                    { name: 'estado', label: '<?= __("state") ?>' },
+                    { name: 'id_rol', label: '<?= __("position") ?>' }
                 ];
 
                 let hasErrors = false;

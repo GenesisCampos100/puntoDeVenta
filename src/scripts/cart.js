@@ -122,8 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Producto no encontrado',
-                        text: 'El código o SKU ingresado no existe.'
+                        title: window.TR_POS?.product_not_found_title || 'Producto no encontrado',
+                        text: window.TR_POS?.product_not_found_text || 'El código o SKU ingresado no existe.'
                     });
                 }
             },
@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error('Error en búsqueda rápida:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text: 'No se pudo realizar la búsqueda. Revisa la consola.'
+                    title: window.TR_POS?.search_error_title || 'Error',
+                    text: window.TR_POS?.search_error_text || 'No se pudo realizar la búsqueda. Revisa la consola.'
                 });
             }
         });
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 searchBody.innerHTML = "";
                 if (!data || data.length === 0) {
-                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
+                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">${window.TR_POS?.no_results || 'No hay resultados'}</td></tr>`;
                     searchResults?.classList.remove("hidden");
                     return;
                 }

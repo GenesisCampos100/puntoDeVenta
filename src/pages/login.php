@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../config/translation.php";
 // Incluir el sistema de traducción
 require_once __DIR__ . '/../config/translation.php';
 
@@ -121,11 +122,35 @@ if (isset($_SESSION['usuario_id'])) {
     <!-- Scripts -->
     <script src="../scripts/alertaslogin_y_mostrarcontra.js?v=<?= time() ?>"></script>
 
+    <style>
+        /* Transiciones suaves para aparición de modales */
+        .modal-overlay { opacity: 0; visibility: hidden; transition: opacity 220ms ease, visibility 220ms ease; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { transform: translateY(8px); transition: transform 220ms ease; }
+        .modal-overlay.visible .modal-content { transform: translateY(0); }
+    </style>
+
+    <script>
+        window.TR_LOGIN = {
+            title: <?= json_encode(__('login_title')) ?>,
+            welcome: <?= json_encode(__('login_welcome')) ?>,
+            email_label: <?= json_encode(__('login_email_label')) ?>,
+            password_label: <?= json_encode(__('login_password_label')) ?>,
+            show_password: <?= json_encode(__('login_show_password')) ?>,
+            hide_password: <?= json_encode(__('login_hide_password')) ?>,
+            forgot_password: <?= json_encode(__('login_forgot_password')) ?>,
+            button_text: <?= json_encode(__('login_button_text')) ?>,
+            error_invalid_credentials: <?= json_encode(__('login_error_invalid_credentials')) ?>,
+            error_access_denied: <?= json_encode(__('login_error_access_denied')) ?>,
+            success_login_message: <?= json_encode(__('login_welcome')) ?>,
+            close_btn: <?= json_encode(__('close_button')) ?>
+        };
+    </script>
     <!-- Modal de Éxito -->
     <div id="successModal" class="modal-overlay">
         <div class="modal-content">
             <img src="../../public/img/logo2.png" alt="Logo" class="modal-logo">
-            <p class="modal-message">Inicio exitoso</p>
+            <p id="successMessage" class="modal-message"></p>
         </div>
     </div>
 
@@ -134,7 +159,7 @@ if (isset($_SESSION['usuario_id'])) {
         <div class="modal-content">
             <img src="../../public/img/logo2.png" alt="Logo" class="modal-logo">
             <p id="errorMessage" class="modal-message"></p>
-            <button id="closeErrorModal" class="boton" style="margin-top: 20px;">Cerrar</button>
+            <button id="closeErrorModal" class="boton" style="margin-top: 20px;"></button>
         </div>
     </div>
 </body>

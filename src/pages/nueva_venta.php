@@ -409,4 +409,48 @@ function normalizeCategory($name) {
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
-<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
+        <?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
+
+        <script>
+            window.TR_POS = {
+                // Métodos de pago
+                select_payment_method: <?= json_encode(__('select_payment_method')) ?>,
+                cash: <?= json_encode(__('cash')) ?>,
+                card: <?= json_encode(__('card')) ?>,
+                mixed: <?= json_encode(__('mixed')) ?>,
+                amount_received: <?= json_encode(__('amount_received')) ?>,
+                amount_too_low: <?= json_encode(__('amount_too_low')) ?>,
+                change_label: <?= json_encode(__('change_label')) ?>,
+                reference: <?= json_encode(__('reference')) ?>,
+                folio_reference: <?= json_encode(__('folio_reference')) ?>,
+
+                // Descuentos
+                general_discount: <?= json_encode(__('general_discount')) ?>,
+                product_discount: <?= json_encode(__('product_discount')) ?>,
+                value: <?= json_encode(__('value')) ?>,
+                apply: <?= json_encode(__('apply')) ?>,
+                cancel: <?= json_encode(__('cancel')) ?>,
+
+                // Ticket
+                sale_ticket: <?= json_encode(__('sale_ticket')) ?>,
+                print: <?= json_encode(__('print')) ?>,
+
+                // Búsqueda producto
+                search_product_title: <?= json_encode(__('search_product_title')) ?>,
+                search_product_placeholder: <?= json_encode(__('search_product_placeholder')) ?>,
+                code_col: <?= json_encode(__('code_col')) ?>,
+                product_col: <?= json_encode(__('product_col')) ?>,
+                price_col: <?= json_encode(__('price_col')) ?>,
+                stock_col: <?= json_encode(__('stock_col')) ?>,
+                action_col: <?= json_encode(__('action_col')) ?>,
+
+                // Mensajes generales
+                product_not_found_title: 'Producto no encontrado',
+                product_not_found_text: 'El código o SKU ingresado no existe.',
+                search_error_title: 'Error',
+                search_error_text: 'No se pudo realizar la búsqueda. Revisa la consola.',
+                no_results: 'No hay resultados',
+                sale_registered: 'Venta registrada',
+                sale_error: 'Error al registrar la venta'
+            };
+        </script>

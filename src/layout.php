@@ -357,7 +357,8 @@
 
     if (btnConfirm) {
       btnConfirm.addEventListener("click", () => {
-        window.location.href = "src/scripts/logout.php";
+        // Usar ruta absoluta correcta para evitar doble "src/src"
+        window.location.href = "/PrismaMK2C/src/scripts/logout.php";
       });
     }
 

@@ -20,6 +20,6 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-// Redirigir al login
-header('Location: /puntoDeVenta/src/pages/login.php');
+// Redirigir al login (ruta absoluta correcta)
+header('Location: /PrismaMK2C/src/pages/login.php');
 exit;

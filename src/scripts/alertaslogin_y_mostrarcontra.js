@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showSuccessModal(data.redirect);
             } else {
                 console.warn("[Login] Fallo:", data.message);
-                showErrorModal(data.message || "Error al iniciar sesión, contraseña o correo incorrectos");
+                const msg = window.TR_LOGIN?.error_invalid_credentials || "Usuario o contraseña incorrectos.";
+                showErrorModal(msg);
                 if (submitBtn) submitBtn.disabled = false;
             }
 
@@ -80,7 +81,10 @@ function showErrorModal(msg) {
     // Cerrar al hacer click en botón o fuera
     const closeModal = () => modal.classList.remove("visible");
 
-    if (closeBtn) closeBtn.onclick = closeModal;
+    if (closeBtn) {
+        closeBtn.textContent = window.TR_LOGIN?.close_btn || "Cerrar";
+        closeBtn.onclick = closeModal;
+    }
     modal.onclick = (e) => {
         if (e.target === modal) closeModal();
     };
@@ -91,6 +95,11 @@ function showErrorModal(msg) {
 // ===============================
 function showSuccessModal(redirectUrl) {
     const modal = document.getElementById("successModal");
+    const msgEl = document.getElementById("successMessage");
+
+    if (msgEl) {
+        msgEl.textContent = (window.TR_LOGIN?.success_login_message) || "Inicio exitoso";
+    }
 
     if (modal) {
         modal.classList.add("visible");

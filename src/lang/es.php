@@ -277,6 +277,7 @@ return [
 
     // Agregar Empleado
     'add_employee_title' => 'Registro de Empleados',
+    'add_employee_subtitle' => 'Complete el formulario con los datos del nuevo empleado',
     'basic_data' => 'Datos Básicos',
     'last_name_p' => 'Apellido Paterno',
     'last_name_m' => 'Apellido Materno',
@@ -294,6 +295,13 @@ return [
     'position' => 'Puesto',
     'select_position' => 'Seleccionar el puesto',
     'employee_num' => 'Número de empleado',
+    'auto_generated' => 'Se genera automáticamente',
+    'will_be_generated' => 'Se generará automáticamente',
+    'digits' => 'dígitos',
+    'min_8_chars' => 'Mínimo 8 caracteres',
+    'ok' => 'Entendido',
+    'employee_active' => 'Empleado activo',
+    'save_employee' => 'Guardar Empleado',
     'save' => 'Guardar',
     'discard_changes_title' => '¿Descartar cambios?',
     'discard_changes_text' => 'Se eliminarán los datos ingresados para este empleado. ¿Desea continuar?',

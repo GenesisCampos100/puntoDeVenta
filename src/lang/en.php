@@ -221,6 +221,7 @@ return [
 
     // Add Employee
     'add_employee_title' => 'Employee Registration',
+    'add_employee_subtitle' => 'Complete the form with the new employee data',
     'basic_data' => 'Basic Data',
     'last_name_p' => 'Paternal Surname',
     'last_name_m' => 'Maternal Surname',
@@ -238,6 +239,13 @@ return [
     'position' => 'Position',
     'select_position' => 'Select position',
     'employee_num' => 'Employee Number',
+    'auto_generated' => 'Auto-generated',
+    'will_be_generated' => 'Will be generated automatically',
+    'digits' => 'digits',
+    'min_8_chars' => 'Minimum 8 characters',
+    'ok' => 'OK',
+    'employee_active' => 'Active employee',
+    'save_employee' => 'Save Employee',
     'save' => 'Save',
     'discard_changes_title' => 'Discard changes?',
     'discard_changes_text' => 'The data entered for this employee will be deleted. Do you want to continue?',
