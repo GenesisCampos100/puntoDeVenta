@@ -26,6 +26,14 @@ $stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE cod_barras = ?");
 $stmtVar->execute([$producto['cod_barras']]);
 $variantes = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 
+?>
+
+<!-- Dependencias (CARGADAS PRIMERO) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<?php
 // 🧾 Actualizar producto
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -87,11 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 ?>
-
-<!-- Dependencias (si no están ya en layout) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
     :root {
@@ -288,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <!-- Botones de Acción -->
                 <div class="flex items-center gap-4 pt-4">
-                    <button type="button" onclick="window.location.href='index.php?view=productos'" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                    <button type="button" onclick="window.location.href='index.php?view=productos'" class="flex-1 px-6 py-4 bg-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
                         Cancelar
                     </button>
                     <button type="submit" class="flex-1 px-6 py-4 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
