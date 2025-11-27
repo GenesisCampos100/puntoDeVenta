@@ -8,7 +8,6 @@
   <!-- Fonts & Styles -->
   <link rel="stylesheet" href="styles/output.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="./styles/modo-oscuro.css">
   
   <style>
@@ -247,12 +246,12 @@
 
       <!-- Enlaces premium -->
       <div style="margin-top:24px; font-size:12px; color:#9ca3af; display:flex; gap:12px; justify-content:center;">
-        <a href="../public/docs/privacidad.pdf" target="_blank" 
+        <a href="../public/docs/aviso-privacidad.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
           Privacidad
         </a>
         <span>•</span>
-        <a href="../public/docs/terminos.pdf" target="_blank" 
+        <a href="../public/docs/terminos-y-condiciones.pdf" target="_blank" 
            style="color:#6b7280; text-decoration:none; transition:color 0.3s ease;">
           Términos
         </a>

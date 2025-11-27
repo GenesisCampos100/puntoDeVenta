@@ -504,7 +504,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">CategorÃ­a</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">Categori­a</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Precio</th>
                         <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                     </tr>
