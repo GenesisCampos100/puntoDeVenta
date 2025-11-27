@@ -1,4 +1,4 @@
-<!-- Archivo: ventas_contenido.php -->
+﻿<!-- Archivo: ventas_contenido.php -->
 <?php
 require_once __DIR__ . '/../config/db.php';
 
@@ -24,99 +24,34 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <title>Ventas Realizadas</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-/* ----------- MODO OSCURO ----------- */
-body.dark-mode {
-    background-color: #121212 !important;
-    color: #ffffff !important;
-}
-
-/* Forzar todos los textos a blanco */
-
-body.dark-mode .content,
-body.dark-mode main {
-    background-color: #121212 !important;
-}
-
-
-/* Tarjetas */
-body.dark-mode .bg-white {
-    background: #1e293b !important;
-    color: #e2e8f0 !important;
-}
-
-body.dark-mode .text-gray-800,
-body.dark-mode .text-gray-900 {
-    color: #f1f5f9 !important;
-}
-
-body.dark-mode .text-gray-700,
-body.dark-mode .text-gray-600 {
-    color: #cbd5e1 !important;
-}
-
-/* Inputs */
-body.dark-mode input,
-body.dark-mode select {
-    background: #1e293b !important;
-    border-color: #334155 !important;
-    color: #f1f5f9 !important;
-}
-
-body.dark-mode input::placeholder {
-    color: #94a3b8 !important;
-}
-
-/* Tabla */
-body.dark-mode table {
-    color: #e2e8f0;
-}
-
-body.dark-mode thead {
-    background: linear-gradient(to right, #0f172a, #1e293b) !important;
-}
-
-body.dark-mode tbody tr:hover {
-    background: #1e293b !important;
-}
-
-/* Celdas */
-body.dark-mode td {
-    border-color: #334155 !important;
-}
-
-/* Botones */
-body.dark-mode button {
-    border-color: #475569 !important;
-}
-
-body.dark-mode .pagination-btn {
-    background: #1e293b !important;
-    color: #e2e8f0 !important;
-}
-
-body.dark-mode .pagination-btn:hover {
-    background: #334155 !important;
-}
-
-/* Modales */
-body.dark-mode #venta-modal .bg-white,
-body.dark-mode #ticket-modal .bg-white {
-    background: #1e293b !important;
-    color: #f1f5f9 !important;
-}
-
-/* SweetAlert2 */
-body.dark-mode .swal2-popup {
-    background: #1e293b !important;
-    color: #f1f5f9 !important;
-}
-
-body.dark-mode .swal2-title,
-body.dark-mode .swal2-text {
-    color: #f8fafc !important;
-}
-
+<style>
+    :root {
+        --primary: #1e293b;
+        --primary-dark: #0f172a;
+        --accent: #6366f1;
+        --accent-hover: #4f46e5;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
+    
+    .table-row-hover:hover {
+        background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6"> 
@@ -132,7 +67,7 @@ body.dark-mode .swal2-text {
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             
-            <!-- Barra de búsqueda -->
+            <!-- Barra de b├║squeda -->
             <div class="flex-1 relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,14 +83,14 @@ body.dark-mode .swal2-text {
             <!-- Filtros -->
             <div class="flex gap-3">
                 <select id="filterOrden" class="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none bg-white font-medium text-gray-700">
-                    <option value="fecha_desc">📅 Fecha (Recientes)</option>
-                    <option value="fecha_asc">📅 Fecha (Antiguas)</option>
-                    <option value="total_desc">💰 Total (Mayor)</option>
-                    <option value="total_asc">💰 Total (Menor)</option>
+                    <option value="fecha_desc">­ƒôà Fecha (Recientes)</option>
+                    <option value="fecha_asc">­ƒôà Fecha (Antiguas)</option>
+                    <option value="total_desc">­ƒÆ░ Total (Mayor)</option>
+                    <option value="total_asc">­ƒÆ░ Total (Menor)</option>
                 </select>
                 
                 <button id="resetFilters" class="px-4 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 font-medium text-gray-700 transition-all">
-                    🔄 Resetear
+                    ­ƒöä Resetear
                 </button>
             </div>
         </div>
@@ -212,11 +147,11 @@ body.dark-mode .swal2-text {
                             <div class="flex items-center justify-center gap-2">
                                 <button class="ver-detalle-btn px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    👁️ Ver
+                                    ­ƒæü´©Å Ver
                                 </button>
                                 <button class="delete-sale-btn px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    🗑️ Eliminar
+                                    ­ƒùæ´©Å Eliminar
                                 </button>
                             </div>
                         </td>
@@ -226,7 +161,7 @@ body.dark-mode .swal2-text {
             </table>
         </div>
         
-        <!-- Paginación -->
+        <!-- Paginaci├│n -->
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
@@ -236,11 +171,11 @@ body.dark-mode .swal2-text {
                 </div>
                 <div class="flex gap-2">
                     <button id="prevPage" class="pagination-btn px-4 py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        ← Anterior
+                        ÔåÉ Anterior
                     </button>
                     <div id="pageNumbers" class="flex gap-1"></div>
                     <button id="nextPage" class="pagination-btn px-4 py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        Siguiente →
+                        Siguiente ÔåÆ
                     </button>
                 </div>
             </div>
@@ -277,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     mostrarPagina(1);
 });
 
-// Función de paginación
+// Funci├│n de paginaci├│n
 function mostrarPagina(num) {
     paginaActual = num;
     const inicio = (num - 1) * porPagina;
@@ -287,7 +222,7 @@ function mostrarPagina(num) {
     // Ocultar todas las filas primero
     todasLasFilas.forEach(fila => fila.style.display = 'none');
 
-    // Mostrar solo las filas de la página actual
+    // Mostrar solo las filas de la p├ígina actual
     filasFiltradas.slice(inicio, fin).forEach(fila => {
         fila.style.display = '';
     });
@@ -302,7 +237,7 @@ function mostrarPagina(num) {
     document.getElementById('totalRegistros').textContent = filasFiltradas.length;
     document.getElementById('ventasMostradas').textContent = `${Math.min(fin - inicio, filasFiltradas.length - inicio)} de ${filasFiltradas.length}`;
     
-    // Generar números de página
+    // Generar n├║meros de p├ígina
     generarNumerosPagina(totalPaginas);
 }
 
@@ -333,7 +268,7 @@ function generarNumerosPagina(totalPaginas) {
     }
 }
 
-// Búsqueda
+// B├║squeda
 document.getElementById("searchVenta").addEventListener("input", function() {
     const texto = this.value.toLowerCase();
     
@@ -379,7 +314,7 @@ document.getElementById("resetFilters").addEventListener("click", function() {
     mostrarPagina(1);
 });
 
-// Navegación de páginas
+// Navegaci├│n de p├íginas
 document.getElementById('prevPage').addEventListener('click', () => {
     if (paginaActual > 1) {
         mostrarPagina(paginaActual - 1);

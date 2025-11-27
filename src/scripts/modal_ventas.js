@@ -1,4 +1,4 @@
-// modal_ventas.js - Modal de detalles de venta y eliminación
+﻿// modal_ventas.js - Modal de detalles de venta y eliminaci├│n
 (() => {
   document.addEventListener('DOMContentLoaded', () => {
 
@@ -22,7 +22,7 @@
       modal.classList.remove("hidden");
       modal.classList.add("flex");
 
-      // Animación
+      // Animaci├│n
       modal.querySelector(".animate-slide")?.classList.add("slide-active");
     }
 
@@ -38,7 +38,7 @@
       iframe.src = "";
     });
 
-    // Botón cancelar
+    // Bot├│n cancelar
     document.getElementById("cancel-ticket")?.addEventListener("click", () => {
       const modal = document.getElementById("ticket-modal");
       const iframe = document.getElementById("ticket-iframe");
@@ -64,7 +64,7 @@
             ventaDetalles.innerHTML = `
               <div class="space-y-4">
                 <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
-                  <h3 class="font-bold text-lg text-indigo-900 mb-3">Información General</h3>
+                  <h3 class="font-bold text-lg text-indigo-900 mb-3">Informaci├│n General</h3>
                   <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p class="text-gray-600">ID Venta:</p>
@@ -80,7 +80,7 @@
                     </div>
                     <div>
                       <p class="text-gray-600">Cliente:</p>
-                      <p class="font-semibold text-gray-900">${data.venta.cliente || 'Público General'}</p>
+                      <p class="font-semibold text-gray-900">${data.venta.cliente || 'P├║blico General'}</p>
                     </div>
                   </div>
                 </div>
@@ -94,7 +94,7 @@
                           <div class="flex-1">
                             <p class="font-semibold text-gray-900">${p.nombre}</p>
                             <p class="text-sm text-gray-600">${p.talla} / ${p.color}</p>
-                            <p class="text-xs text-gray-500 mt-1">Cantidad: ${p.cantidad} × $${parseFloat(p.precio_unitario).toFixed(2)}</p>
+                            <p class="text-xs text-gray-500 mt-1">Cantidad: ${p.cantidad} ├ù $${parseFloat(p.precio_unitario).toFixed(2)}</p>
                             ${p.descuento > 0 ? `<p class="text-xs text-red-600 mt-1">Descuento: -$${parseFloat(p.descuento).toFixed(2)}</p>` : ''}
                           </div>
                           <div class="text-right">
@@ -127,7 +127,7 @@
 
                 ${data.pagos && data.pagos.length > 0 ? `
                   <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                    <h3 class="font-bold text-sm text-blue-900 mb-2">Métodos de Pago</h3>
+                    <h3 class="font-bold text-sm text-blue-900 mb-2">M├®todos de Pago</h3>
                     <div class="space-y-2">
                       ${data.pagos.map(pago => `
                         <div class="flex justify-between items-center text-sm">
@@ -193,13 +193,13 @@
         const idVenta = e.target.dataset.id;
 
         const result = await Swal.fire({
-          title: '¿Estás seguro?',
-          text: "Esta acción no se puede deshacer",
+          title: '┬┐Est├ís seguro?',
+          text: "Esta acci├│n no se puede deshacer",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#ef4444',
           cancelButtonColor: '#6b7280',
-          confirmButtonText: 'Sí, eliminar',
+          confirmButtonText: 'S├¡, eliminar',
           cancelButtonText: 'Cancelar'
         });
 
@@ -218,13 +218,13 @@
             if (data.success) {
               Swal.fire({
                 icon: 'success',
-                title: '¡Eliminado!',
+                title: '┬íEliminado!',
                 text: 'La venta ha sido eliminada',
                 timer: 2000,
                 showConfirmButton: false
               });
 
-              // Recargar la página después de 2 segundos
+              // Recargar la p├ígina despu├®s de 2 segundos
               setTimeout(() => {
                 window.location.reload();
               }, 2000);

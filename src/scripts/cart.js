@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
 
     // CONSTANTES / STORAGE KEYS
     const STORAGE_KEY = "cart";
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchBody = document.getElementById("search-body");
     const cartRows = document.getElementById("cart-rows");
 
-    // Función para mostrar el cliente seleccionado
+    // Funci├│n para mostrar el cliente seleccionado
     function setSelectedClient(cliente) {
         const nameEl = document.getElementById('client-name');
         const phoneEl = document.getElementById('client-phone');
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
             phoneEl.textContent = cliente.celular || '';
             localStorage.setItem('selectedClient', JSON.stringify(cliente));
         } else {
-            nameEl.textContent = 'Público General';
+            nameEl.textContent = 'P├║blico General';
             phoneEl.textContent = '';
             localStorage.removeItem('selectedClient');
         }
@@ -50,9 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setSelectedClient(null);
     }
 
-    // ==============================
-    // Selección desde el modal
-    // ==============================
+    // Selecci├│n desde el modal
     $(document).on('click', '.seleccionarCliente', function () {
         const cliente = {
             id_cliente: $(this).data('id'),
@@ -66,9 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         $('#modalClientes').addClass('hidden');
     });
 
-    // ==============================
     // Eliminar cliente seleccionado
-    // ==============================
     $('#remove-client').on('click', function () {
         setSelectedClient(null);
     });
@@ -86,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("preview-producto").classList.remove("hidden");
     }
 
-    // BÚSQUEDA RÁPIDA POR ENTER (código o SKU exacto)
+    // B├ÜSQUEDA R├üPIDA POR ENTER (c├│digo o SKU exacto)
     $('#quick-search').on('keypress', function (e) {
         if (e.which !== 13) return; // solo Enter
         const codigo = $(this).val().trim();
@@ -107,270 +103,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (exacto) {
                     addToCart({
-                        cod_barras: exacto.cod_barras,       // código
+                        cod_barras: exacto.cod_barras,       // c├│digo
                         name: exacto.nom_producto,           // nombre exacto del producto
                         price: parseFloat(exacto.precio),    // precio
                         talla: exacto.talla ?? '',           // talla
                         color: exacto.color ?? '',           // color
                         cantidad: 1,                          // cantidad inicial
                         imagen: exacto.imagen ?? null,       // imagen
-                        categoria: exacto.categoria ?? '',    // categoría
-                        discount: null                        // descuento inicial
+                        categoria: exacto.categoria ?? '',    // categor├¡a
+                        discount: null,                       // descuento inicial
+                        stock: exacto.cantidad ?? 0           // stock disponible
                     });
 
                     $('#quick-search').val('');
                 } else {
                     Swal.fire({
                         icon: 'warning',
-                        title: window.TR_POS?.product_not_found_title || 'Producto no encontrado',
-                        text: window.TR_POS?.product_not_found_text || 'El código o SKU ingresado no existe.'
+                        title: 'Producto no encontrado',
+                        text: 'El c├│digo o SKU ingresado no existe.'
                     });
                 }
             },
             error: function (err) {
-                console.error('Error en búsqueda rápida:', err);
+                console.error('Error en b├║squeda r├ípida:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: window.TR_POS?.search_error_title || 'Error',
-                    text: window.TR_POS?.search_error_text || 'No se pudo realizar la búsqueda. Revisa la consola.'
+                    title: 'Error',
+                    text: 'No se pudo realizar la b├║squeda. Revisa la consola.'
                 });
             }
         });
     });
-
-
-
-
-
-
-    let selectedClient = null;
-    try {
-        selectedClient = JSON.parse(localStorage.getItem(CLIENT_KEY)) || null;
-    } catch (e) {
-        selectedClient = null;
-    }
-
-    // FUNCIONES UTILITARIAS
-    function saveCart() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-        updateCart();
-    }
-
-    function getItemDiscountAmount(item) {
-        if (!item.discount) return 0;
-        if (typeof item.discount === "object") {
-            return item.discount.type === "percent"
-                ? item.price * item.quantity * (item.discount.value / 100)
-                : Number(item.discount.value) || 0;
-        }
-        return Number(item.discount) || 0;
-    }
-
-    // CALCULAR TOTALES
-    function recalcTotals() {
-        let subtotal = 0;
-        let individualDiscounts = 0;
-
-        cart.forEach(item => {
-            subtotal += parseFloat(item.price) * item.quantity;
-            individualDiscounts += getItemDiscountAmount(item);
-        });
-
-        const subtotalAfterIndividual = subtotal - individualDiscounts;
-        const globalType = localStorage.getItem("globalDiscountType") || "percent";
-        const globalDiscountAmount =
-            globalType === "percent"
-                ? subtotalAfterIndividual * (globalDiscount / 100)
-                : globalDiscount;
-
-        const totalDiscount = individualDiscounts + globalDiscountAmount;
-        const total = subtotal - totalDiscount;
-
-        if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-        if (discountEl) discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
-        if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
-    }
-
-    // RENDER DEL CARRITO (TABLA POS)
-    function renderCart() {
-        if (!cartRows) return;
-        cartRows.innerHTML = "";
-
-        cart.forEach((item, index) => {
-            const row = document.createElement("tr");
-            row.className = "border-b cart-row";   // ← agregado
-            row.dataset.index = index;             // ← agregado
-
-            const tdCodigo = document.createElement("td");
-            tdCodigo.className = "py-2 px-3";
-            tdCodigo.textContent = item.cod_barras;
-
-            const tdProducto = document.createElement("td");
-            tdProducto.className = "py-2 px-3";
-            tdProducto.textContent = item.name;
-
-            const tdVariant = document.createElement("td");
-            tdVariant.className = "py-2 px-3 text-center";
-            tdVariant.textContent = `${item.talla ?? ''} / ${item.color ?? ''}`;
-            row.appendChild(tdVariant);
-
-
-            const tdPrecio = document.createElement("td");
-            tdPrecio.className = "py-2 px-3 text-center";
-            tdPrecio.textContent = "$" + parseFloat(item.price).toFixed(2);
-
-            const tdQty = document.createElement("td");
-            tdQty.className = "py-2 px-3 text-center";
-            tdQty.innerHTML = `
-            <div class="flex items-center justify-center gap-1">
-                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="decreaseQuantity(${index})">-</button>
-                <span class="px-2 font-semibold">${item.quantity}</span>
-                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="increaseQuantity(${index})">+</button>
-            </div>
-        `;
-
-            const itemTotal = item.price * item.quantity - getItemDiscountAmount(item);
-            const tdTotal = document.createElement("td");
-            tdTotal.className = "py-2 px-3 text-center font-bold";
-            tdTotal.textContent = "$" + itemTotal.toFixed(2);
-
-            const tdDesc = document.createElement("td");
-            tdDesc.className = "py-2 px-3 text-center";
-            tdDesc.innerHTML = `<button class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs" onclick="editItemDiscount(${index})">%</button>`;
-
-            const tdDel = document.createElement("td");
-            tdDel.className = "py-2 px-3 text-center";
-            tdDel.innerHTML = `<button class="text-red-600 text-lg" onclick="removeItem(${index})">×</button>`;
-
-            row.append(tdCodigo, tdProducto, tdVariant, tdPrecio, tdQty, tdTotal, tdDesc, tdDel);
-            cartRows.appendChild(row);
-        });
-
-        recalcTotals();
-    }
-
-
-    // UPDATE GENERAL
-    function updateTotals() { recalcTotals(); }
-    function updateCart() { renderCart(); }
-
-    // FUNCIONES PARA BOTONES (+ / - / X)
-    window.increaseQuantity = function (index) { cart[index].quantity++; saveCart(); };
-    window.decreaseQuantity = function (index) { if (cart[index].quantity > 1) cart[index].quantity--; saveCart(); };
-    window.removeItem = function (index) { cart.splice(index, 1); saveCart(); };
-    window.editItemDiscount = function (index) {
-        const modal = document.getElementById("discount-modal");
-        if (!modal) return;
-        modal.dataset.index = index;
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    };
-
-    // CLIENTE: CAMBIAR/ELIMINAR Y MODAL CLIENTE
-    document.addEventListener('click', (e) => {
-        if (e.target && e.target.id === 'eliminarCliente') {
-            localStorage.removeItem(CLIENT_KEY);
-            selectedClient = null;
-            updateCart();
-        }
-        if (e.target && e.target.id === 'cambiarCliente') {
-            const modal = document.getElementById('modalClientes');
-            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-        }
-    });
-
-    const clientBtn = document.getElementById('client-btn');
-    if (clientBtn) clientBtn.addEventListener('click', () => {
-        const modal = document.getElementById('modalClientes');
-        if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-    });
-
-    const cerrarModalBtn = document.getElementById('cerrar-modal-cliente');
-    if (cerrarModalBtn) cerrarModalBtn.addEventListener('click', () => {
-        const modal = document.getElementById('modalClientes');
-        if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-    });
-
-    const buscarClienteInput = document.getElementById('buscarCliente');
-    if (buscarClienteInput) buscarClienteInput.addEventListener('input', () => {
-        const q = buscarClienteInput.value.toLowerCase().trim();
-        document.querySelectorAll('#tablaClientes tbody tr, #tablaClientes tr').forEach(row => {
-            row.style.display = (row.textContent || '').toLowerCase().includes(q) ? '' : 'none';
-        });
-    });
-
-        setSelectedClient(cliente);
-
-        // Cerrar modal
-        $('#modalClientes').addClass('hidden');
-    });
-
-    // Eliminar cliente seleccionado
-    $('#remove-client').on('click', function () {
-        setSelectedClient(null);
-    });
-
-
-    // ---------- PREVIEW DEL PRODUCTO (opciones)
-    function actualizarPreview(producto) {
-        if (!producto || !producto.imagen) {
-            document.getElementById("preview-producto").classList.add("hidden");
-            return;
-        }
-
-        const ruta = "../uploads/" + producto.imagen;
-        document.getElementById("preview-img").src = ruta;
-        document.getElementById("preview-producto").classList.remove("hidden");
-    }
-
-    // BÚSQUEDA RÁPIDA POR ENTER (código o SKU exacto)
-    $('#quick-search').on('keypress', function (e) {
-        if (e.which !== 13) return; // solo Enter
-        const codigo = $(this).val().trim();
-        if (!codigo) return;
-        $.ajax({
-            url: 'pages/nueva_venta.php',
-            method: 'GET',
-            data: { buscar_producto: codigo },
-            dataType: 'json',
-            success: function (productos) {
-                const exacto = productos.find(p => {
-                    const cod = String(p.cod_barras || '').trim().toLowerCase();
-                    const sku = String(p.sku || '').trim().toLowerCase();
-                    return cod === codigo.toLowerCase() || sku === codigo.toLowerCase();
-                });
-                if (exacto) {
-                    addToCart({
-                        cod_barras: exacto.cod_barras,
-                        name: exacto.nom_producto,
-                        price: parseFloat(exacto.precio),
-                        talla: exacto.talla ?? '',
-                        color: exacto.color ?? '',
-                        cantidad: 1,
-                        imagen: exacto.imagen ?? null,
-                        categoria: exacto.categoria ?? '',
-                        discount: null
-                    });
-                    $('#quick-search').val('');
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: window.TR_POS?.product_not_found_title || 'Producto no encontrado',
-                        text: window.TR_POS?.product_not_found_text || 'El código o SKU ingresado no existe.'
-                    });
-                }
-            },
-            error: function (err) {
-                console.error('Error en búsqueda rápida:', err);
-                Swal.fire({
-                    icon: 'error',
-                    title: window.TR_POS?.search_error_title || 'Error',
-                    text: window.TR_POS?.search_error_text || 'No se pudo realizar la búsqueda. Revisa la consola.'
-                });
-            }
-        });
-    });
-
 
 
     let selectedClient = null;
@@ -480,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const tdDel = document.createElement("td");
             tdDel.className = "py-2 px-3 text-center";
-            tdDel.innerHTML = `<button class="text-red-600 text-lg" onclick="removeItem(${index})">×</button>`;
+            tdDel.innerHTML = `<button class="text-red-600 text-lg" onclick="removeItem(${index})">├ù</button>`;
 
             row.append(tdCodigo, tdProducto, tdVariant, tdPrecio, tdQty, tdTotal, tdDesc, tdDel);
             cartRows.appendChild(row);
@@ -621,8 +384,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (existente) {
-            existente.quantity++;
-        if (existente) {
             if (existente.quantity + 1 > existente.stock) {
                 Swal.fire({
                     icon: 'warning',
@@ -661,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    // AL HACER CLICK EN UNA FILA DEL CARRITO → MOSTRAR PREVIEW
+    // AL HACER CLICK EN UNA FILA DEL CARRITO ÔåÆ MOSTRAR PREVIEW
     $(document).on("click", ".cart-row", function () {
         const index = $(this).data("index");
         const producto = cart[index];
@@ -715,13 +476,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const r = await fetch('scripts/procesar_venta.php', { method: 'POST', body: formData });
             const data = await r.json();
             if (data.status === 'success') {
-                alert(`✅ Venta registrada. Total: $${data.total}`);
+                alert(`Ô£à Venta registrada. Total: $${data.total}`);
                 cart = []; localStorage.removeItem('cart'); localStorage.removeItem('globalDiscount'); updateCart();
                 document.getElementById('payment-modal')?.classList.add('hidden');
-            } else alert(`❌ ${data.message || 'Error al registrar la venta'}`);
+            } else alert(`ÔØî ${data.message || 'Error al registrar la venta'}`);
         } catch (err) {
             console.error('Error fetch procesar_venta:', err);
-            alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
+            alert("ÔØî Error al procesar la venta. Revisa la consola para m├ís detalles.");
         }
     });
 
@@ -735,7 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const searchInput = document.getElementById("search-input");
 
-    // BÚSQUEDA DE PRODUCTOS
+    // B├ÜSQUEDA DE PRODUCTOS
     searchInput?.addEventListener("input", function () {
         const texto = this.value.trim();
         if (texto.length < 1) {
@@ -749,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 searchBody.innerHTML = "";
                 if (!data || data.length === 0) {
-                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">${window.TR_POS?.no_results || 'No hay resultados'}</td></tr>`;
+                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
                     searchResults?.classList.remove("hidden");
                     return;
                 }
@@ -766,17 +527,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td class="py-2 px-3 text-center">${prod.stock}</td>
                 `;
 
-                    // Agregar al carrito la variante específica
+                    // Agregar al carrito la variante espec├¡fica
                     tr.addEventListener("click", () => addToCart({
                         cod_barras: prod.cod_barras,
-                        name: prod.nom_producto,           // ← cambiar
-                        price: parseFloat(prod.precio),    // ← cambiar
+                        name: prod.nom_producto,           // ÔåÉ cambiar
+                        price: parseFloat(prod.precio),    // ÔåÉ cambiar
                         talla: prod.talla ?? '',
                         color: prod.color ?? '',
-                        quantity: 1,                        // ← siempre quantity
+                        quantity: 1,                        // ÔåÉ siempre quantity
                         imagen: prod.imagen ?? null,
                         categoria: prod.categoria ?? '',
-                        discount: null
+                        discount: null,
+                        stock: prod.stock ?? 0
                     }));
 
                     searchBody.appendChild(tr);
@@ -784,7 +546,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 searchResults?.classList.remove("hidden");
             })
-            .catch(err => console.error("Error en búsqueda:", err));
+            .catch(err => console.error("Error en b├║squeda:", err));
     });
+
 
 });
