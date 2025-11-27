@@ -1,6 +1,7 @@
 <!-- Archivo: ventas_contenido.php -->
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/translation.php';
 
 $sql = "
     SELECT 
@@ -21,7 +22,7 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ventas Realizadas</title>
+<title><?php echo __('sales_made'); ?></title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -124,8 +125,8 @@ body.dark-mode .swal2-text {
 <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-4xl font-bold text-gray-800 mb-2">Ventas Realizadas</h1>
-        <p class="text-gray-600">Gestiona y visualiza todas las ventas registradas</p>
+        <h1 class="text-4xl font-bold text-gray-800 mb-2"><?php echo __('sales_made'); ?></h1>
+        <p class="text-gray-600"><?php echo __('manage_view_sales'); ?></p>
     </div>
 
     <!-- Controles superiores -->
@@ -141,21 +142,21 @@ body.dark-mode .swal2-text {
                 </div>
                 <input type="text" 
                        id="searchVenta" 
-                       placeholder="Buscar por ID, empleado o fecha..." 
+                       placeholder="<?php echo __('search_by_id_employee_date'); ?>" 
                        class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all">
             </div>
 
             <!-- Filtros -->
             <div class="flex gap-3">
                 <select id="filterOrden" class="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none bg-white font-medium text-gray-700">
-                    <option value="fecha_desc">📅 Fecha (Recientes)</option>
-                    <option value="fecha_asc">📅 Fecha (Antiguas)</option>
-                    <option value="total_desc">💰 Total (Mayor)</option>
-                    <option value="total_asc">💰 Total (Menor)</option>
+                    <option value="fecha_desc">📅 <?php echo __('date_recent'); ?></option>
+                    <option value="fecha_asc">📅 <?php echo __('date_old'); ?></option>
+                    <option value="total_desc">💰 <?php echo __('total_higher'); ?></option>
+                    <option value="total_asc">💰 <?php echo __('total_lower'); ?></option>
                 </select>
                 
                 <button id="resetFilters" class="px-4 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 font-medium text-gray-700 transition-all">
-                    🔄 Resetear
+                    🔄 <?php echo __('reset'); ?>
                 </button>
             </div>
         </div>
@@ -163,16 +164,16 @@ body.dark-mode .swal2-text {
         <!-- Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                <p class="text-sm text-blue-600 font-semibold mb-1">Total Ventas</p>
+                <p class="text-sm text-blue-600 font-semibold mb-1"><?php echo __('total_sales'); ?></p>
                 <p class="text-2xl font-bold text-blue-700" id="totalVentas"><?= count($ventas) ?></p>
             </div>
             <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-                <p class="text-sm text-green-600 font-semibold mb-1">Ingresos Totales</p>
+                <p class="text-sm text-green-600 font-semibold mb-1"><?php echo __('total_income'); ?></p>
                 <p class="text-2xl font-bold text-green-700" id="ingresosTotales">$<?= number_format(array_sum(array_column($ventas, 'pago_total')), 2) ?></p>
             </div>
             <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                <p class="text-sm text-purple-600 font-semibold mb-1">Mostrando</p>
-                <p class="text-2xl font-bold text-purple-700" id="ventasMostradas">0 de <?= count($ventas) ?></p>
+                <p class="text-sm text-purple-600 font-semibold mb-1"><?php echo __('showing'); ?></p>
+                <p class="text-2xl font-bold text-purple-700" id="ventasMostradas">0 <?php echo __('of'); ?> <?= count($ventas) ?></p>
             </div>
         </div>
     </div>
@@ -183,10 +184,10 @@ body.dark-mode .swal2-text {
             <table class="w-full">
                 <thead class="bg-gradient-to-r from-slate-700 to-slate-800 text-white">
                     <tr>
-                        <th class="px-6 py-4 text-left font-semibold">Empleado</th>
-                        <th class="px-6 py-4 text-left font-semibold">Fecha</th>
-                        <th class="px-6 py-4 text-right font-semibold">Total</th>
-                        <th class="px-6 py-4 text-center font-semibold">Acciones</th>
+                        <th class="px-6 py-4 text-left font-semibold"><?php echo __('employee'); ?></th>
+                        <th class="px-6 py-4 text-left font-semibold"><?php echo __('date'); ?></th>
+                        <th class="px-6 py-4 text-right font-semibold"><?php echo __('total'); ?></th>
+                        <th class="px-6 py-4 text-center font-semibold"><?php echo __('actions'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="tablaVentas" class="divide-y divide-gray-100">
@@ -212,11 +213,11 @@ body.dark-mode .swal2-text {
                             <div class="flex items-center justify-center gap-2">
                                 <button class="ver-detalle-btn px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    👁️ Ver
+                                    👁️ <?php echo __('view'); ?>
                                 </button>
                                 <button class="delete-sale-btn px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    🗑️ Eliminar
+                                    🗑️ <?php echo __('delete'); ?>
                                 </button>
                             </div>
                         </td>
@@ -231,16 +232,16 @@ body.dark-mode .swal2-text {
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-700">
-                        Mostrando <span class="font-medium" id="rangoInicio">1</span> a <span class="font-medium" id="rangoFin">20</span> de <span class="font-medium" id="totalRegistros"><?= count($ventas) ?></span> ventas
+                        <?php echo __('showing_from_to'); ?> <span class="font-medium" id="rangoInicio">1</span> <?php echo __('to'); ?> <span class="font-medium" id="rangoFin">20</span> <?php echo __('of'); ?> <span class="font-medium" id="totalRegistros"><?= count($ventas) ?></span> <?php echo __('sales'); ?>
                     </p>
                 </div>
                 <div class="flex gap-2">
                     <button id="prevPage" class="pagination-btn px-4 py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        ÔåÉ Anterior
+                        ← <?php echo __('previous'); ?>
                     </button>
                     <div id="pageNumbers" class="flex gap-1"></div>
                     <button id="nextPage" class="pagination-btn px-4 py-2 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        Siguiente ÔåÆ
+                        <?php echo __('next'); ?> →
                     </button>
                 </div>
             </div>
@@ -251,11 +252,11 @@ body.dark-mode .swal2-text {
 <!-- Modal detalle de venta -->
 <div id="venta-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl m-4">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Detalle de Venta</h2>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800"><?php echo __('sale_detail'); ?></h2>
         <div id="venta-detalles" class="space-y-3 max-h-96 overflow-y-auto"></div>
         <div class="flex justify-end mt-6 gap-3">
             <button id="close-venta-modal" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-all">
-                Cerrar
+                <?php echo __('close'); ?>
             </button>
         </div>
     </div>
@@ -404,7 +405,7 @@ document.getElementById('nextPage').addEventListener('click', () => {
 <div id="ticket-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
     <div class="bg-white w-[380px] md:w-[430px] rounded-2xl shadow-xl p-4 animate-slide">
 
-        <h2 class="text-xl font-bold text-gray-800 mb-3 text-center">Ticket de Venta</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-3 text-center"><?php echo __('sale_ticket'); ?></h2>
 
         <!-- Iframe donde se carga el ticket -->
         <iframe id="ticket-iframe" class="w-full h-[450px] rounded-lg border"></iframe>
@@ -412,7 +413,7 @@ document.getElementById('nextPage').addEventListener('click', () => {
         <div class="flex justify-end">
     <button id="close-ticket-modal"
         class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-        Cerrar
+        <?php echo __('close'); ?>
     </button>
 </div>
 
