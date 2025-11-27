@@ -367,12 +367,12 @@ body.dark-mode #pay-btn:hover {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input id="quick-search" type="text" placeholder="Buscar producto por código, nombre o SKU..." 
+                <input id="quick-search" type="text" placeholder="<?php echo __('search_product_by_code_name_sku'); ?>" 
                     class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-lg shadow-sm focus:outline-none transition-all placeholder-slate-400 font-medium">
             </div>
             <button id="open-product-modal" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3 rounded-2xl font-semibold shadow-lg btn-transition flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                Catálogo
+                <?php echo __('catalog'); ?>
             </button>
         </div>
 
@@ -381,11 +381,11 @@ body.dark-mode #pay-btn:hover {
             <table class="w-full text-sm text-left">
                 <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider border-b border-slate-100">
                     <tr>
-                        <th class="py-3 px-4">Código</th>
-                        <th class="py-3 px-4">Producto</th>
-                        <th class="py-3 px-4">Variante</th>
-                        <th class="py-3 px-4 text-right">Precio</th>
-                        <th class="py-3 px-4 text-center">Stock</th>
+                        <th class="py-3 px-4"><?php echo __('code'); ?></th>
+                        <th class="py-3 px-4"><?php echo __('product'); ?></th>
+                        <th class="py-3 px-4"><?php echo __('variant'); ?></th>
+                        <th class="py-3 px-4 text-right"><?php echo __('price'); ?></th>
+                        <th class="py-3 px-4 text-center"><?php echo __('stock'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="search-body" class="divide-y divide-slate-50"></tbody>
@@ -401,12 +401,12 @@ body.dark-mode #pay-btn:hover {
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
-                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
+                        <h2 class="text-lg font-bold text-slate-800"><?php echo __('sale_ticket'); ?></h2>
+                        <p class="text-xs text-slate-500 font-medium"><?php echo __('folio'); ?>: #NEW</p>
                     </div>
                 </div>
                 <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-                    Caja Principal
+                    <?php echo __('main_register'); ?>
                 </div>
             </div>
 
@@ -415,11 +415,11 @@ body.dark-mode #pay-btn:hover {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-slate-500 text-xs uppercase tracking-wider font-semibold">
-                            <th class="py-3 px-4 text-left w-[15%]">Código</th>
-                            <th class="py-3 px-4 text-left w-[30%]">Descripción</th>
-                            <th class="py-3 px-4 text-center w-[15%]">Precio</th>
-                            <th class="py-3 px-4 text-center w-[15%]">Cant.</th>
-                            <th class="py-3 px-4 text-right w-[15%]">Total</th>
+                            <th class="py-3 px-4 text-left w-[15%]"><?php echo __('code'); ?></th>
+                            <th class="py-3 px-4 text-left w-[30%]"><?php echo __('description'); ?></th>
+                            <th class="py-3 px-4 text-center w-[15%]"><?php echo __('price'); ?></th>
+                            <th class="py-3 px-4 text-center w-[15%]"><?php echo __('quantity_short'); ?></th>
+                            <th class="py-3 px-4 text-right w-[15%]"><?php echo __('total'); ?></th>
                             <th class="py-3 px-4 text-center w-[10%]"></th>
                         </tr>
                     </thead>
@@ -445,7 +445,7 @@ body.dark-mode #pay-btn:hover {
             </div>
             
             <div class="relative z-10">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Cliente Asignado</label>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"><?php echo __('assigned_client'); ?></label>
                 <div class="flex justify-between items-start">
                     <div class="truncate pr-2">
                         <h3 id="client-name" class="text-lg font-bold text-slate-800 leading-tight truncate">Público General</h3>

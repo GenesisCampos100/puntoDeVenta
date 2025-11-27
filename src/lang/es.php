@@ -862,5 +862,10 @@ return [
     // Títulos de páginas
     'pos_title' => 'Punto de Venta - Caja',
     'add_customer_title' => 'Agregar Cliente — Punto de Venta',
-    'add_product_title' => 'Agregar Producto | POS System'
+    'add_product_title' => 'Agregar Producto | POS System',
+
+    // Nueva Venta (POS)
+    'search_product_by_code_name_sku' => 'Buscar producto por código, nombre o SKU...',
+    'price' => 'Precio',
+    'quantity' => 'Cantidad'
 ];
