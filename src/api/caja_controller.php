@@ -10,13 +10,13 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json; charset=utf-8');
 
 // Verificar autenticación básica
-if (!isset($_SESSION['id_empleado'])) {
+if (!isset($_SESSION['empleado_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'No hay sesión activa']);
     exit;
 }
 
 $action = $_POST['action'] ?? '';
-$id_empleado = $_SESSION['id_empleado'];
+$id_empleado = $_SESSION['empleado_id'];
 
 try {
     switch ($action) {
