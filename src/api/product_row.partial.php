@@ -25,6 +25,9 @@ if ($cantidad > $cantidad_min) {
 
 $imagen = !empty($producto['imagen']) ? "uploads/".htmlspecialchars($producto['imagen']) : "../uploads/sin-imagen.png";
 $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
+
+// Detectar si el usuario es Cajero (solo puede ver detalles)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <tr class="group hover:bg-gray-50 transition-colors duration-200 <?= $tieneVariantes ? 'product-parent cursor-pointer' : '' ?> <?php if(!$is_active) echo 'opacity-60 bg-gray-50'; ?>" 

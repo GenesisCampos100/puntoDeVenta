@@ -87,6 +87,9 @@ $stockBajo = 0;
 foreach($productos as $p) {
     if($p['cantidad'] <= $p['cantidad_min']) $stockBajo++;
 }
+
+// Detectar si el usuario es Cajero (no debe poder agregar/editar/eliminar)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <!-- Dependencias -->
@@ -486,12 +489,21 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                     <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio: Mayor</option>
                 </select>
 
-                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span class="hidden sm:inline">Nuevo Producto</span>
-                </button>
+                <?php if ($esCajero): ?>
+                    <button id="btnAgregarProducto" disabled class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200 opacity-50 cursor-not-allowed" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);" title="No autorizado">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                    </button>
+                <?php else: ?>
+                    <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -541,7 +553,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
                                         <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o tu bÃºsqueda</p>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o tu busqueda</p>
                                     </div>
                                   </td></tr>';
                         }
@@ -620,16 +632,14 @@ body.dark-mode #modalDetalle .btn-editar-dark {
 
             <!-- Action Buttons -->
             <div class="flex gap-3">
-                <a id="modal-btn-editar"
-                href="#"
-                class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white"
-                style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    Editar
-                </a>
+                <?php if (!$esCajero): ?>
+                    <a id="modal-btn-editar" href="#" class="flex-1 py-4 rounded-xl font-bold text-center transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Editar
+                    </a>
+                <?php endif; ?>
             </div>
 
 <!-- Hidden input con ID -->

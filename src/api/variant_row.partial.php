@@ -21,6 +21,9 @@ if ($cantidadVar > $cantidadMinVar) {
 }
 
 $jsonVariante = htmlspecialchars(json_encode($var), ENT_QUOTES, 'UTF-8');
+
+// Detectar si el usuario es Cajero (solo puede ver detalles)
+$esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 
 <tr class="hover:bg-white transition-colors">

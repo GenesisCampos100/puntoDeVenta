@@ -72,6 +72,9 @@
     $proveedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $stmt_cate = $pdo->query("SELECT id_categoria, nombre FROM categorias");
     $categorias = $stmt_cate->fetchAll(PDO::FETCH_ASSOC);
+
+    // Detectar si el usuario es Cajero (no debe poder agregar/editar/eliminar)
+    $esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -493,37 +496,48 @@ body.dark-mode .btn-add {
                     </div>
 
                     <!-- Add Button -->
-                    <button type="button" onclick="window.location.href='index.php?view=agregar_proveedor'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Agregar
-                    </button>
+                    <?php if ($esCajero): ?>
+                        <button type="button" disabled class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg transition-all duration-200 opacity-50 cursor-not-allowed" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);" title="No autorizado">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Agregar
+                        </button>
+                    <?php else: ?>
+                        <button type="button" onclick="window.location.href='index.php?view=agregar_proveedor'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Agregar
+                        </button>
+                    <?php endif; ?>
                 </div>
             </form>
 
-            <!-- Bulk Actions -->
-            <div id="bulkActions" class="hidden mt-5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border-2 border-primary/20">
-                <div class="flex items-center justify-between flex-wrap gap-3">
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" id="selectAll" class="custom-checkbox" />
-                        <span class="text-sm font-semibold text-gray-700">
-                            <span id="bulkSelectedCount">0</span> empleado(s) seleccionado(s)
-                        </span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="bulkDelete()" class="px-5 py-2.5 text-white rounded-lg font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Eliminar
-                        </button>
-                        <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
-                            Cancelar
-                        </button>
+           <!-- Bulk Actions -->
+            <?php if (!$esCajero): ?>
+                <div id="bulkActions" class="hidden mt-5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border-2 border-primary/20">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="selectAll" class="custom-checkbox" />
+                            <span class="text-sm font-semibold text-gray-700">
+                                <span id="bulkSelectedCount">0</span> empleado(s) seleccionado(s)
+                            </span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="bulkDelete()" class="px-5 py-2.5 text-white rounded-lg font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar
+                            </button>
+                            <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
+                                Cancelar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Table -->
@@ -594,12 +608,14 @@ body.dark-mode .btn-add {
                                             <button onclick="openDetalle('<?= $pr['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
                                                 Ver
                                             </button>
-                                            <a href="index.php?view=editar_proveedor&id=<?= $pr['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                                                Editar
-                                            </a>
-                                            <button onclick="confirmDelete('<?= $pr['numero'] ?>', '<?= htmlspecialchars(addslashes($pr['representante'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                                                Eliminar
-                                            </button>
+                                            <?php if (!$esCajero): ?>
+                                                <a href="index.php?view=editar_proveedor&id=<?= $pr['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
+                                                    Editar
+                                                </a>
+                                                <button onclick="confirmDelete('<?= $pr['numero'] ?>', '<?= htmlspecialchars(addslashes($pr['representante'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
+                                                    Eliminar
+                                                </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -624,11 +640,19 @@ body.dark-mode .btn-add {
     </div>
 
     <!-- FAB Button -->
-    <button class="fab" onclick="window.location.href='index.php?view=agregar_proveedor'">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-    </button>
+    <?php if ($esCajero): ?>
+        <button class="fab" disabled title="No autorizado" style="opacity:0.6; cursor:not-allowed;">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
+    <?php else: ?>
+        <button class="fab" onclick="window.location.href='index.php?view=agregar_proveedor'">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </button>
+    <?php endif; ?>
 
     <!-- MODAL VER PROVEEDOR -->
     <div id="modalDetalle" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
