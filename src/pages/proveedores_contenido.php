@@ -464,22 +464,14 @@
                                     <td class="px-6 py-4">
                                         <input type="checkbox" class="custom-checkbox row-checkbox" data-id="<?= $pr['numero'] ?>" />
                                     </td>
-<<<<<<< HEAD
-                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900"><?= htmlspecialchars($pr['empresa']) ?></td>
-=======
                                     <td class="px-6 py-4 text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($pr['empresa'])) ?></td>
->>>>>>> testing
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                                                 <?= strtoupper(substr($pr['representante'], 0, 1))?>
                                             </div>
                                             <div>
-<<<<<<< HEAD
-                                                <p class="text-sm font-semibold text-gray-900"><?= htmlspecialchars($pr['representante']) ?></p>
-=======
                                                 <p class="text-sm font-semibold text-gray-900"><?= tr_content(htmlspecialchars($pr['representante'])) ?></p>
->>>>>>> testing
                                             </div>
                                         </div>
                                     </td>
@@ -533,13 +525,8 @@
                                         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-<<<<<<< HEAD
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo proveedor</p>
-=======
                                         <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
                                         <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
->>>>>>> testing
                                     </div>
                                 </td>
                             </tr>
@@ -745,11 +732,7 @@
                             <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-<<<<<<< HEAD
-                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
-=======
                             <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
->>>>>>> testing
                             <p class="text-gray-500">Intenta ajustar tu búsqueda</p>
                         </div>
                         </td>

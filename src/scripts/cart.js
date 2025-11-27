@@ -186,6 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalDiscount = individualDiscounts + globalDiscountAmount;
         const total = subtotal - totalDiscount;
 
+        // Guardar total para el modal de pago
+        localStorage.setItem("lastTotal", total);
+
         if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
         if (discountEl) discountEl.textContent = `-$${totalDiscount.toFixed(2)}`;
         if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
@@ -198,8 +201,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         cart.forEach((item, index) => {
             const row = document.createElement("tr");
-            row.className = "border-b cart-row";   // ← agregado
-            row.dataset.index = index;             // ← agregado
+            row.className = "border-b cart-row";
+            row.dataset.index = index;
 
             const tdCodigo = document.createElement("td");
             tdCodigo.className = "py-2 px-3";
@@ -213,7 +216,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tdVariant.className = "py-2 px-3 text-center";
             tdVariant.textContent = `${item.talla ?? ''} / ${item.color ?? ''}`;
             row.appendChild(tdVariant);
-
 
             const tdPrecio = document.createElement("td");
             tdPrecio.className = "py-2 px-3 text-center";
