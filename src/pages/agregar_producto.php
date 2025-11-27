@@ -21,7 +21,17 @@ try {
     die("Error al cargar categorías: " . $e->getMessage());
 }
 
+// Cargar proveedores para el select
+try {
+    $provStmt = $pdo->query("SELECT id_proveedor, nombre, empresa FROM proveedores ORDER BY nombre ASC");
+    $proveedores = $provStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Si no existe la tabla proveedores, dejamos el array vacío y el select mostrará 'Sin proveedor'
+    $proveedores = [];
+}
+
 $error_message = ''; // cadena JSON para frontend
+
 
 // -----------------------------
 // Procesar formulario
@@ -35,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sku_principal = trim($_POST['sku_principal'] ?? '');
         $id_categoria = $_POST['id_categoria'] ?? null;
         $marca = trim($_POST['marca'] ?? '');
+        $id_proveedor = $_POST['id_proveedor'] ?? null;
         $descripcion = trim($_POST['descripcion'] ?? '');
 
         $talla_base = trim($_POST['talla_base'] ?? null);
@@ -81,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $color_prod = $hayVariantes ? null : $color_base;
 
         $stmt = $pdo->prepare("INSERT INTO productos 
-            (cod_barras, sku, nom_producto, descripcion, marca, imagen, talla, color, cantidad, cantidad_min, costo, precio, id_categoria)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (cod_barras, sku, nom_producto, descripcion, marca, imagen, talla, color, cantidad, cantidad_min, costo, precio, id_categoria, id_proveedor)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $cod_barras ?: null,
             $sku_principal ?: null,
@@ -96,7 +107,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cantidad_min,
             $costo,
             $precio_unitario,
-            $id_categoria
+            $id_categoria,
+            $id_proveedor ?: null
         ]);
 
         $producto_id_referencia = $cod_barras ?: $sku_principal ?: $pdo->lastInsertId();
@@ -511,6 +523,23 @@ body.dark-mode thead tr:first-child th:last-child {
                             <input name="marca"
                                     value="<?= htmlspecialchars($_POST['marca'] ?? '') ?>"
                                     class="form-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+                            <select name="id_proveedor" class="form-input w-full">
+                                <option value="">Sin proveedor</option>
+                                <?php foreach ($proveedores as $prov): ?>
+                                    <?php $pv = htmlspecialchars($prov['id_proveedor']); ?>
+                                    <?php
+                                        $empresa_part = trim((string)($prov['empresa'] ?? ''));
+                                        $nombre_part = trim((string)($prov['nombre'] ?? ''));
+                                        $label = $empresa_part !== '' && $nombre_part !== '' ? $empresa_part . ' - ' . $nombre_part : ($empresa_part !== '' ? $empresa_part : $nombre_part);
+                                    ?>
+                                    <option value="<?= $pv ?>" <?= (isset($_POST['id_proveedor']) && $_POST['id_proveedor']==$prov['id_proveedor']) ? 'selected' : '' ?> >
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
