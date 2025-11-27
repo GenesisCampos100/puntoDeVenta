@@ -273,9 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ==========================================
    Modo Oscuro - Agregar Producto
    ========================================== */
-body.dark-mode {
-  background-color: #121212 !important;
-  color: #e5e7eb !important;
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
 }
 
 /*  Tarjetas (card, secciones, aside) */
@@ -876,23 +876,41 @@ function addVariantRow(type = 'ambas', data = {}) {
 
 
     // Delete single row
-    btnDelete.addEventListener('click', function(){
-        Swal.fire({
-            title: 'Eliminar variante',
-            text: '¿Confirmas eliminar esta variante del formulario?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e15871',
-            cancelButtonColor: '#9ca3af',
-            confirmButtonText: 'Sí, eliminar'
-        }).then(res => {
-            if(res.isConfirmed){
-                tr.remove();
-                updateVariantUIState();
-                Swal.fire('Eliminada', 'La variante se ha eliminado del formulario.', 'success');
-            }
-        });
+btnDelete.addEventListener('click', function(){
+    const isDark = document.body.classList.contains('dark-mode'); 
+
+    Swal.fire({
+        title: 'Eliminar variante',
+        text: '¿Confirmas eliminar esta variante del formulario?',
+        icon: 'warning',
+
+        // botones
+        showCancelButton: true,
+        confirmButtonColor: isDark ? '#e15871' : '#e15871',
+        cancelButtonColor: isDark ? '#4b5563' : '#9ca3af',
+        confirmButtonText: 'Sí, eliminar',
+
+        //  MODO OSCURO AUTOMÁTICO
+        background: isDark ? '#121212' : '#ffffff',    // fondo gris oscuro
+        color: isDark ? '#e5e7eb' : '#121212',         // texto claro
+    }).then(res => {
+        if(res.isConfirmed){
+            tr.remove();
+            updateVariantUIState();
+
+            // Swal final con modo oscuro también
+            Swal.fire({
+                title: 'Eliminada',
+                text: 'La variante se ha eliminado del formulario.',
+                icon: 'success',
+                background: isDark ? '#121212' : '#ffffff',
+                color: isDark ? '#e5e7eb' : '#1f2937',
+                confirmButtonColor: isDark ? '#b4c24d' : '#b4c24d',
+            });
+        }
     });
+});
+
 
     // When checkbox toggled, update UI
     selectCheckbox.addEventListener('change', updateVariantUIState);
@@ -943,12 +961,16 @@ btnAddRow.addEventListener('click', () => addVariantRow('ambas'));
 
 // Delete ALL rows
 btnDeleteAll.addEventListener('click', function(){
+    const isDark = document.body.classList.contains('dark-mode');
+
     if (variantsBody.children.length === 0) {
         Swal.fire({
             title: 'No hay variantes',
             text: 'La tabla de variantes está vacía. No hay nada que eliminar.',
             icon: 'info',
-            confirmButtonColor: '#b4c24d'
+            confirmButtonColor: isDark ? '#b4c24d' : '#b4c24d',
+            background: isDark ? '#121212' : '#ffffff',
+            color: isDark ? '#e2e8f0' : '#1e293b'
         });
         return;
     }
@@ -958,40 +980,24 @@ btnDeleteAll.addEventListener('click', function(){
         text: `¿Estás seguro de eliminar TODAS las variantes (${variantsBody.children.length}) del formulario?`,
         icon: 'error',
         showCancelButton: true,
-        confirmButtonColor: '#e15871',
-        cancelButtonColor: '#9ca3af',
+        confirmButtonColor: isDark ? '#e15871' : '#e15871',
+        cancelButtonColor: isDark ? '#9ca3af' : '#9ca3af',
+        background: isDark ? '#121212' : '#ffffff',
+        color: isDark ? '#e2e8f0' : '#1e293b',
         confirmButtonText: 'Sí, eliminar todas'
     }).then(res => {
         if(res.isConfirmed){
             variantsBody.innerHTML = '';
             updateVariantUIState();
-            Swal.fire('Éxito', 'Todas las variantes han sido eliminadas.', 'success');
-        }
-    });
-});
 
-// Select All functionality
-selectAll.addEventListener('change', function(){
-    const checked = this.checked;
-    variantsBody.querySelectorAll('.variant-select').forEach(chk => {
-        chk.checked = checked;
-    });
-    updateVariantUIState();
-});
-
-// Cancel button
-btnCancel.addEventListener('click', function(){
-    Swal.fire({
-        title: 'Cancelar Registro',
-        text: '¿Deseas salir? Los datos no guardados se perderán.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#aaa',
-        confirmButtonText: 'Sí, salir'
-    }).then(res => {
-        if(res.isConfirmed){
-            window.location.href = 'index.php?view=productos';
+            Swal.fire({
+                title: 'Éxito',
+                text: 'Todas las variantes han sido eliminadas.',
+                icon: 'success',
+                confirmButtonColor: isDark ? '#4ade80' : '#4ade80',
+                background: isDark ? '#121212' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#1e293b'
+            });
         }
     });
 });
@@ -1217,15 +1223,23 @@ form.addEventListener('submit', function(e){
         }
     }
 
-     if(hasError){
+     if (hasError) {
 
-        Swal.fire({ title:'Campos incompletos', text:'Por favor completa los campos obligatorios en rojo.', icon:'error', confirmButtonColor:'#b4c24d' });
+    const isDark = document.body.classList.contains('dark-mode');
 
-        e.preventDefault();
+    Swal.fire({
+        title: 'Campos incompletos',
+        text: 'Por favor completa los campos obligatorios en rojo.',
+        icon: 'error',
+        confirmButtonColor: isDark ? '#b4c24d' : '#b4c24d',
+        background: isDark ? '#121212' : '#ffffff',
+        color: isDark ? '#e2e8f0' : '#1e293b'
+    });
 
-        return;
+    e.preventDefault();
+    return;
+}
 
-    }
 
     // Fill empty SKUs for variants before submit (NOMBRE-TALLA-COLOR)
     if(hasVariants){
