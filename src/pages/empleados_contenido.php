@@ -476,7 +476,7 @@ body.dark-mode .btn-add {
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
-              Ordenar
+              <?php echo __('sort'); ?>
               <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -484,12 +484,12 @@ body.dark-mode .btn-add {
 
             <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?php echo __('sort_by'); ?></p>
                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                  <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                  <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                  <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>>No. Empleado A-Z</option>
-                  <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>>No. Empleado Z-A</option>
+                  <option value="e.nombre ASC" <?= ($orden == 'e.nombre ASC') ? 'selected' : '' ?>><?php echo __('name_az'); ?></option>
+                  <option value="e.nombre DESC" <?= ($orden == 'e.nombre DESC') ? 'selected' : '' ?>><?php echo __('name_za'); ?></option>
+                  <option value="e.id_empleado ASC" <?= ($orden == 'e.id_empleado ASC') ? 'selected' : '' ?>><?php echo __('employee_no_az'); ?></option>
+                  <option value="e.id_empleado DESC" <?= ($orden == 'e.id_empleado DESC') ? 'selected' : '' ?>><?php echo __('employee_no_za'); ?></option>
                 </select>
               </div>
             </div>
@@ -500,7 +500,7 @@ body.dark-mode .btn-add {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Agregar
+            <?php echo __('add_employee'); ?>
           </button>
         </div>
       </form>
@@ -511,7 +511,7 @@ body.dark-mode .btn-add {
           <div class="flex items-center gap-3">
             <input type="checkbox" id="selectAll" class="custom-checkbox" />
             <span class="text-sm font-semibold text-gray-700">
-              <span id="bulkSelectedCount">0</span> empleado(s) seleccionado(s)
+              <span id="bulkSelectedCount">0</span> <?php echo __('employees_selected'); ?>
             </span>
           </div>
           <div class="flex gap-2">
@@ -519,10 +519,10 @@ body.dark-mode .btn-add {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              Eliminar
+              <?php echo __('delete'); ?>
             </button>
             <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
-              Cancelar
+              <?php echo __('cancel'); ?>
             </button>
           </div>
         </div>
@@ -538,12 +538,12 @@ body.dark-mode .btn-add {
               <th class="px-6 py-4 text-left">
                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">No.</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre Completo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha de Ingreso</th>
-              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('employee_no_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('full_name_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('email_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('status_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('hire_date_col'); ?></th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?php echo __('actions_col'); ?></th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -571,14 +571,14 @@ body.dark-mode .btn-add {
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        Activo
+                        <?php echo __('active'); ?>
                       </span>
                     <?php else: ?>
                       <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(225, 88, 113, 0.1); color: #e15871;">
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
-                        Inactivo
+                        <?php echo __('inactive'); ?>
                       </span>
                     <?php endif; ?>
                   </td>
@@ -586,13 +586,13 @@ body.dark-mode .btn-add {
                   <td class="px-6 py-4 text-right">
                     <div class="inline-flex gap-2">
                       <button onclick="openDetalle('<?= $emp['numero'] ?>')" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                        Ver
+                        <?php echo __('view'); ?>
                       </button>
                       <a href="index.php?view=editar_empleado&id=<?= $emp['numero'] ?>" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                        Editar
+                        <?php echo __('edit'); ?>
                       </a>
                       <button onclick="confirmDelete('<?= $emp['numero'] ?>', '<?= htmlspecialchars(addslashes($emp['nombre_completo'])) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                        Eliminar
+                        <?php echo __('delete'); ?>
                       </button>
                     </div>
                   </td>
@@ -605,8 +605,8 @@ body.dark-mode .btn-add {
                     <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                     </svg>
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron empleados</h3>
-                    <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo empleado</p>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2"><?php echo __('no_employees_found'); ?></h3>
+                    <p class="text-gray-500"><?php echo __('try_adjusting_filters_or_add'); ?></p>
                   </div>
                 </td>
               </tr>

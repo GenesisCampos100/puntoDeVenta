@@ -219,13 +219,13 @@ body.dark-mode .save-btn svg {
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-slideUp">
         <div>
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Caja Principal</h1>
-            <p class="text-gray-600 text-base">Gestión de flujo de efectivo y cortes de caja</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?php echo __('cash_register'); ?></h1>
+            <p class="text-gray-600 text-base"><?php echo __('cash_register_subtitle'); ?></p>
         </div>
         
         <div class="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full border border-green-100 shadow-sm">
             <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-            <span class="text-sm font-semibold tracking-wide">Caja Abierta</span>
+            <span class="text-sm font-semibold tracking-wide"><?php echo __('register_open'); ?></span>
         </div>
     </div>
 
@@ -236,9 +236,9 @@ body.dark-mode .save-btn svg {
         <div class="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-gray-100 relative overflow-hidden group">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Efectivo Esperado</p>
+                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider"><?php echo __('expected_cash'); ?></p>
                     <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-efectivo">$0.00</h3>
-                    <p class="text-xs text-gray-400 mt-2 font-medium">Ventas + Ingresos - Retiros</p>
+                    <p class="text-xs text-gray-400 mt-2 font-medium"><?php echo __('sales_income_withdrawals'); ?></p>
                 </div>
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>

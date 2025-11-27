@@ -188,20 +188,20 @@ body.dark-mode canvas {
             <div>
                 <h1 class="text-3xl font-bold text-secondary flex items-center gap-3">
                     <i data-lucide="bar-chart-2" class="w-8 h-8 text-primary"></i>
-                    Reportes y Estadísticas
+                    <?php echo __('reports_statistics'); ?>
                 </h1>
-                <p class="text-gray-500 mt-2 text-sm">Análisis financiero y rendimiento del negocio en tiempo real.</p>
+                <p class="text-gray-500 mt-2 text-sm"><?php echo __('reports_subtitle'); ?></p>
             </div>
             
             <div class="flex flex-wrap gap-3 items-center bg-gray-50 p-2 rounded-xl border border-gray-200">
                 <button onclick="setFilter('today')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 bg-white text-gray-600 shadow-sm hover:text-primary">
-                    Hoy
+                    <?php echo __('today'); ?>
                 </button>
                 <button onclick="setFilter('week')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 text-gray-600 hover:text-primary">
-                    Esta Semana
+                    <?php echo __('this_week'); ?>
                 </button>
                 <button onclick="setFilter('month')" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md focus:ring-2 focus:ring-primary focus:ring-offset-1 text-gray-600 hover:text-primary">
-                    Este Mes
+                    <?php echo __('this_month'); ?>
                 </button>
                 
                 <div class="h-6 w-px bg-gray-300 mx-1"></div>
@@ -230,7 +230,7 @@ body.dark-mode canvas {
                 <div class="absolute right-0 top-0 h-full w-1 bg-primary"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ventas Totales</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?php echo __('total_sales'); ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-total">$0.00</h3>
                     </div>
                     <div class="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -239,7 +239,7 @@ body.dark-mode canvas {
                 </div>
                 <div class="flex items-center text-xs text-green-600 font-medium bg-green-50 w-fit px-2 py-1 rounded-md">
                     <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i>
-                    Ingresos Brutos
+                    <?php echo __('gross_income'); ?>
                 </div>
             </div>
 
