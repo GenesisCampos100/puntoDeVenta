@@ -1,4 +1,4 @@
-﻿<!-- MODAL CLIENTES -->
+<!-- MODAL CLIENTES -->
 <div id="modalClientes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
         <div class="flex justify-between items-center mb-5">
