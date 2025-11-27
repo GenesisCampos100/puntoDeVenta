@@ -781,8 +781,24 @@ return [
     'code_col' => 'Code',
     'product_col' => 'Product',
     'price_col' => 'Price',
-    'stock_col' => 'Stock'
-    ,
+    'stock_col' => 'Stock',
+    'code' => 'Code',
+    'description' => 'Description',
+    'quantity_short' => 'Qty.',
+    'assigned_client' => 'Assigned Client',
+    'general_public' => 'General Public',
+    'change_client' => 'Change Client',
+    'catalog' => 'Catalog',
+    'product' => 'Product',
+    'variant' => 'Variant',
+    'stock' => 'Stock',
+    'subtotal' => 'Subtotal',
+    'discount' => 'Discount',
+    'total_to_pay' => 'Total to Pay',
+    'apply_discount' => 'Apply Discount',
+    'charge' => 'Charge',
+    
+    // Cash register: modal titles and buttons
     // Cash: modal titles and buttons
     'register_income_title' => 'Register Income',
     'register_withdrawal_title' => 'Register Withdrawal',
