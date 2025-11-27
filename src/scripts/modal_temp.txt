@@ -1,4 +1,4 @@
-// modal.js - manejo de modales (descuento, cliente, pago, detalle de venta)
+﻿// modal.js - manejo de modales (descuento, cliente, pago, detalle de venta)
 (() => {
   document.addEventListener('DOMContentLoaded', () => {
 
@@ -448,78 +448,3 @@
         confirmBtn.disabled = false;
       }
     });
-
-    /* ===========================
-     DETALLE DE VENTA
-============================ */
-    const ventaModal = document.getElementById('venta-modal');
-    const ventaDetalles = document.getElementById('venta-detalles');
-    const closeVentaModal = document.getElementById('close-venta-modal');
-
-    document.addEventListener('click', async (e) => {
-      if (e.target && e.target.classList.contains('ver-detalle-btn')) {
-        const idVenta = e.target.dataset.id;
-        if (!idVenta) return alert('❌ No se encontró ID de venta');
-
-        try {
-          const res = await fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`);
-          const data = await res.json();
-
-          if (!data.success) {
-            console.error(data);
-            return alert('❌ Error al obtener detalle de venta');
-          }
-
-          // Limpiar contenido previo
-          ventaDetalles.innerHTML = '';
-
-          // Renderizar productos con descuento
-          data.productos.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'flex justify-between p-2 border-b';
-            div.innerHTML = `
-          <div>
-            <p class="font-semibold">${item.nombre}</p>
-            ${item.descuento > 0 ? `<p class="text-sm text-green-600">Descuento: ${parseFloat(item.descuento).toFixed(2)}</p>` : ''}
-          </div>
-          <div class="text-right">
-            <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
-          </div>
-        `;
-            ventaDetalles.appendChild(div);
-          });
-
-          // Mostrar cliente
-          const clienteDiv = document.createElement('p');
-          clienteDiv.className = 'font-medium mt-2';
-          clienteDiv.textContent = `Cliente: ${data.cliente || 'Sin cliente'}`;
-          ventaDetalles.appendChild(clienteDiv);
-
-          // Mostrar empleado
-          if (data.empleado) {
-            const empleadoDiv = document.createElement('p');
-            empleadoDiv.className = 'font-medium mt-1';
-            empleadoDiv.textContent = `Empleado: ${data.empleado}`;
-            ventaDetalles.appendChild(empleadoDiv);
-          }
-
-          // Mostrar total
-          if (data.total !== undefined) {
-            const totalDiv = document.createElement('p');
-            totalDiv.className = 'font-bold mt-2';
-            totalDiv.textContent = `Total: $${parseFloat(data.total).toFixed(2)}`;
-            ventaDetalles.appendChild(totalDiv);
-          }
-
-          // Abrir modal
-          ventaModal.classList.remove('hidden');
-
-        } catch (err) {
-          console.error(err);
-          alert('❌ Error al cargar el detalle de venta');
-        }
-      }
-    });
-
-  }); // fin DOMContentLoaded
-})(); // fin IIFE
