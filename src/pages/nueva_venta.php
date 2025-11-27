@@ -246,7 +246,7 @@ function normalizeCategory($name) {
     }
 </style>
 
-<div class="flex w-full gap-4 pb-2 overflow-hidden" style="height: calc(100vh - 9rem);">
+<div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
 
     <!-- PANEL IZQUIERDO (Buscador y Carrito) -->
     <div class="flex-1 flex flex-col overflow-hidden gap-4">
