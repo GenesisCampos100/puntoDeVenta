@@ -426,3 +426,108 @@ body.dark .modal-corte .cancelar:hover {
 * {
   transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
+
+/* =========================================
+   NUEVA VENTA - Modo Oscuro
+   ========================================= */
+
+/* Contenedor principal y paneles */
+body.dark-mode .flex-1.bg-white {
+  background: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+}
+
+/* Buscador de productos */
+body.dark-mode #quick-search {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+  color: #f5f5f5 !important;
+}
+
+body.dark-mode #quick-search::placeholder {
+  color: #888 !important;
+}
+
+/* Resultados de búsqueda */
+body.dark-mode #search-results {
+  background: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+}
+
+body.dark-mode #search-results thead {
+  background: #2f455c !important;
+  color: #fff !important;
+}
+
+body.dark-mode #search-results tbody tr {
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark-mode #search-results tbody tr:hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+body.dark-mode #search-results td {
+  color: #ddd !important;
+}
+
+/* Ticket / Carrito */
+body.dark-mode .card-shadow {
+  box-shadow: 0 3px 8px rgba(255,255,255,0.05) !important;
+}
+
+body.dark-mode .bg-slate-50\/50,
+body.dark-mode .bg-slate-50 {
+  background: #252525 !important;
+}
+
+body.dark-mode .border-slate-100,
+body.dark-mode .border-slate-200 {
+  border-color: #2f2f2f !important;
+}
+
+body.dark-mode .text-slate-800,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-slate-600 {
+  color: #ddd !important;
+}
+
+body.dark-mode .text-slate-500,
+body.dark-mode .text-slate-400 {
+  color: #999 !important;
+}
+
+/* Tabla de productos en el carrito */
+body.dark-mode .divide-slate-100 > * {
+  border-color: #333 !important;
+}
+
+/* Cliente asignado */
+body.dark-mode .bg-indigo-50 {
+  background: #2a2f45 !important;
+}
+
+body.dark-mode .text-indigo-700,
+body.dark-mode .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+
+/* Panel de totales (fondo oscuro slate-900) - mantener oscuro */
+body.dark-mode .bg-slate-900 {
+  background: #0f172a !important;
+}
+
+/* Botones de acción - mantener colores originales */
+body.dark-mode #discount-btn,
+body.dark-mode #pay-btn,
+body.dark-mode #open-product-modal {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* Preview de producto */
+body.dark-mode #preview-producto {
+  background: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+}
+
