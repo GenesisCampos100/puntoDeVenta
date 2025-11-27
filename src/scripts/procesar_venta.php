@@ -108,14 +108,64 @@ try {
     }
 
     // Insertar pagos
-    $pagos = $_POST['pagos'] ?? []; // espera array [{metodo:'EFECTIVO', monto:100, referencia:''}, {...}]
-    if (!$pagos) {
-        // si no envía array, usar un solo pago
-        $pagos = [[
-            'metodo' => $_POST['tipo_pago'] ?? 'EFECTIVO',
+    // Insertar pagos
+    $pagos = [];
+    $metodo = $_POST['metodo'] ?? 'efectivo'; // Default a efectivo si no viene
+
+    if ($metodo === 'efectivo') {
+        $monto = floatval($_POST['monto_efectivo'] ?? $total);
+        // Si el monto enviado es 0 o vacío, asumimos el total (aunque el frontend debería validar)
+        if ($monto <= 0) $monto = $total;
+        
+        $pagos[] = [
+            'metodo' => 'EFECTIVO',
+            'monto' => $monto,
+            'referencia' => null
+        ];
+    } elseif ($metodo === 'tarjeta') {
+        $pagos[] = [
+            'metodo' => 'TARJETA',
             'monto' => $total,
-            'referencia' => $_POST['referencia'] ?? ''
-        ]];
+            'referencia' => $_POST['referencia_tarjeta'] ?? ''
+        ];
+    } elseif ($metodo === 'mixto') {
+        $efectivo = floatval($_POST['mixto_efectivo'] ?? 0);
+        $tarjeta = floatval($_POST['mixto_tarjeta'] ?? 0);
+        
+        // Validar que la suma coincida con el total (opcional, pero recomendado)
+        // Por ahora confiamos en la validación del frontend, pero aseguramos que se guarden
+        
+        if ($efectivo > 0) {
+            $pagos[] = [
+                'metodo' => 'EFECTIVO',
+                'monto' => $efectivo,
+                'referencia' => null
+            ];
+        }
+        
+        if ($tarjeta > 0) {
+            $pagos[] = [
+                'metodo' => 'TARJETA',
+                'monto' => $tarjeta,
+                'referencia' => $_POST['mixto_referencia'] ?? ''
+            ];
+        }
+        
+        // Si por alguna razón ambos son 0 (error frontend), guardar como efectivo el total
+        if (empty($pagos)) {
+             $pagos[] = [
+                'metodo' => 'EFECTIVO',
+                'monto' => $total,
+                'referencia' => 'Error mixto'
+            ];
+        }
+    } else {
+        // Fallback por si llega algo raro
+        $pagos[] = [
+            'metodo' => 'EFECTIVO',
+            'monto' => $total,
+            'referencia' => ''
+        ];
     }
 
     $stmtPago = $pdo->prepare("
@@ -130,14 +180,16 @@ try {
 
     $pdo->commit();
 
+    // Devolver JSON para que el frontend (fetch) lo procese correctamente
     echo json_encode([
-        'status' => 'success',
+        'success' => true,
         'message' => 'Venta registrada correctamente.',
         'id_venta' => $id_venta,
-        'subtotal' => number_format($subtotal,2),
-        'descuento_general' => number_format($descuento_general_final,2),
-        'total' => number_format($total,2)
+        'subtotal' => number_format($subtotal, 2),
+        'descuento_general' => number_format($descuento_general_final, 2),
+        'total' => number_format($total, 2)
     ]);
+    exit;
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

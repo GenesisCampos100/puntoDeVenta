@@ -51,129 +51,126 @@
 
         <form id="payment-form" class="space-y-5">
 
-            <!-- HIDDEN INPUTS -->
-            <input type="hidden" name="cart_data" id="cart-data-input">
-            <input type="hidden" id="cliente-input" name="id_cliente">
-            <input type="hidden" name="descuento_general" id="descuento-general-input">
-            <input type="hidden" name="tipo_descuento_general" id="descuento-general-type">
-            <input type="hidden" name="subtotal" id="subtotal-input">
-            <input type="hidden" name="total" id="total-input">
+    <!-- HIDDEN INPUTS -->
+    <input type="hidden" name="cart_data" id="cart-data-input">
+    <input type="hidden" id="cliente-input" name="id_cliente">
+    <input type="hidden" name="descuento_general" id="descuento-general-input">
+    <input type="hidden" name="tipo_descuento_general" id="descuento-general-type">
 
-            <!-- MÉTODOS DE PAGO POS -->
-            <div class="grid grid-cols-3 gap-2">
+    <!-- 🔥 CORRECCIÓN IMPORTANTE -->
+    <input type="hidden" id="tipo_pago" name="metodo">
 
-                <label class="flex flex-col items-center justify-center p-3 border rounded-lg
-                               cursor-pointer hover:bg-gray-50 transition text-center">
-                    <input type="radio" id="metodo-efectivo" name="metodo" value="efectivo"
-                           class="payment-method hidden" checked>
-                    <span class="text-2xl">💵</span>
-                    <span class="text-xs font-semibold mt-1">Efectivo</span>
-                </label>
+    <input type="hidden" name="subtotal" id="subtotal-input">
+    <input type="hidden" name="total" id="total-input">
 
-                <label class="flex flex-col items-center justify-center p-3 border rounded-lg
-                               cursor-pointer hover:bg-gray-50 transition text-center">
-                    <input type="radio" id="metodo-tarjeta" name="metodo" value="tarjeta"
-                           class="payment-method hidden">
-                    <span class="text-2xl">💳</span>
-                    <span class="text-xs font-semibold mt-1">Tarjeta</span>
-                </label>
+    <!-- MÉTODOS DE PAGO POS -->
+    <div class="grid grid-cols-3 gap-2">
 
-                <label class="flex flex-col items-center justify-center p-3 border rounded-lg
-                               cursor-pointer hover:bg-gray-50 transition text-center">
-                    <input type="radio" id="metodo-mixto" name="metodo" value="mixto"
-                           class="payment-method hidden">
-                    <span class="text-2xl">💵💳</span>
-                    <span class="text-xs font-semibold mt-1">Mixto</span>
-                </label>
+        <label class="flex flex-col items-center justify-center p-3 border rounded-lg
+                       cursor-pointer hover:bg-gray-50 transition text-center">
+            <input type="radio" id="metodo-efectivo" name="payment-radio"
+                   value="efectivo" class="payment-method sr-only" checked>
+            <span class="text-2xl">💵</span>
+            <span class="text-xs font-semibold mt-1">Efectivo</span>
+        </label>
 
-            </div>
+        <label class="flex flex-col items-center justify-center p-3 border rounded-lg
+                       cursor-pointer hover:bg-gray-50 transition text-center">
+            <input type="radio" id="metodo-tarjeta" name="payment-radio"
+                   value="tarjeta" class="payment-method sr-only">
+            <span class="text-2xl">💳</span>
+            <span class="text-xs font-semibold mt-1">Tarjeta</span>
+        </label>
 
-            <!-- SECCIÓN: EFECTIVO -->
-            <div id="efectivo-section" class="space-y-1">
+        <label class="flex flex-col items-center justify-center p-3 border rounded-lg
+                       cursor-pointer hover:bg-gray-50 transition text-center">
+            <input type="radio" id="metodo-mixto" name="payment-radio"
+                   value="mixto" class="payment-method sr-only">
+            <span class="text-2xl">💵💳</span>
+            <span class="text-xs font-semibold mt-1">Mixto</span>
+        </label>
 
-                <label class="text-sm font-semibold">Monto recibido</label>
+    </div>
 
-                <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo"
-                    class="w-full text-lg border rounded-lg p-2.5 text-center font-semibold
-                           tracking-wide focus:border-primary"
-                    placeholder="0.00">
+    <!-- SECCIÓN: EFECTIVO -->
+    <div id="efectivo-section" class="space-y-1">
 
-                <p id="alerta-efectivo" class="text-red-600 text-xs font-semibold hidden">
-                    El monto es menor al total.
-                </p>
+        <label class="text-sm font-semibold">Monto recibido</label>
+        <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo"
+               class="w-full text-lg border rounded-lg p-2.5 text-center font-semibold tracking-wide">
 
-                <p class="text-sm font-semibold">
-                    Cambio: <span id="cambio-efectivo" class="text-green-600">0.00</span>
-                </p>
+        <p id="alerta-efectivo" class="text-red-600 text-xs font-semibold hidden">
+            El monto es menor al total.
+        </p>
 
-            </div>
+        <p class="text-sm font-semibold">
+            Cambio: <span id="cambio-efectivo" class="text-green-600">0.00</span>
+        </p>
 
-            <!-- SECCIÓN: TARJETA -->
-            <div id="tarjeta-section" class="space-y-2 hidden">
+    </div>
 
-                <label class="text-sm font-semibold">Referencia</label>
+    <!-- SECCIÓN: TARJETA -->
+    <div id="tarjeta-section" class="space-y-2 hidden">
 
-                <input type="text" id="referencia-tarjeta" name="referencia_tarjeta"
-                    class="w-full border rounded-lg p-2.5 text-center font-medium
-                           focus:border-primary"
-                    placeholder="Folio / Referencia">
+        <label class="text-sm font-semibold">Referencia</label>
+        <input type="text" id="referencia-tarjeta" name="referencia_tarjeta"
+               class="w-full border rounded-lg p-2.5 text-center font-medium"
+               placeholder="Folio / Referencia">
 
-            </div>
+    </div>
 
-            <!-- SECCIÓN: MIXTO -->
-            <div id="mixto-section" class="space-y-2 hidden">
+    <!-- SECCIÓN: MIXTO -->
+    <div id="mixto-section" class="space-y-2 hidden">
 
-                <div>
-                    <label class="text-sm font-semibold">Efectivo</label>
-                    <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo"
-                        class="w-full border rounded-lg p-2.5 text-center font-semibold
-                               focus:border-primary"
-                        placeholder="0.00">
-                </div>
+        <div>
+            <label class="text-sm font-semibold">Efectivo</label>
+            <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo"
+                   class="w-full border rounded-lg p-2.5 text-center font-semibold"
+                   placeholder="0.00">
+        </div>
 
-                <div>
-                    <label class="text-sm font-semibold">Tarjeta</label>
-                    <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta"
-                        class="w-full border rounded-lg p-2.5 text-center font-semibold
-                               focus:border-primary"
-                        placeholder="0.00">
-                </div>
+        <div>
+            <label class="text-sm font-semibold">Tarjeta</label>
+            <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta"
+                   class="w-full border rounded-lg p-2.5 text-center font-semibold"
+                   placeholder="0.00">
+        </div>
 
-                <div>
-                    <label class="text-sm font-semibold">Referencia tarjeta</label>
-                    <input type="text" id="mixto-referencia" name="mixto_referencia"
-                        class="w-full border rounded-lg p-2.5 text-center font-medium
-                               focus:border-primary"
-                        placeholder="Folio / Referencia">
-                </div>
+        <div>
+            <label class="text-sm font-semibold">Referencia tarjeta</label>
+            <input type="text" id="mixto-referencia" name="mixto_referencia"
+                   class="w-full border rounded-lg p-2.5 text-center font-medium"
+                   placeholder="Folio / Referencia">
+        </div>
 
-                <p id="alerta-mixto" class="text-red-600 text-xs font-semibold hidden">
-                    Faltan: $0.00
-                </p>
+        <p id="alerta-mixto" class="text-red-600 text-xs font-semibold hidden">
+            Faltan: $0.00
+        </p>
 
-                <p class="text-sm font-semibold">
-                    Cambio: <span id="cambio-mixto" class="text-green-600">0.00</span>
-                </p>
+        <p class="text-sm font-semibold">
+            Cambio: <span id="cambio-mixto" class="text-green-600">0.00</span>
+        </p>
 
-            </div>
+    </div>
 
-            <!-- BOTONES POS -->
-            <div class="flex justify-between gap-3 pt-2">
+    <!-- BOTONES -->
+    <div class="flex justify-between gap-3 pt-2">
 
-                <button type="button" id="cancel-payment"
-                    class="w-1/2 py-3 bg-gray-200 rounded-lg font-bold text-sm hover:bg-gray-300">
-                    Cancelar
-                </button>
+        <button type="button" id="cancel-payment"
+                class="w-1/2 py-3 bg-gray-200 rounded-lg font-bold text-sm hover:bg-gray-300">
+            Cancelar
+        </button>
 
-                <button type="submit" id="confirm-payment"
-                    class="w-1/2 py-3 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg"
-                    style="background: linear-gradient(135deg,var(--primary),var(--primary-dark));">
-                    Confirmar
-                </button>
+        <button type="submit" id="confirm-payment"
+                class="w-1/2 py-3 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg"
+                style="background: linear-gradient(135deg,var(--primary),var(--primary-dark));">
+            Confirmar
+        </button>
 
-            </div>
+    </div>
 
-        </form>
+</form>
+
     </div>
 </div>
 

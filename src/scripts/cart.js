@@ -364,19 +364,8 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCart();
     };
 
-    // RECIBIR DESCUENTOS DESDE modal.js
-    document.addEventListener('applyProductDiscount', e => {
-        const { index, value, type } = e.detail;
-        if (cart[index]) { cart[index].discount = { value, type }; saveCart(); }
-    });
-    document.addEventListener('applyGlobalDiscount', e => {
-        globalDiscount = e.detail.value || 0;
-        localStorage.setItem('globalDiscount', globalDiscount);
-        localStorage.setItem('globalDiscountType', e.detail.type || 'percent');
-        recalcTotals();
-    });
-
     window.addToCart = function (prod) {
+
         let existente = cart.find(item =>
             item.cod_barras == prod.cod_barras &&
             item.talla == (prod.talla ?? '') &&
@@ -384,7 +373,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (existente) {
-            if (existente.quantity + 1 > existente.stock) {
+
+            // VALIDACIÓN CORRECTA
+            if (existente.quantity >= existente.stock) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Stock insuficiente',
@@ -392,9 +383,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 return;
             }
+
             existente.quantity++;
         } else {
-            if (prod.quantity > prod.stock) {
+
+            // VALIDACIÓN DEL PRIMER INGRESO
+            if ((prod.quantity ?? 1) > prod.stock) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Stock insuficiente',
@@ -402,24 +396,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 return;
             }
+
             cart.push({
                 cod_barras: prod.cod_barras,
                 name: prod.name,
-                price: parseFloat(prod.price),
-                quantity: prod.quantity ?? 1,
+                price: Number(prod.price),
+                quantity: Number(prod.quantity) || 1,
                 talla: prod.talla ?? '',
                 color: prod.color ?? '',
                 categoria: prod.categoria ?? '',
                 imagen: prod.imagen ?? null,
                 discount: null,
-                stock: prod.stock ?? 0
+
+                // CORREGIDO
+                stock: Number(prod.stock) || 0
             });
         }
 
         saveCart();
         actualizarPreview(prod);
     };
-
 
 
     // AL HACER CLICK EN UNA FILA DEL CARRITO → MOSTRAR PREVIEW
@@ -524,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <td class="py-2 px-3 text-center">${prod.talla} / ${prod.color}</td>
                     <td class="py-2 px-3 text-center">$${parseFloat(prod.precio).toFixed(2)}</td>
                     <td class="py-2 px-3 text-center">${prod.categoria ?? ''}</td>
-                    <td class="py-2 px-3 text-center">${prod.stock}</td>
+                    <td class="py-2 px-3 text-center">${prod.cantidad ?? 0}</td>
                 `;
 
                     // Agregar al carrito la variante específica
@@ -549,5 +545,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(err => console.error("Error en búsqueda:", err));
     });
 
+    saveCart();
 
 });

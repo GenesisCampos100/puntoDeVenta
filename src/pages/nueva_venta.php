@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-
 // Búsqueda de cliente (AJAX)
 if (isset($_GET['buscar_cliente'])) {
     $texto = $_GET['buscar_cliente'];
@@ -244,113 +243,6 @@ function normalizeCategory($name) {
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         border-color: var(--accent);
     }
-  /* ======== MODO OSCURO (GRIS REAL) ======== */
-body.dark-mode {
-    background: #121212 !important;
-    color: #e5e5e5 !important;
-}
-
-/* Inputs */
-body.dark-mode input {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode input::placeholder {
-    color: #7a7a7a !important;
-}
-
-/* Buscador */
-body.dark-mode #quick-search {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-    color: #f5f5f5 !important;
-}
-
-/* Tablas */
-body.dark-mode table thead {
-    background: #1e1e1e !important;
-    color: #cccccc !important;
-}
-
-body.dark-mode tbody tr {
-    background: #121212 !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .row-hover:hover {
-    background: #1f1f1f !important;
-}
-
-/* Panel izquierdo */
-body.dark-mode .bg-white {
-    background: #1e1e1e !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .border {
-    border-color: #2c2c2c !important;
-}
-
-/* Texto */
-body.dark-mode .text-slate-800,
-body.dark-mode .text-slate-700 {
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .text-slate-500,
-body.dark-mode .text-slate-400 {
-    color: #b3b3b3 !important;
-}
-
-/* Resultados de búsqueda */
-body.dark-mode #search-results {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-}
-
-/* Botones */
-body.dark-mode button {
-    border-color: #3a3a3a !important;
-    background: #1e1e1e !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode button:hover {
-    background: #2a2a2a !important;
-}
-
-/* Botón flotante de productos */
-body.dark-mode #open-product-modal {
-    background: #1e1e1e !important;
-}
-
-body.dark-mode #open-product-modal:hover {
-    background: #2a2a2a !important;
-}
-
-/* Panel Totales (derecha) */
-body.dark-mode .bg-slate-900,
-body.dark-mode .bg-slate-800,
-body.dark-mode .bg-slate-700 {
-    background: #1e1e1e !important;
-}
-
-/* Imagen preview */
-body.dark-mode #preview-producto {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-}
-body.dark-mode #pay-btn {
-    background: linear-gradient(to right, #10b981, #0d9488) !important; /* emerald-500 → teal-600 */
-    color: white !important;
-}
-
-body.dark-mode #pay-btn:hover {
-    background: linear-gradient(to right, #34d399, #14b8a6) !important; /* emerald-400 → teal-500 */
-}
-
 </style>
 
 <div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
@@ -511,9 +403,7 @@ body.dark-mode #pay-btn:hover {
 
 </div>
 
-
+<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
 <!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
-
-<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>

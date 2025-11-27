@@ -136,44 +136,58 @@
         data: { buscar_producto: texto },
         dataType: 'json',
         success: function (productos) {
+
           const rows = productos.map(p => `
 <tr class="border-b hover:bg-gray-50 transition-colors">
   <td class="p-3">${p.cod_barras}</td>
   <td class="p-3 font-medium">${p.nom_producto}</td>
   <td class="p-3 text-right">${parseFloat(p.precio).toFixed(2)}</td>
   <td class="p-3 text-center">${p.cantidad}</td>
+
   <td class="p-3">
-    <button class="add-product-modal bg-[var(--primary)] text-white px-3 py-1 rounded-lg font-medium transition hover:bg-[var(--primary-600)]"
+    <button class="add-product-modal
+                   bg-[var(--primary)] text-white px-3 py-1 rounded-lg font-medium
+                   transition hover:bg-[var(--primary-600)]"
+
       data-codigo="${p.cod_barras}"
       data-nombre="${p.nom_producto}"
       data-precio="${p.precio}"
       data-talla="${p.talla ?? ''}"
       data-color="${p.color ?? ''}"
       data-imagen="${p.imagen ?? ''}"
+      data-stock="${p.cantidad}"
+
     >Agregar</button>
   </td>
 </tr>
-`).join('');
+        `).join('');
+
+          $("#tablaProductosModal").html(rows);
 
 
-          $('#tablaProductosModal').html(rows);
         }
 
       });
     });
 
     $(document).on('click', '.add-product-modal', function () {
+
       const prod = {
-        cod_barras: $(this).data('codigo'),
-        name: $(this).data('nombre'),
-        price: parseFloat($(this).data('precio')),
-        cantidad: 1, // cantidad inicial
-        talla: $(this).data('talla'),
-        color: $(this).data('color'),
-        imagen: $(this).data('imagen')
+        cod_barras: $(this).data("codigo"),
+        name: $(this).data("nombre"),
+        price: parseFloat($(this).data("precio")),
+        talla: $(this).data("talla") ?? "",
+        color: $(this).data("color") ?? "",
+        quantity: 1,                                  // ← unificamos nombre
+        imagen: $(this).data("imagen") ?? null,
+        categoria: "",                                // opcional
+        discount: null,                               // opcional
+        stock: parseInt($(this).data("stock")) || 0   // ← ahora sí pasa stock
       };
-      addToCart(prod); // ahora addToCart recibe un objeto completo
+
+      addToCart(prod);
     });
+
 
 
     /* ===========================
@@ -269,12 +283,29 @@
     }
 
     paymentInputs.forEach(input => input?.addEventListener("input", validarPago));
-    document.querySelectorAll(".payment-method").forEach(radio => radio.addEventListener("change", () => {
-      const metodo = (radio.value || '').toLowerCase();
-      updatePaymentFields(metodo);
-      const tipoPagoHidden = document.getElementById('tipo_pago');
-      if (tipoPagoHidden) tipoPagoHidden.value = metodo;
-    }));
+    // Actualizar visualmente la opción seleccionada + hidden real
+    document.querySelectorAll(".payment-method").forEach(radio => {
+      radio.addEventListener("change", (e) => {
+        const metodo = e.target.value.toLowerCase();
+
+        // Actualizar input hidden que recibe PHP
+        document.getElementById("tipo_pago").value = metodo;
+
+        // Actualizar campos visibles del modal
+        updatePaymentFields(metodo);
+
+        // Marcar visualmente la opción activa
+        document.querySelectorAll(".payment-option").forEach(option => {
+          option.classList.remove("border-blue-500", "ring-2", "ring-blue-400", "bg-blue-50");
+          option.classList.add("border-gray-200");
+        });
+
+        e.target.closest("label").classList.add(
+          "border-blue-500", "ring-2", "ring-blue-400", "bg-blue-50"
+        );
+      });
+    });
+
 
     payBtn?.addEventListener('click', () => {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -462,7 +493,8 @@
         if (!idVenta) return alert('❌ No se encontró ID de venta');
 
         try {
-          const res = await fetch(`scripts/ventas_detalles.php?id_venta=${idVenta}`);
+          // CORRECCIÓN: Usar el script correcto que devuelve pagos
+          const res = await fetch(`scripts/obtener_detalle_venta.php?id_venta=${idVenta}`);
           const data = await res.json();
 
           if (!data.success) {
@@ -492,23 +524,44 @@
           // Mostrar cliente
           const clienteDiv = document.createElement('p');
           clienteDiv.className = 'font-medium mt-2';
-          clienteDiv.textContent = `Cliente: ${data.cliente || 'Sin cliente'}`;
+          clienteDiv.textContent = `Cliente: ${data.venta.cliente || 'Público General'}`;
           ventaDetalles.appendChild(clienteDiv);
 
           // Mostrar empleado
-          if (data.empleado) {
+          if (data.venta.empleado) {
             const empleadoDiv = document.createElement('p');
             empleadoDiv.className = 'font-medium mt-1';
-            empleadoDiv.textContent = `Empleado: ${data.empleado}`;
+            empleadoDiv.textContent = `Empleado: ${data.venta.empleado}`;
             ventaDetalles.appendChild(empleadoDiv);
           }
 
           // Mostrar total
-          if (data.total !== undefined) {
+          if (data.venta.total !== undefined) {
             const totalDiv = document.createElement('p');
-            totalDiv.className = 'font-bold mt-2';
-            totalDiv.textContent = `Total: $${parseFloat(data.total).toFixed(2)}`;
+            totalDiv.className = 'font-bold mt-2 text-lg';
+            totalDiv.textContent = `Total: $${parseFloat(data.venta.total).toFixed(2)}`;
             ventaDetalles.appendChild(totalDiv);
+          }
+
+          // MOSTRAR PAGOS
+          if (data.pagos && data.pagos.length > 0) {
+            const pagosTitle = document.createElement('h3');
+            pagosTitle.className = "font-bold mt-4 mb-2 text-gray-700 border-b pb-1";
+            pagosTitle.textContent = "Métodos de Pago";
+            ventaDetalles.appendChild(pagosTitle);
+
+            data.pagos.forEach(p => {
+              const pDiv = document.createElement('div');
+              pDiv.className = "flex justify-between text-sm mb-1";
+
+              let refText = p.referencia ? ` (Ref: ${p.referencia})` : '';
+
+              pDiv.innerHTML = `
+                <span>${p.metodo}${refText}</span>
+                <span class="font-medium">$${parseFloat(p.monto).toFixed(2)}</span>
+              `;
+              ventaDetalles.appendChild(pDiv);
+            });
           }
 
           // Abrir modal
