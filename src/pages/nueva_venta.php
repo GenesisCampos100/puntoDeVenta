@@ -457,7 +457,7 @@ body.dark-mode #pay-btn:hover {
                 </div>
                 <button id="client-btn" class="mt-3 w-full py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    Cambiar Cliente
+                    <?php echo __('change_customer'); ?>
                 </button>
             </div>
         </div>
@@ -475,14 +475,14 @@ body.dark-mode #pay-btn:hover {
 
             <div class="relative z-10 space-y-3 overflow-y-auto custom-scrollbar pr-1">
                 <div class="flex justify-between items-center text-slate-300">
-                    <span class="text-base font-medium">Subtotal</span>
+                    <span class="text-base font-medium"><?php echo __('subtotal_label'); ?></span>
                     <span id="subtotal" class="text-lg font-semibold tracking-wide">$0.00</span>
                 </div>
                 
                 <div class="flex justify-between items-center text-rose-300">
                     <span class="flex items-center gap-2 text-sm font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                        Descuento
+                        <?php echo __('discount_label'); ?>
                     </span>
                     <span id="discount" class="text-base font-semibold">-$0.00</span>
                 </div>
@@ -490,7 +490,7 @@ body.dark-mode #pay-btn:hover {
                 <div class="h-px bg-slate-700 my-3"></div>
 
                 <div class="flex justify-between items-end">
-                    <span class="text-slate-400 font-medium mb-1 text-sm">Total a Pagar</span>
+                    <span class="text-slate-400 font-medium mb-1 text-sm"><?php echo __('total_to_pay'); ?></span>
                     <span id="total" class="text-4xl font-bold tracking-tight text-white">$0.00</span>
                 </div>
             </div>
@@ -498,11 +498,11 @@ body.dark-mode #pay-btn:hover {
             <div class="relative z-10 mt-4 space-y-3 shrink-0">
                 <button id="discount-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-slate-700 text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
-                    Aplicar Descuento
+                    <?php echo __('apply_discount_btn'); ?>
                 </button>
 
                 <button id="pay-btn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 btn-transition flex items-center justify-center gap-2">
-                    <span>Cobrar</span>
+                    <span><?php echo __('charge_btn'); ?></span>
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </button>
             </div>

@@ -46,7 +46,7 @@
 
         <!-- TÍTULO -->
         <h2 class="text-xl font-bold mb-4 text-center text-secondary tracking-wide">
-            Seleccionar Método de Pago
+            <?php echo __('select_payment_method'); ?>
         </h2>
 
         <form id="payment-form" class="space-y-5">
@@ -71,7 +71,7 @@
             <input type="radio" id="metodo-efectivo" name="payment-radio"
                    value="efectivo" class="payment-method sr-only" checked>
             <span class="text-2xl">💵</span>
-            <span class="text-xs font-semibold mt-1">Efectivo</span>
+            <span class="text-xs font-semibold mt-1"><?php echo __('cash'); ?></span>
         </label>
 
         <label class="flex flex-col items-center justify-center p-3 border rounded-lg
@@ -79,7 +79,7 @@
             <input type="radio" id="metodo-tarjeta" name="payment-radio"
                    value="tarjeta" class="payment-method sr-only">
             <span class="text-2xl">💳</span>
-            <span class="text-xs font-semibold mt-1">Tarjeta</span>
+            <span class="text-xs font-semibold mt-1"><?php echo __('card'); ?></span>
         </label>
 
         <label class="flex flex-col items-center justify-center p-3 border rounded-lg
@@ -87,7 +87,7 @@
             <input type="radio" id="metodo-mixto" name="payment-radio"
                    value="mixto" class="payment-method sr-only">
             <span class="text-2xl">💵💳</span>
-            <span class="text-xs font-semibold mt-1">Mixto</span>
+            <span class="text-xs font-semibold mt-1"><?php echo __('mixed'); ?></span>
         </label>
 
     </div>
@@ -95,16 +95,16 @@
     <!-- SECCIÓN: EFECTIVO -->
     <div id="efectivo-section" class="space-y-1">
 
-        <label class="text-sm font-semibold">Monto recibido</label>
+        <label class="text-sm font-semibold"><?php echo __('amount_received'); ?></label>
         <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo"
                class="w-full text-lg border rounded-lg p-2.5 text-center font-semibold tracking-wide">
 
         <p id="alerta-efectivo" class="text-red-600 text-xs font-semibold hidden">
-            El monto es menor al total.
+            <?php echo __('amount_too_low'); ?>
         </p>
 
         <p class="text-sm font-semibold">
-            Cambio: <span id="cambio-efectivo" class="text-green-600">0.00</span>
+            <?php echo __('change_label'); ?>: <span id="cambio-efectivo" class="text-green-600">0.00</span>
         </p>
 
     </div>
@@ -112,10 +112,10 @@
     <!-- SECCIÓN: TARJETA -->
     <div id="tarjeta-section" class="space-y-2 hidden">
 
-        <label class="text-sm font-semibold">Referencia</label>
+        <label class="text-sm font-semibold"><?php echo __('reference'); ?></label>
         <input type="text" id="referencia-tarjeta" name="referencia_tarjeta"
                class="w-full border rounded-lg p-2.5 text-center font-medium"
-               placeholder="Folio / Referencia">
+               placeholder="<?php echo __('folio_reference'); ?>">
 
     </div>
 
@@ -123,32 +123,32 @@
     <div id="mixto-section" class="space-y-2 hidden">
 
         <div>
-            <label class="text-sm font-semibold">Efectivo</label>
+            <label class="text-sm font-semibold"><?php echo __('cash_label'); ?></label>
             <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo"
                    class="w-full border rounded-lg p-2.5 text-center font-semibold"
                    placeholder="0.00">
         </div>
 
         <div>
-            <label class="text-sm font-semibold">Tarjeta</label>
+            <label class="text-sm font-semibold"><?php echo __('card_label'); ?></label>
             <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta"
                    class="w-full border rounded-lg p-2.5 text-center font-semibold"
                    placeholder="0.00">
         </div>
 
         <div>
-            <label class="text-sm font-semibold">Referencia tarjeta</label>
+            <label class="text-sm font-semibold"><?php echo __('card_reference_label'); ?></label>
             <input type="text" id="mixto-referencia" name="mixto_referencia"
                    class="w-full border rounded-lg p-2.5 text-center font-medium"
-                   placeholder="Folio / Referencia">
+                   placeholder="<?php echo __('folio_reference'); ?>">
         </div>
 
         <p id="alerta-mixto" class="text-red-600 text-xs font-semibold hidden">
-            Faltan: $0.00
+            <?php echo __('missing_label'); ?>: $0.00
         </p>
 
         <p class="text-sm font-semibold">
-            Cambio: <span id="cambio-mixto" class="text-green-600">0.00</span>
+            <?php echo __('change_label'); ?>: <span id="cambio-mixto" class="text-green-600">0.00</span>
         </p>
 
     </div>
@@ -158,13 +158,13 @@
 
         <button type="button" id="cancel-payment"
                 class="w-1/2 py-3 bg-gray-200 rounded-lg font-bold text-sm hover:bg-gray-300">
-            Cancelar
+            <?php echo __('cancel'); ?>
         </button>
 
         <button type="submit" id="confirm-payment"
                 class="w-1/2 py-3 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg"
                 style="background: linear-gradient(135deg,var(--primary),var(--primary-dark));">
-            Confirmar
+            <?php echo __('confirm'); ?>
         </button>
 
     </div>
@@ -180,17 +180,17 @@
 <!-- MODAL DESCUENTO GENERAL -->
 <div id="discount-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento General</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?php echo __('general_discount'); ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
                 <option value="amount">$</option>
             </select>
-            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="<?php echo __('value'); ?>">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('apply'); ?></button>
         </div>
     </div>
 </div>
@@ -198,17 +198,17 @@
 <!-- MODAL DESCUENTO POR PRODUCTO -->
 <div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flexitems-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
+        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?php echo __('product_discount'); ?></h2>
         <div class="flex gap-3 mb-5">
             <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
                 <option value="percent">%</option>
                 <option value="amount">$</option>
             </select>
-            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="<?php echo __('value'); ?>">
         </div>
         <div class="flex justify-end gap-3">
-            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('apply'); ?></button>
         </div>
     </div>
 </div>
@@ -217,7 +217,7 @@
 <div id="ticket-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-start justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-6 w-auto max-w-[95%] md:max-w-md animate-slide overflow-hidden mt-12">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold" style="color: var(--secondary);">Ticket de Venta</h2>
+            <h2 class="text-xl font-bold" style="color: var(--secondary);"><?php echo __('sale_ticket'); ?></h2>
             <button id="close-ticket-modal" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
 
@@ -230,8 +230,8 @@
         </div>
 
         <div class="flex justify-end gap-3">
-            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Imprimir</button>
+            <button id="cancel-ticket" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all"><?php echo __('cancel'); ?></button>
+            <button id="print-ticket" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);"><?php echo __('print'); ?></button>
         </div>
     </div>
 </div>
@@ -241,19 +241,19 @@
 
     <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-primary">Buscar Producto</h2>
+            <h2 class="text-2xl font-bold text-primary"><?php echo __('search_product_title'); ?></h2>
             <button id="cerrar-modal-producto" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
-        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar producto por nombre, código o SKU...">
+        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="<?php echo __('search_product_placeholder'); ?>">
         <div class="overflow-y-auto max-h-96">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100 sticky top-0">
                     <tr>
-                        <th class="p-3 border-b-2 font-semibold">Código</th>
-                        <th class="p-3 border-b-2 font-semibold">Producto</th>
-                        <th class="p-3 border-b-2 font-semibold">Precio</th>
-                        <th class="p-3 border-b-2 font-semibold">Stock</th>
-                        <th class="p-3 border-b-2 font-semibold">Acción</th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('code_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('product_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('price_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('stock_col'); ?></th>
+                        <th class="p-3 border-b-2 font-semibold"><?php echo __('actions'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="tablaProductosModal"></tbody>

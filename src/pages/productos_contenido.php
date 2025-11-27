@@ -403,7 +403,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
     <div class="mb-8 animate-slideDown">
         <div class="mb-6">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?php echo __('products_title'); ?></h1>
-            <p class="text-gray-600 text-base">Administra tu catalogo y existencias de forma eficiente</p>
+            <p class="text-gray-600 text-base"><?php echo __('manage_catalog_stock'); ?></p>
         </div>
         
         <!-- Stats Cards -->
@@ -427,7 +427,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
             <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('stock'); ?> Bajo</p>
+                        <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('low_stock'); ?></p>
                         <p class="text-3xl font-bold" style="color: #e15871;"><?= $stockBajo ?></p>
                     </div>
                     <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
@@ -495,14 +495,14 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span class="hidden sm:inline">Nuevo Producto</span>
+                        <span class="hidden sm:inline"><?php echo __('add_product_title'); ?></span>
                     </button>
                 <?php else: ?>
-                    <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                    <button id="btnAgregarProducto" class="btn-agregarProducto inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span class="hidden sm:inline">Nuevo Producto</span>
+                        <span class="hidden sm:inline"><?php echo __('add_product_title'); ?></span>
                     </button>
                 <?php endif; ?>
             </div>

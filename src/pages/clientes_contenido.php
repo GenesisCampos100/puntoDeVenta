@@ -829,13 +829,13 @@ body.dark-mode .btn-add {
             <td class="px-6 py-4 text-right">
               <div class="inline-flex gap-2">
                 <button onclick="openDetalle(${cliente.id_cliente})" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors">
-                  Ver
+                  <?php echo __('view_button'); ?>
                 </button>
                 <button onclick="window.location.href='index.php?view=editar_cliente&id=${cliente.id_cliente}'" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">
-                  Editar
+                  <?php echo __('edit_button'); ?>
                 </button>
                 <button onclick="confirmDelete(${cliente.id_cliente}, '${escapeHtml(displayName).replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors">
-                  Eliminar
+                  <?php echo __('delete_button'); ?>
                 </button>
               </div>
             </td>
