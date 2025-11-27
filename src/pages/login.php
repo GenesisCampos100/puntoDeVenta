@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/translation.php';
 // Si ya hay sesión, redirigir al dashboard
 if (isset($_SESSION['usuario_id'])) {
     header("Location: ../index.php?view=nueva_venta");
@@ -7,11 +8,11 @@ if (isset($_SESSION['usuario_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Punto de Venta</title>
+    <title><?php echo __('login_title'); ?> - Punto de Venta</title>
     
     <!-- Estilos -->
     <link rel="stylesheet" href="../styles/login.css">
@@ -29,6 +30,8 @@ if (isset($_SESSION['usuario_id'])) {
 
 <body class="fondo_login">
 
+    <?php include __DIR__ . '/../includes/language_switcher.php'; ?>
+
     <main class="contenedor">
         <section class="contenedor-login">
             
@@ -41,7 +44,7 @@ if (isset($_SESSION['usuario_id'])) {
                     <img src="../../public/img/logo2.png" alt="Logo">
                 </div>
 
-                <h1 class="login-titulo">Tu punto de venta favorito</h1>
+                <h1 class="login-titulo"><?php echo __('favorite_pos'); ?></h1>
 
                 <!-- Mensajes de sesión PHP (Fallback) -->
                 <?php if (!empty($_SESSION['error'])): ?>
@@ -63,7 +66,7 @@ if (isset($_SESSION['usuario_id'])) {
                     <div class="contenedor-campos">
                         
                         <div class="campo">
-                            <label for="correo">Ingrese su correo:</label>
+                            <label for="correo"><?php echo __('enter_your_email'); ?></label>
                             <div style="position: relative;">
                                 <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 20px; color: #666;">
                                     <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" />
@@ -74,7 +77,7 @@ if (isset($_SESSION['usuario_id'])) {
                         </div>
 
                         <div class="campo">
-                            <label for="password">Ingrese su contraseña:</label>
+                            <label for="password"><?php echo __('login_password_label'); ?>:</label>
                             <div style="position: relative;">
                                 <svg class="input-icon icon__left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 20px; color: #666;">
                                     <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
@@ -95,13 +98,13 @@ if (isset($_SESSION['usuario_id'])) {
                             </div>
                         </div>
 
-                        <button class="boton" type="submit">Entrar</button>
+                        <button class="boton" type="submit"><?php echo __('login_button_text'); ?></button>
 
                     </div>
                 </form>
 
                 <div class="login-navegacion">
-                    <a href="recuperar_contrasena.html">¿Has olvidado tu contraseña?</a>
+                    <a href="recuperar_contrasena.php"><?php echo __('login_forgot_password'); ?></a>
                 </div>
 
             </div>
@@ -125,7 +128,7 @@ if (isset($_SESSION['usuario_id'])) {
         <div class="modal-content">
             <img src="../../public/img/logo2.png" alt="Logo" class="modal-logo">
             <p id="errorMessage" class="modal-message"></p>
-            <button id="closeErrorModal" class="boton" style="margin-top: 20px;">Cerrar</button>
+            <button id="closeErrorModal" class="boton" style="margin-top: 20px;"><?php echo __('close_button'); ?></button>
         </div>
     </div>
 

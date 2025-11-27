@@ -1,5 +1,6 @@
 <?php
 // src/pages/caja_contenido.php
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 ?>
 

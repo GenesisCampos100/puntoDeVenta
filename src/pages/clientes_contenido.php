@@ -1,5 +1,6 @@
 <?php
 // clientes_contenido_v5.php - Premium Modern Design (FINAL)
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 
 // AJAX: obtener cliente por id

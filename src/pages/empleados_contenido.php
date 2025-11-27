@@ -1,5 +1,6 @@
 <?php 
 // empleados_contenido_enhanced.php - Premium Modern Design with All Improvements
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 
 // AJAX: Get employee by ID

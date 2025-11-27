@@ -1,5 +1,6 @@
 <?php
 // --- INCLUSIÓN DE DB.PHP MÁS ROBUSTA ---
+require_once __DIR__ . '/../config/translation.php';
 $db_path = __DIR__ . "/../config/db.php"; 
 
 if (!file_exists($db_path)) {

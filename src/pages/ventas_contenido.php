@@ -1,5 +1,6 @@
 <!-- Archivo: ventas_contenido.php -->
 <?php
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 
 $sql = "

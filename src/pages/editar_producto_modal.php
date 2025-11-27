@@ -2,6 +2,7 @@
 // src/pages/editar_producto_modal.php
 // Endpoint para actualización segura de productos desde el modal (sin tocar variantes)
 
+require_once __DIR__ . '/../config/translation.php';
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/db.php';
 

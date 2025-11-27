@@ -1,9 +1,10 @@
 <?php
 // reportes_contenido.php
 // Módulo de Estadísticas y Dashboard Premium
+require_once __DIR__ . '/../config/translation.php';
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

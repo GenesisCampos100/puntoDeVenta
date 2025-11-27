@@ -1,8 +1,9 @@
 ﻿<?php
 // src/pages/productos_contenido.php
-// VersiÃ³n Premium - Estilo consistente con clientes_contenido.php
-// Mantiene TODA la lÃ³gica de backend intacta.
+// Versión Premium - Estilo consistente con clientes_contenido.php
+// Mantiene TODA la lógica de backend intacta.
 
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . "/../config/db.php";
 
 // -----------------------

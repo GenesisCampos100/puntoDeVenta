@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 
 $proveedor_id = $_GET['proveedor'] ?? '';

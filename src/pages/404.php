@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../config/translation.php'; ?>
 <section class="text-center p-10">
   <h1 class="text-3xl font-bold text-red-600">404</h1>
   <p class="mt-4 text-lg">La página que buscas no existe.</p>
