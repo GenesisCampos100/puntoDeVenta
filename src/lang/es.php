@@ -317,6 +317,7 @@ return [
     'error_title' => 'Error',
     'error_processing_response' => 'Ocurrió un error al procesar la respuesta',
     'json_processing_error' => 'Error al procesar JSON',
+    'error_fetching_employee_num' => 'Error al obtener número de empleado',
 
     // User Modal
     'hello' => '¡Hola!',

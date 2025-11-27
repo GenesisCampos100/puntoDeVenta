@@ -741,16 +741,16 @@ body.dark-mode .content {
                 });
 
                 const requiredFields = [
-                    { name: 'apellido_p', label: '<?= __("last_name_p") ?>' },
-                    { name: 'nombres', label: '<?= __("names") ?>' },
-                    { name: 'correo', label: '<?= __("email") ?>' },
-                    { name: 'contra', label: '<?= __("password") ?>' },
-                    { name: 'telefono', label: '<?= __("phone") ?>' },
-                    { name: 'calle', label: '<?= __("street") ?>' },
-                    { name: 'num_ext', label: '<?= __("ext_num") ?>' },
-                    { name: 'colonia', label: '<?= __("colony") ?>' },
-                    { name: 'estado', label: '<?= __("state") ?>' },
-                    { name: 'id_rol', label: '<?= __("position") ?>' }
+                    { name: 'apellido_p', label: <?= json_encode(__('last_name_p')) ?> },
+                    { name: 'nombres', label: <?= json_encode(__('names')) ?> },
+                    { name: 'correo', label: <?= json_encode(__('email')) ?> },
+                    { name: 'contra', label: <?= json_encode(__('password')) ?> },
+                    { name: 'telefono', label: <?= json_encode(__('phone')) ?> },
+                    { name: 'calle', label: <?= json_encode(__('street')) ?> },
+                    { name: 'num_ext', label: <?= json_encode(__('ext_num')) ?> },
+                    { name: 'colonia', label: <?= json_encode(__('colony')) ?> },
+                    { name: 'estado', label: <?= json_encode(__('state')) ?> },
+                    { name: 'id_rol', label: <?= json_encode(__('position')) ?> }
                 ];
 
                 let hasErrors = false;
@@ -761,16 +761,16 @@ body.dark-mode .content {
                     if (input && input.value.trim() === '') {
                         input.classList.add('error');
                         hasErrors = true;
-                        errors.push(`<?= __('field_required') ?>: ${field.label}`);
+                        errors.push(<?= json_encode(__('field_required')) ?> + ': ' + field.label);
                     }
                 });
 
                 if (hasErrors) {
                     Swal.fire({
                         icon: 'error',
-                        title: '❌ <?= __('incomplete_form') ?>',
+                        title: '❌ ' + <?= json_encode(__('incomplete_form')) ?>,
                         html: errors.join('<br>'),
-                        confirmButtonText: '<?= __('ok') ?>',
+                        confirmButtonText: <?= json_encode(__('ok')) ?>,
                         customClass: {
                             popup: 'swal2-popup-custom',
                             confirmButton: 'swal2-confirm-custom'
@@ -810,7 +810,7 @@ body.dark-mode .content {
                                     title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
                                     html: res.error,
                                     icon: res.icon || 'error',
-                                    confirmButtonText: '<?= __("ok") ?>',
+                                    confirmButtonText: <?= json_encode(__('ok')) ?>,
                                     customClass: {
                                         popup: 'swal2-popup-custom',
                                         confirmButton: 'swal2-confirm-custom'
@@ -829,7 +829,7 @@ body.dark-mode .content {
                                         title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
                                         html: res.error,
                                         icon: res.icon || 'error',
-                                        confirmButtonText: '<?= __("ok") ?>',
+                                        confirmButtonText: <?= json_encode(__('ok')) ?>,
                                         customClass: {
                                             popup: 'swal2-popup-custom',
                                             confirmButton: 'swal2-confirm-custom'
@@ -838,10 +838,10 @@ body.dark-mode .content {
                                 }
                             } catch (e) {
                                 Swal.fire({
-                                    title: '❌ <?= __('connection_error_title') ?>',
-                                    text: '<?= __('connection_error_text') ?>',
+                                    title: '❌ ' + <?= json_encode(__('connection_error_title')) ?>,
+                                    text: <?= json_encode(__('connection_error_text')) ?>,
                                     icon: 'error',
-                                    confirmButtonText: '<?= __("ok") ?>',
+                                    confirmButtonText: <?= json_encode(__('ok')) ?>,
                                     customClass: {
                                         popup: 'swal2-popup-custom',
                                         confirmButton: 'swal2-confirm-custom'
@@ -873,18 +873,18 @@ body.dark-mode .content {
                         } else {
                             Swal.fire({
                                 title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
-                                html: res.error || '<?= __('connection_error_text') ?>',
+                                html: res.error || <?= json_encode(__('connection_error_text')) ?>,
                                 icon: (res.icon || 'error'),
-                                confirmButtonText: '<?= __('ok') ?>',
+                                confirmButtonText: <?= json_encode(__('ok')) ?>,
                                 customClass: { popup: 'swal2-popup-custom', confirmButton: 'swal2-confirm-custom' }
                             });
                         }
                     }).catch(() => {
                         Swal.fire({
-                            title: '❌ <?= __('connection_error_title') ?>',
-                            text: '<?= __('connection_error_text') ?>',
+                            title: '❌ ' + <?= json_encode(__('connection_error_title')) ?>,
+                            text: <?= json_encode(__('connection_error_text')) ?>,
                             icon: 'error',
-                            confirmButtonText: '<?= __('ok') ?>',
+                            confirmButtonText: <?= json_encode(__('ok')) ?>,
                             customClass: { popup: 'swal2-popup-custom', confirmButton: 'swal2-confirm-custom' }
                         });
                     }).finally(() => {
@@ -925,7 +925,7 @@ body.dark-mode .content {
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;
                 } catch (e) {
-                    console.error("<?= __('error_fetching_employee_num') ?>: ", e);
+                    console.error(<?= json_encode(__('error_fetching_employee_num')) ?> + ': ', e);
                 }
             }
 
@@ -942,20 +942,20 @@ body.dark-mode .content {
             function confirmDiscard(e) {
                 if (e && e.preventDefault) e.preventDefault();
                 Swal.fire({
-                    title: "<?= __('discard_changes_title') ?>",
-                    text: "<?= __('discard_changes_text') ?>",
+                    title: <?= json_encode(__('discard_changes_title')) ?>,
+                    text: <?= json_encode(__('discard_changes_text')) ?>,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#e15871",
                     cancelButtonColor: "#6b7280",
-                    confirmButtonText: "<?= __('yes_discard') ?>",
-                    cancelButtonText: "<?= __('cancel') ?>",
+                    confirmButtonText: <?= json_encode(__('yes_discard')) ?>,
+                    cancelButtonText: <?= json_encode(__('cancel')) ?>,
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Swal.fire({
-                            title: "<?= __('discarded_title') ?>",
-                            text: "<?= __('discarded_text') ?>",
+                            title: <?= json_encode(__('discarded_title')) ?>,
+                            text: <?= json_encode(__('discarded_text')) ?>,
                             icon: "success",
                             timer: 900,
                             showConfirmButton: false
