@@ -317,7 +317,7 @@ body.dark-mode .save-btn svg {
         <!-- Header con gradiente -->
         <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <h3 class="text-xl font-bold text-white flex items-center gap-2" id="modal-mov-title">
-                Registrar Movimiento
+                <?php echo __('register_movement'); ?>
             </h3>
             <button onclick="cerrarModal('modalMovimiento')" class="text-white/70 hover:text-white bg-white/10 p-2 rounded-full transition-all hover:bg-white/20">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -328,7 +328,7 @@ body.dark-mode .save-btn svg {
             <input type="hidden" id="mov-action" name="action">
             
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Monto</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?php echo __('movement_amount'); ?></label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                     <input type="number" step="0.01" id="mov-monto" name="monto" required 
@@ -337,25 +337,25 @@ body.dark-mode .save-btn svg {
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Método</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?php echo __('movement_method'); ?></label>
                 <div class="relative">
                     <select id="mov-metodo" name="metodo" class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 appearance-none">
-                        <option value="EFECTIVO">Efectivo</option>
-                        <option value="TARJETA">Tarjeta</option>
+                        <option value="EFECTIVO"><?php echo __('cash_method'); ?></option>
+                        <option value="TARJETA"><?php echo __('card_method'); ?></option>
                     </select>
                     <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Motivo / Descripción</label>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"><?php echo __('reason_description'); ?></label>
                 <textarea id="mov-motivo" name="motivo" rows="2" required 
-                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="Ej: Pago de proveedor, Cambio inicial..."></textarea>
+                          class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-[#b4c24d] focus:outline-none transition-all font-medium text-gray-700 placeholder-gray-300" placeholder="<?php echo __('reason_placeholder'); ?>"></textarea>
             </div>
 
             <button type="submit" class="w-full py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-4 text-white" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Guardar Movimiento
+                <?php echo __('save_movement'); ?>
             </button>
         </form>
     </div>
@@ -371,8 +371,8 @@ body.dark-mode .save-btn svg {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-white">Corte de Caja</h3>
-                    <p class="text-xs text-white/70 font-medium">Cierre de turno y arqueo</p>
+                    <h3 class="text-xl font-bold text-white"><?php echo __('cash_cut'); ?></h3>
+                    <p class="text-xs text-white/70 font-medium"><?php echo __('shift_close_count'); ?></p>
                 </div>
             </div>
             <button onclick="cerrarModal('modalCorte')" class="text-white/70 hover:text-white bg-white/10 p-2 rounded-full transition-all hover:bg-white/20">
@@ -387,15 +387,15 @@ body.dark-mode .save-btn svg {
             <div class="grid grid-cols-2 gap-6">
                 <!-- Esperado (Read Only) -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">Sistema (Esperado)</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2"><?php echo __('system_expected'); ?></h4>
                     
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Efectivo</label>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1"><?php echo __('cash_method'); ?></label>
                         <input type="text" id="corte-efectivo-esp" name="efectivo_esperado" readonly 
                                class="w-full px-3 py-2.5 rounded-lg bg-gray-50 border-2 border-gray-100 text-gray-500 font-mono font-bold text-right cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Tarjeta</label>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1"><?php echo __('card_method'); ?></label>
                         <input type="text" id="corte-tarjeta-esp" name="tarjeta_esperado" readonly 
                                class="w-full px-3 py-2.5 rounded-lg bg-gray-50 border-2 border-gray-100 text-gray-500 font-mono font-bold text-right cursor-not-allowed">
                     </div>
@@ -403,10 +403,10 @@ body.dark-mode .save-btn svg {
 
                 <!-- Contado (Input) -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider border-b border-[#b4c24d]/20 pb-2">Real (Contado)</h4>
+                    <h4 class="text-xs font-bold text-[#b4c24d] uppercase tracking-wider border-b border-[#b4c24d]/20 pb-2"><?php echo __('real_counted'); ?></h4>
                     
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Efectivo</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1"><?php echo __('cash_method'); ?></label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">$</span>
                             <input type="number" step="0.01" id="corte-efectivo-real" name="efectivo_contado" required 
@@ -414,7 +414,7 @@ body.dark-mode .save-btn svg {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tarjeta</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1"><?php echo __('card_method'); ?></label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">$</span>
                             <input type="number" step="0.01" id="corte-tarjeta-real" name="tarjeta_contado" required 
