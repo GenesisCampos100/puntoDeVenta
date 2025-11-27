@@ -182,7 +182,7 @@ function normalizeCategory($name) {
     return strtolower(trim(preg_replace('/\s+/', '', $name)));
 }
 
-require_once __DIR__ . "/../includes/layout.php";
+require_once __DIR__ . "/../layout.php";
 ?>
 
 <style>
