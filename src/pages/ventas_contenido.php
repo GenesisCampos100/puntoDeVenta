@@ -334,3 +334,34 @@ document.getElementById('nextPage').addEventListener('click', () => {
 
 </body>
 </html>
+
+<!-- MODAL TICKET -->
+<div id="ticket-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div class="bg-white w-[380px] md:w-[430px] rounded-2xl shadow-xl p-4 animate-slide">
+
+        <h2 class="text-xl font-bold text-gray-800 mb-3 text-center">Ticket de Venta</h2>
+
+        <!-- Iframe donde se carga el ticket -->
+        <iframe id="ticket-iframe" class="w-full h-[450px] rounded-lg border"></iframe>
+
+        <div class="flex justify-end">
+    <button id="close-ticket-modal"
+        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+        Cerrar
+    </button>
+</div>
+
+    </div>
+</div>
+
+<style>
+    .animate-slide {
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .slide-active {
+        transform: translateY(0px);
+        opacity: 1;
+    }
+</style>
