@@ -183,11 +183,11 @@ function normalizeCategory($name) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?php echo current_lang(); ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Punto de Venta - Caja</title>
+<title><?php echo __('pos_title'); ?></title>
 
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>

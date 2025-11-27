@@ -857,5 +857,10 @@ return [
     'try_adjusting_filters_or_add' => 'Intenta ajustar los filtros o agregar un nuevo registro',
 
     // Edit
-    'edit' => 'Editar'
+    'edit' => 'Editar',
+
+    // Títulos de páginas
+    'pos_title' => 'Punto de Venta - Caja',
+    'add_customer_title' => 'Agregar Cliente — Punto de Venta',
+    'add_product_title' => 'Agregar Producto | POS System'
 ];
