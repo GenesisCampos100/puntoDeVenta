@@ -111,6 +111,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
         $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
         $regexAlfanumerico = "/^[A-Za-z0-9\s]+$/u";
+        $regexEstado = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s.]+$/u"; // Acepta letras, espacios y puntos
         $regexCP = "/^[0-9]{5}$/";
 
         $errores = [];
@@ -119,7 +120,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         if ($num_int !== "" && !preg_match($regexAlfanumerico, $num_int)) { $errores[] = "Número interior inválido."; }
         if (!preg_match($regexAlfanumerico, $colonia)) { $errores[] = "Colonia inválida."; }
         if ($cp !== "" && !preg_match($regexCP, $cp)) { $errores[] = "Código postal inválido."; }
-        if (!preg_match($regexLetras, $estado)) { $errores[] = "Estado inválido."; }
+        if (!preg_match($regexEstado, $estado)) { $errores[] = "Estado inválido."; }
         if (!empty($errores)) {
             send_json_response(["error" => $errores[0], "icon" => "warning"]);
         }
@@ -950,7 +951,7 @@ body.dark-mode .content {
             async function fetchNext(idRol) {
                 if (!idRol) return;
                 try {
-                    const resp = await fetch('src/scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
+                    const resp = await fetch('/PrismaMK2C/src/scripts/next_employee.php?id_rol=' + encodeURIComponent(idRol));
                     if (!resp.ok) throw new Error('Error en la petición');
                     const data = await resp.json();
                     if (data && data.next) numInput.value = data.next;
