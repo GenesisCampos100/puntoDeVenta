@@ -1,5 +1,6 @@
 <?php
     require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/translation.php";
 
     // Obtener el id del proveedor a editar (permitir GET al cargar y POST al enviar)
     $proveedor_id = $_GET['id'] ?? ($_POST['id'] ?? NULL);
@@ -461,54 +462,54 @@
                 <div class="form-body">
                     <!-- Información Personal -->
                     <div class="section animate-in-delay-2">
-                        <h2 class="section-title">Información Personal</h2>
+                        <h2 class="section-title"><?= __('personal_information') ?></h2>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <label class="form-label"><?= __('paternal_surname') ?><span class="required">*</span></label>
                                 <input type="text" name="apellido_p" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['apellido_paterno'] ?? '')?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Apellido Materno</label>
-                                <input type="text" name="apellido_m" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['apellido_materno'] ?? '')?>">
+                                <label class="form-label"><?= __('maternal_surname') ?></label>
+                                <input type="text" name="apellido_m" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['apellido_materno'] ?? '')?>"> 
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <label class="form-label"><?= __('names') ?><span class="required">*</span></label>
                             <input type="text" name="nombres" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['nombre'] ?? '')?>">
                         </div>
                     </div>
 
                     <!-- Información Laboral -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Información Laboral</h2>
+                        <h2 class="section-title"><?= __('work_information') ?></h2>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <label class="form-label"><?= __('email') ?><span class="required">*</span></label>
                                 <input type="email" name="correo" maxlength="100" class="form-input" value="<?= htmlspecialchars($proveedor['correo'] ?? '')?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Teléfono<span class="required">*</span></label>
-                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos" value="<?= htmlspecialchars($proveedor['celular'] ?? '') ?>">
+                                <label class="form-label"><?= __('phone') ?><span class="required">*</span></label>
+                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="<?= __('phone_10_digits') ?>" value="<?= htmlspecialchars($proveedor['celular'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Empresa<span class="required">*</span></label>
+                            <label class="form-label"><?= __('company') ?><span class="required">*</span></label>
                             <input type="text" name="empresa" maxlength="50" class="form-input" value="<?= htmlspecialchars($proveedor['empresa'] ?? '')?>">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Estatus</label>
+                            <label class="form-label"><?= __('status') ?></label>
                             <div class="switch-container">
                                 <label class="switch">
                                     <input type="hidden" name="estatus" value="0">
                                     <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
                                     <span class="slider"></span>
                                 </label>
-                                <span class="switch-label">Proveedor activo</span>
+                                <span class="switch-label"><?= __('supplier_status_active') ?></span>
                             </div>
                         </div>
                     </div>
@@ -516,12 +517,12 @@
 
                 <!-- Footer -->
                 <div class="form-footer">
-                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="btnCancelar" class="btn btn-secondary"><?= __('cancel') ?></button>
                     <button type="submit" class="btn btn-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="btn-text">Actualizar Proveedor</span>
+                        <span class="btn-text"><?= __('update_supplier') ?></span>
                     </button>
                 </div>
             </form>

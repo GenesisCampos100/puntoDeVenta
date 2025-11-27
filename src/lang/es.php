@@ -649,5 +649,18 @@ return [
     'total_to_pay' => 'Total a Pagar',
     'apply_discount_btn' => 'Aplicar Descuento',
     'charge_btn' => 'Cobrar',
+
+    // Edición de registros
+    'personal_information' => 'Información Personal',
+    'work_information' => 'Información Laboral',
+    'update_button' => 'Actualizar',
+    'update_supplier' => 'Actualizar Proveedor',
+    'update_employee' => 'Actualizar Empleado',
+    'update_product' => 'Actualizar Producto',
+    'paternal_surname' => 'Apellido Paterno',
+    'maternal_surname' => 'Apellido Materno',
+    'phone_10_digits' => '10 dígitos',
+    'supplier_status_active' => 'Proveedor activo',
+    'employee_status_active' => 'Empleado activo',
 ];
 

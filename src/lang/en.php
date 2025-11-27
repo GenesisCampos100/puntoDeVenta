@@ -658,4 +658,17 @@ return [
     'total_to_pay' => 'Total to Pay',
     'apply_discount_btn' => 'Apply Discount',
     'charge_btn' => 'Charge',
+
+    // Edit records
+    'personal_information' => 'Personal Information',
+    'work_information' => 'Work Information',
+    'update_button' => 'Update',
+    'update_supplier' => 'Update Supplier',
+    'update_employee' => 'Update Employee',
+    'update_product' => 'Update Product',
+    'paternal_surname' => 'Paternal Surname',
+    'maternal_surname' => 'Maternal Surname',
+    'phone_10_digits' => '10 digits',
+    'supplier_status_active' => 'Supplier active',
+    'employee_status_active' => 'Employee active',
 ];
