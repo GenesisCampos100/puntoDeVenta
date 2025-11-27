@@ -191,7 +191,7 @@
         <p id="discount-warning" class="text-sm text-red-600 mb-3 hidden"></p>
         <div class="flex justify-end gap-3">
             <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg apply-btn" style="background: var(--primary);">Aplicar</button>
         </div>
     </div>
 </div>
@@ -210,7 +210,7 @@
         <p id="product-discount-warning" class="text-sm text-red-600 mb-3 hidden"></p>
         <div class="flex justify-end gap-3">
             <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg apply-btn" style="background: var(--primary);">Aplicar</button>
         </div>
     </div>
 </div>

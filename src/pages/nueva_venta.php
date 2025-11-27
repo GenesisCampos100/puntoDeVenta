@@ -244,6 +244,12 @@ function normalizeCategory($name) {
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         border-color: var(--accent);
     }
+
+    .apply-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
 </style>
 
 <div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
