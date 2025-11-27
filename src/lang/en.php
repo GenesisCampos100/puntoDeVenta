@@ -634,4 +634,28 @@ return [
     // Products/Inventory
     'inventory_management' => 'Inventory Management',
     'manage_catalog_stock' => 'Manage your catalog and stock efficiently',
+
+    // New Sale - POS
+    'pos_title' => 'Point of Sale - Cashier',
+    'search_product_by_code' => 'Search product by code, name or SKU...',
+    'catalog_button' => 'Catalog',
+    'code_col' => 'Code',
+    'product_col' => 'Product',
+    'variant_col' => 'Variant',
+    'price_col' => 'Price',
+    'stock_col' => 'Stock',
+    'sale_ticket' => 'Sale Ticket',
+    'folio_new' => 'Folio: #NEW',
+    'main_cashier' => 'Main Cashier',
+    'description_col' => 'Description',
+    'quantity_col' => 'Qty.',
+    'total_col' => 'Total',
+    'assigned_customer' => 'Assigned Customer',
+    'general_public' => 'General Public',
+    'change_customer' => 'Change Customer',
+    'subtotal_label' => 'Subtotal',
+    'discount_label' => 'Discount',
+    'total_to_pay' => 'Total to Pay',
+    'apply_discount_btn' => 'Apply Discount',
+    'charge_btn' => 'Charge',
 ];

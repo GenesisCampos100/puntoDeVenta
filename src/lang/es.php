@@ -625,5 +625,29 @@ return [
     // Productos/Inventario
     'inventory_management' => 'Gestión de Inventario',
     'manage_catalog_stock' => 'Administra tu catálogo y existencias de forma eficiente',
+
+    // Nueva Venta - POS
+    'pos_title' => 'Punto de Venta - Caja',
+    'search_product_by_code' => 'Buscar producto por código, nombre o SKU...',
+    'catalog_button' => 'Catálogo',
+    'code_col' => 'Código',
+    'product_col' => 'Producto',
+    'variant_col' => 'Variante',
+    'price_col' => 'Precio',
+    'stock_col' => 'Stock',
+    'sale_ticket' => 'Ticket de Venta',
+    'folio_new' => 'Folio: #NEW',
+    'main_cashier' => 'Caja Principal',
+    'description_col' => 'Descripción',
+    'quantity_col' => 'Cant.',
+    'total_col' => 'Total',
+    'assigned_customer' => 'Cliente Asignado',
+    'general_public' => 'Público General',
+    'change_customer' => 'Cambiar Cliente',
+    'subtotal_label' => 'Subtotal',
+    'discount_label' => 'Descuento',
+    'total_to_pay' => 'Total a Pagar',
+    'apply_discount_btn' => 'Aplicar Descuento',
+    'charge_btn' => 'Cobrar',
 ];
 
