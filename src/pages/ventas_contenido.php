@@ -67,7 +67,7 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             
-            <!-- Barra de b├║squeda -->
+            <!-- Barra de búsqueda -->
             <div class="flex-1 relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,7 +161,7 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </table>
         </div>
         
-        <!-- Paginaci├│n -->
+        <!-- Paginación -->
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     mostrarPagina(1);
 });
 
-// Funci├│n de paginaci├│n
+// Función de paginación
 function mostrarPagina(num) {
     paginaActual = num;
     const inicio = (num - 1) * porPagina;
@@ -222,7 +222,7 @@ function mostrarPagina(num) {
     // Ocultar todas las filas primero
     todasLasFilas.forEach(fila => fila.style.display = 'none');
 
-    // Mostrar solo las filas de la p├ígina actual
+    // Mostrar solo las filas de la página actual
     filasFiltradas.slice(inicio, fin).forEach(fila => {
         fila.style.display = '';
     });
@@ -237,7 +237,7 @@ function mostrarPagina(num) {
     document.getElementById('totalRegistros').textContent = filasFiltradas.length;
     document.getElementById('ventasMostradas').textContent = `${Math.min(fin - inicio, filasFiltradas.length - inicio)} de ${filasFiltradas.length}`;
     
-    // Generar n├║meros de p├ígina
+    // Generar números de página
     generarNumerosPagina(totalPaginas);
 }
 
@@ -268,7 +268,7 @@ function generarNumerosPagina(totalPaginas) {
     }
 }
 
-// B├║squeda
+// Búsqueda
 document.getElementById("searchVenta").addEventListener("input", function() {
     const texto = this.value.toLowerCase();
     
@@ -314,7 +314,7 @@ document.getElementById("resetFilters").addEventListener("click", function() {
     mostrarPagina(1);
 });
 
-// Navegaci├│n de p├íginas
+// Navegación de páginas
 document.getElementById('prevPage').addEventListener('click', () => {
     if (paginaActual > 1) {
         mostrarPagina(paginaActual - 1);
