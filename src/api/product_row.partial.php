@@ -2,6 +2,9 @@
 // src/api/product_row.partial.php
 // Render: Fila de un producto PRINCIPAL con diseño premium
 
+// Incluir sistema de traducción
+require_once __DIR__ . '/../config/translation.php';
+
 $pid = htmlspecialchars($producto['cod_barras']);
 $nombre = htmlspecialchars($producto['nom_producto']);
 $sku = htmlspecialchars($producto['cod_barras']); // Fallback si SKU es null, usar cod_barras
