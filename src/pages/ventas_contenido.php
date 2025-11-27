@@ -24,34 +24,99 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <title>Ventas Realizadas</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-    :root {
-        --primary: #1e293b;
-        --primary-dark: #0f172a;
-        --accent: #6366f1;
-        --accent-hover: #4f46e5;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-    }
-    
-    .table-row-hover:hover {
-        background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
-        transform: scale(1.01);
-        transition: all 0.2s ease;
-    }
-    
-    .pagination-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+    <style>
+/* ----------- MODO OSCURO ----------- */
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+}
+
+/* Forzar todos los textos a blanco */
+
+body.dark-mode .content,
+body.dark-mode main {
+    background-color: #121212 !important;
+}
+
+
+/* Tarjetas */
+body.dark-mode .bg-white {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900 {
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-600 {
+    color: #cbd5e1 !important;
+}
+
+/* Inputs */
+body.dark-mode input,
+body.dark-mode select {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Tabla */
+body.dark-mode table {
+    color: #e2e8f0;
+}
+
+body.dark-mode thead {
+    background: linear-gradient(to right, #0f172a, #1e293b) !important;
+}
+
+body.dark-mode tbody tr:hover {
+    background: #1e293b !important;
+}
+
+/* Celdas */
+body.dark-mode td {
+    border-color: #334155 !important;
+}
+
+/* Botones */
+body.dark-mode button {
+    border-color: #475569 !important;
+}
+
+body.dark-mode .pagination-btn {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .pagination-btn:hover {
+    background: #334155 !important;
+}
+
+/* Modales */
+body.dark-mode #venta-modal .bg-white,
+body.dark-mode #ticket-modal .bg-white {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+
+/* SweetAlert2 */
+body.dark-mode .swal2-popup {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .swal2-title,
+body.dark-mode .swal2-text {
+    color: #f8fafc !important;
+}
+
 </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6"> 
@@ -83,14 +148,14 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <!-- Filtros -->
             <div class="flex gap-3">
                 <select id="filterOrden" class="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none bg-white font-medium text-gray-700">
-                    <option value="fecha_desc">­ƒôà Fecha (Recientes)</option>
-                    <option value="fecha_asc">­ƒôà Fecha (Antiguas)</option>
-                    <option value="total_desc">­ƒÆ░ Total (Mayor)</option>
-                    <option value="total_asc">­ƒÆ░ Total (Menor)</option>
+                    <option value="fecha_desc">📅 Fecha (Recientes)</option>
+                    <option value="fecha_asc">📅 Fecha (Antiguas)</option>
+                    <option value="total_desc">💰 Total (Mayor)</option>
+                    <option value="total_asc">💰 Total (Menor)</option>
                 </select>
                 
                 <button id="resetFilters" class="px-4 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 font-medium text-gray-700 transition-all">
-                    ­ƒöä Resetear
+                    🔄 Resetear
                 </button>
             </div>
         </div>
@@ -147,11 +212,11 @@ $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="flex items-center justify-center gap-2">
                                 <button class="ver-detalle-btn px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    ­ƒæü´©Å Ver
+                                    👁️ Ver
                                 </button>
                                 <button class="delete-sale-btn px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    ­ƒùæ´©Å Eliminar
+                                    🗑️ Eliminar
                                 </button>
                             </div>
                         </td>
