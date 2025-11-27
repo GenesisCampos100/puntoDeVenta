@@ -289,4 +289,24 @@ require_once __DIR__ . '/../config/translation.php';
     </div>
 </div>
 
+<script>
+    window.TR = {
+        monto_invalido_title: <?= json_encode(__('amount_received')) ?>,
+        monto_invalido_text: <?= json_encode(__('amount_too_low')) ?>,
+        motivo_requerido_title: <?= json_encode(__('reason_description')) ?>,
+        motivo_requerido_text: <?= json_encode(__('field_required')) ?>,
+        error_conexion_title: 'Error de Conexión',
+        error_conexion_text: 'No se pudo conectar con el servidor.',
+        ingreso_registrado: <?= json_encode(__('register_income_title')) ?>,
+        retiro_registrado: <?= json_encode(__('register_withdrawal_title')) ?>,
+        movimiento_guardado: <?= json_encode(__('save_movement')) ?>,
+        confirmar_corte: <?= json_encode(__('confirm_cash_cut_title')) ?>,
+        efectivo_esperado: <?= json_encode(__('cash_method')) ?>,
+        tarjeta_esperado: <?= json_encode(__('card_method')) ?>,
+        diferencia_label: <?= json_encode(__('calculated_difference')) ?>,
+        corte_finalizado: <?= json_encode(__('finalize_cut')) ?>,
+        yes_finalize_cut: <?= json_encode(__('yes_finalize_cut')) ?>,
+        cancel_btn: <?= json_encode(__('cancel_btn')) ?>
+    };
+</script>
 <script src="/PrismaMK2C/src/js/caja.js?v=<?= time() ?>"></script>

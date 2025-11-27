@@ -79,13 +79,13 @@ function abrirModalMovimiento(tipo) {
     if (tipo === 'ingreso') {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
-            Registrar Ingreso
+            ${window.TR?.ingreso_registrado || 'Registrar Ingreso'}
         `;
         actionInput.value = 'ingreso';
     } else {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
-            Registrar Retiro
+            ${window.TR?.retiro_registrado || 'Registrar Retiro'}
         `;
         actionInput.value = 'retiro';
     }
@@ -192,8 +192,8 @@ async function handleSubmitMovimiento(e) {
     if (!monto || monto <= 0) {
         Swal.fire({
             icon: 'error',
-            title: 'Monto Inválido',
-            text: 'Ingresa un monto mayor a cero.',
+            title: window.TR?.monto_invalido_title || 'Monto Inválido',
+            text: window.TR?.monto_invalido_text || 'Ingresa un monto mayor a cero.',
             confirmButtonColor: '#2d4353'
         });
         return;
@@ -202,8 +202,8 @@ async function handleSubmitMovimiento(e) {
     if (!formData.get('motivo').trim()) {
         Swal.fire({
             icon: 'error',
-            title: 'Motivo Requerido',
-            text: 'Debes especificar un motivo para este movimiento.',
+            title: window.TR?.motivo_requerido_title || 'Motivo Requerido',
+            text: window.TR?.motivo_requerido_text || 'Debes especificar un motivo para este movimiento.',
             confirmButtonColor: '#2d4353'
         });
         return;
@@ -220,8 +220,8 @@ async function handleSubmitMovimiento(e) {
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
-                title: action === 'ingreso' ? 'Ingreso Registrado' : 'Retiro Registrado',
-                text: 'El movimiento se ha guardado correctamente.',
+                title: action === 'ingreso' ? (window.TR?.ingreso_registrado || 'Ingreso Registrado') : (window.TR?.retiro_registrado || 'Retiro Registrado'),
+                text: window.TR?.movimiento_guardado || 'El movimiento se ha guardado correctamente.',
                 confirmButtonColor: '#2d4353',
                 timer: 2000
             });
@@ -240,8 +240,8 @@ async function handleSubmitMovimiento(e) {
         console.error('Error:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error de Conexión',
-            text: 'No se pudo conectar con el servidor.',
+            title: window.TR?.error_conexion_title || 'Error de Conexión',
+            text: window.TR?.error_conexion_text || 'No se pudo conectar con el servidor.',
             confirmButtonColor: '#2d4353'
         });
     }
@@ -269,23 +269,23 @@ async function handleSubmitCorte(e) {
 
     const result = await Swal.fire({
         icon: 'warning',
-        title: '¿Confirmar Corte de Caja?',
+        title: window.TR?.confirmar_corte || '¿Confirmar Corte de Caja?',
         html: `
             <div class="text-left space-y-2 text-sm">
-                <p><strong>Efectivo Esperado:</strong> ${formatCurrency(efectivoEsperado)}</p>
+                <p><strong>${window.TR?.efectivo_esperado || 'Efectivo Esperado'}:</strong> ${formatCurrency(efectivoEsperado)}</p>
                 <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoContado)}</p>
                 <hr class="my-2">
-                <p><strong>Tarjeta Esperado:</strong> ${formatCurrency(tarjetaEsperado)}</p>
+                <p><strong>${window.TR?.tarjeta_esperado || 'Tarjeta Esperado'}:</strong> ${formatCurrency(tarjetaEsperado)}</p>
                 <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaContado)}</p>
                 <hr class="my-2">
                 <p class="text-lg font-bold ${diferencia < 0 ? 'text-red-600' : diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
-                    <strong>Diferencia:</strong> ${formatCurrency(diferencia)}
+                    <strong>${window.TR?.diferencia_label || 'Diferencia'}:</strong> ${formatCurrency(diferencia)}
                 </p>
             </div>
         `,
         showCancelButton: true,
-        confirmButtonText: 'Sí, Finalizar Corte',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: window.TR?.yes_finalize_cut || 'Sí, Finalizar Corte',
+        cancelButtonText: window.TR?.cancel_btn || 'Cancelar',
         confirmButtonColor: '#2d4353',
         cancelButtonColor: '#6b7280'
     });
@@ -303,7 +303,7 @@ async function handleSubmitCorte(e) {
         if (data.status === 'success') {
             await Swal.fire({
                 icon: 'success',
-                title: 'Corte Finalizado',
+                title: window.TR?.corte_finalizado || 'Corte Finalizado',
                 html: `
                     <p class="text-lg mb-2">El corte de caja se ha registrado correctamente.</p>
                     <p class="text-2xl font-bold ${data.diferencia < 0 ? 'text-red-600' : data.diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
