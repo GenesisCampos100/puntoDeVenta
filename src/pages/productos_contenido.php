@@ -201,6 +201,191 @@ foreach($productos as $p) {
         backdrop-filter: blur(8px);
         background: rgba(0, 0, 0, 0.4);
     }
+
+    * Tema oscuro */
+    /* Textos oscuros en modo oscuro */
+    body.dark-mode .text-gray-500,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-900 {
+        color: #f5f5f5 !important; /* texto claro */
+    }
+    /* Sobrescribir fondos blancos */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+    background-color: #1e1e1e !important;
+}
+body.dark-mode table,
+body.dark-mode thead,
+body.dark-mode tbody,
+body.dark-mode tr,
+body.dark-mode td,
+body.dark-mode th {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+/* Forzar textos blancos */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode small,
+body.dark-mode label,
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-slate-800 {
+    color: #ffffff !important;
+}
+
+body.dark-mode .divide-gray-200 {
+    border-color: #444 !important;
+}
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+    border-color: #333 !important;
+}
+body.dark-mode span[style*="rgba("] {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+body.dark-mode button[style*="linear-gradient"] {
+    filter: brightness(0.8);
+}
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+body.dark-mode .dropdown-menu {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode .dropdown-menu p,
+body.dark-mode .dropdown-menu select,
+body.dark-mode .dropdown-menu option {
+    color: #ffffff !important;
+    background: #2a2a2a !important;
+}
+body.dark-mode select {
+    background: #2c2c2c !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+/* Botón Eliminar (modo oscuro) */
+body.dark-mode .btn-eliminar {
+    background-color: #b30000 !important;  /* Rojo fuerte */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-eliminar:hover {
+    background-color: #cc0000 !important; /* Rojo más brillante */
+}
+/* Botón Agregar (modo oscuro) */
+body.dark-mode .btn-agregar {
+    background-color: #3ba55d !important; /* Verde moderno */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-agregarProducto:hover {
+    background-color: #b4c24d !important;
+}
+
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-agregarProducto {
+  background-color: #b4c24d !important;
+}
+/* Mantener el fondo verde del botón ACTIVO en modo oscuro */
+body.dark-mode .tab-btn.active {
+    background-color: #b4c24d !important;   /* Verde original */
+    color: #ffffff !important;              /* Texto blanco */
+    border-color: #b4c24d !important;
+}
+body.dark-mode span[data-min] {
+  background-color: rgba(34,197,94,0.15) !important; /* verde oscuro suave */
+  color: #86efac !important; /* verde claro */
+  border-color: rgba(34,197,94,0.5) !important;
+}
+body.dark-mode .bg-red-50 { background-color: rgba(239, 68, 68, 0.15) !important; }
+body.dark-mode .text-red-700 { color: #fca5a5 !important; }
+body.dark-mode .ring-red-600\/20 { border-color: rgba(239, 68, 68, 0.5) !important; }
+
+body.dark-mode .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.15) !important; }
+body.dark-mode .text-yellow-700 { color: #fcd34d !important; }
+body.dark-mode .ring-yellow-600\/20 { border-color: rgba(234, 179, 8, 0.5) !important; }
+
+/* Fondo global del modal */
+body.dark-mode #modalDetalle {
+  background-color: rgba(0,0,0,0.75) !important;
+}
+
+/* Contenedor principal */
+body.dark-mode #modalDetalle > div.relative {
+  background: #1e293b !important; /* slate-800 */
+  color: #e2e8f0 !important; /* slate-200 */
+}
+
+/* Header */
+body.dark-mode #modalDetalle .header-dark {
+  background: linear-gradient(135deg, #111827 0%, #0f172a 100%) !important;
+  border-color: #1f2937 !important;
+}
+
+/* Imagen */
+body.dark-mode #modalDetalle .img-dark {
+  background: #0f172a !important;
+}
+
+/* Texto sobre imagen */
+body.dark-mode #modalDetalle .img-dark-text {
+  color: #f1f5f9 !important;
+}
+
+/* Secciones del cuerpo */
+body.dark-mode #modalDetalle .section-dark {
+  border-color: #334155 !important; 
+}
+
+
+/* Mini-cards gris sólido */
+body.dark-mode #modalDetalle .card-dark {
+  background: #2f2f2f !important;   /* gris oscuro sólido */
+  border-color: #444 !important;     /* borde gris */
+}
+
+/* Texto de las mini-cards */
+body.dark-mode #modalDetalle .card-dark p,
+body.dark-mode #modalDetalle .card-dark span {
+  color: #f1f1f1 !important;         /* texto claro */
+}
+
+
+/* Botón eliminar */
+body.dark-mode #modalDetalle .btn-eliminar-dark {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(239,68,68,0.4) !important;
+  color: #fca5a5 !important;
+}
+
+body.dark-mode #modalDetalle .btn-eliminar-dark:hover {
+  background: rgba(239,68,68,0.1) !important;
+}
+
+body.dark-mode #modalDetalle .btn-editar-dark {
+  background: #1e293b !important;  /* sólido */
+}
+
+
 </style>
 
     <style>

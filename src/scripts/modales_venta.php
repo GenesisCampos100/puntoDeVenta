@@ -181,7 +181,7 @@
 
 
 <!-- MODAL DESCUENTO GENERAL -->
-<div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+<div id="discount-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
         <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?= __('general_discount') ?></h2>
         <div class="flex gap-3 mb-5">
@@ -199,7 +199,7 @@
 </div>
 
 <!-- MODAL DESCUENTO POR PRODUCTO -->
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flexitems-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
         <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);"><?= __('product_discount') ?></h2>
         <div class="flex gap-3 mb-5">
@@ -240,7 +240,8 @@
 </div>
 
 <!-- Modal de búsqueda de productos -->
-<div id="modalProductos" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+<div id="modalProductos" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+
     <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-primary"><?= __('search_product_title') ?></h2>

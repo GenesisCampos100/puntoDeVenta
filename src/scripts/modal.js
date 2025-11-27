@@ -206,53 +206,64 @@
 
     function getTotal() {
       // Suponiendo que guardaste el total en localStorage
-      const total = parseFloat(localStorage.getItem("lastTotal")) || 0;
-      return total;
+      const total = parseFloat(localStorage.getItem("lastTotal"));
+      return isNaN(total) ? 0 : total;
     }
 
     function validarPago() {
       const total = getTotal();
       const metodo = document.querySelector("input.payment-method:checked")?.value?.toLowerCase();
-      if (!metodo) return;
-      if (!confirmPayment) return;
 
+      if (!metodo || !confirmPayment) return;
+
+      // Resetear estados
       confirmPayment.disabled = true;
+      confirmPayment.classList.add("opacity-50", "cursor-not-allowed");
 
       if (metodo === "efectivo") {
         const monto = parseFloat(montoEfectivo.value) || 0;
-        if (metodo === "efectivo") {
-          const monto = parseFloat(montoEfectivo.value) || 0;
-          const total = getTotal();
 
-          if (monto < total) {
-            alertaEfectivo?.classList.remove("hidden");
-            cambioEfectivo.textContent = "0.00";
-            confirmPayment.disabled = true;
-          } else {
-            alertaEfectivo?.classList.add("hidden");
-            // calcular cambio correctamente
-            cambioEfectivo.textContent = (monto - total).toFixed(2);
-            confirmPayment.disabled = false;
-          }
+        if (monto < total) {
+          alertaEfectivo?.classList.remove("hidden");
+          if (cambioEfectivo) cambioEfectivo.textContent = "0.00";
+          confirmPayment.disabled = true;
+          confirmPayment.classList.add("opacity-50", "cursor-not-allowed");
+        } else {
+          alertaEfectivo?.classList.add("hidden");
+          if (cambioEfectivo) cambioEfectivo.textContent = (monto - total).toFixed(2);
+          confirmPayment.disabled = false;
+          confirmPayment.classList.remove("opacity-50", "cursor-not-allowed");
         }
-
-
-
       } else if (metodo === "tarjeta") {
-        confirmPayment.disabled = referenciaTarjeta.value.trim() === "";
+        // Para tarjeta, solo validamos que haya referencia si es requerida, 
+        // o simplemente habilitamos si no hay validación extra
+        const ref = referenciaTarjeta.value.trim();
+        // Si la referencia es obligatoria:
+        // confirmPayment.disabled = ref === ""; 
+        // Si no es obligatoria (o se valida diferente):
+        confirmPayment.disabled = false;
+        confirmPayment.classList.remove("opacity-50", "cursor-not-allowed");
       } else if (metodo === "mixto") {
         const efec = parseFloat(mixtoEfectivo.value) || 0;
         const tarj = parseFloat(mixtoTarjeta.value) || 0;
         const ref = mixtoReferencia.value.trim();
         const suma = efec + tarj;
 
-        if (suma < total || ref === "") {
+        // Calcular faltante
+        const faltante = total - suma;
+
+        if (suma < total) {
           alertaMixto?.classList.remove("hidden");
-          if (alertaMixto) alertaMixto.textContent = `Faltan: $${(total - suma).toFixed(2)}`;
+          if (alertaMixto) alertaMixto.textContent = `Faltan: $${faltante.toFixed(2)}`;
+          if (cambioMixto) cambioMixto.textContent = "0.00";
           confirmPayment.disabled = true;
+          confirmPayment.classList.add("opacity-50", "cursor-not-allowed");
         } else {
           alertaMixto?.classList.add("hidden");
+          // Si paga de más en mixto, asumimos que el excedente es cambio del efectivo
+          if (cambioMixto) cambioMixto.textContent = (suma - total).toFixed(2);
           confirmPayment.disabled = false;
+          confirmPayment.classList.remove("opacity-50", "cursor-not-allowed");
         }
       }
     }
@@ -294,20 +305,35 @@
     paymentModal?.addEventListener('click', e => { if (e.target === paymentModal) paymentModal.classList.add("hidden"); });
 
     function updatePaymentFields(method) {
+      // 1. Actualizar visibilidad de secciones
       document.getElementById("efectivo-section")?.classList.toggle("hidden", method !== "efectivo");
       document.getElementById("tarjeta-section")?.classList.toggle("hidden", method !== "tarjeta");
       document.getElementById("mixto-section")?.classList.toggle("hidden", method !== "mixto");
 
-      if (montoEfectivo) montoEfectivo.closest('div')?.classList.toggle('hidden', method !== 'efectivo');
-      if (referenciaTarjeta) referenciaTarjeta.closest('div')?.classList.toggle('hidden', method !== 'tarjeta');
-      if (mixtoEfectivo) mixtoEfectivo.closest('div')?.classList.toggle('hidden', method !== 'mixto');
-      if (mixtoTarjeta) mixtoTarjeta.closest('div')?.classList.toggle('hidden', method !== 'mixto');
-      if (mixtoReferencia) mixtoReferencia.closest('div')?.classList.toggle('hidden', method !== 'mixto');
+      // 2. Resaltar la opción seleccionada visualmente
+      document.querySelectorAll(".payment-method").forEach(input => {
+        const label = input.closest("label");
+        if (!label) return;
 
-      if (alertaEfectivo) alertaEfectivo.classList.toggle('hidden', method !== 'efectivo');
-      if (cambioEfectivo) cambioEfectivo.closest('p')?.classList.toggle('hidden', method !== 'efectivo');
-      if (alertaMixto) alertaMixto.classList.toggle('hidden', method !== 'mixto');
-      if (cambioMixto) cambioMixto.closest('p')?.classList.toggle('hidden', true);
+        if (input.value === method) {
+          // Estilos para seleccionado
+          label.classList.add("border-primary", "ring-2", "ring-primary", "bg-blue-50");
+          label.classList.remove("border-gray-200", "hover:bg-gray-50");
+        } else {
+          // Estilos por defecto
+          label.classList.remove("border-primary", "ring-2", "ring-primary", "bg-blue-50");
+          label.classList.add("border-gray-200", "hover:bg-gray-50");
+        }
+      });
+
+      // 3. Enfocar el input correspondiente
+      if (method === "efectivo") {
+        setTimeout(() => montoEfectivo?.focus(), 100);
+      } else if (method === "tarjeta") {
+        setTimeout(() => referenciaTarjeta?.focus(), 100);
+      } else if (method === "mixto") {
+        setTimeout(() => mixtoEfectivo?.focus(), 100);
+      }
 
       validarPago();
     }
@@ -424,8 +450,8 @@
     });
 
     /* ===========================
-         DETALLE DE VENTA
-    ============================ */
+     DETALLE DE VENTA
+============================ */
     const ventaModal = document.getElementById('venta-modal');
     const ventaDetalles = document.getElementById('venta-detalles');
     const closeVentaModal = document.getElementById('close-venta-modal');
@@ -444,28 +470,32 @@
             return alert('❌ Error al obtener detalle de venta');
           }
 
+          // Limpiar contenido previo
           ventaDetalles.innerHTML = '';
 
+          // Renderizar productos con descuento
           data.productos.forEach(item => {
             const div = document.createElement('div');
             div.className = 'flex justify-between p-2 border-b';
             div.innerHTML = `
-              <div>
-                <p class="font-semibold">${item.nombre}</p>
-                ${item.descuento > 0 ? `<p class="text-sm text-green-600">Descuento: ${parseFloat(item.descuento).toFixed(2)}</p>` : ''}
-              </div>
-              <div class="text-right">
-                <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
-              </div>
-            `;
+          <div>
+            <p class="font-semibold">${item.nombre}</p>
+            ${item.descuento > 0 ? `<p class="text-sm text-green-600">Descuento: ${parseFloat(item.descuento).toFixed(2)}</p>` : ''}
+          </div>
+          <div class="text-right">
+            <p>${item.cantidad} x $${parseFloat(item.precio_unitario).toFixed(2)}</p>
+          </div>
+        `;
             ventaDetalles.appendChild(div);
           });
 
+          // Mostrar cliente
           const clienteDiv = document.createElement('p');
           clienteDiv.className = 'font-medium mt-2';
           clienteDiv.textContent = `Cliente: ${data.cliente || 'Sin cliente'}`;
           ventaDetalles.appendChild(clienteDiv);
 
+          // Mostrar empleado
           if (data.empleado) {
             const empleadoDiv = document.createElement('p');
             empleadoDiv.className = 'font-medium mt-1';
@@ -473,6 +503,7 @@
             ventaDetalles.appendChild(empleadoDiv);
           }
 
+          // Mostrar total
           if (data.total !== undefined) {
             const totalDiv = document.createElement('p');
             totalDiv.className = 'font-bold mt-2';
@@ -480,6 +511,7 @@
             ventaDetalles.appendChild(totalDiv);
           }
 
+          // Abrir modal
           ventaModal.classList.remove('hidden');
 
         } catch (err) {
@@ -488,15 +520,6 @@
         }
       }
     });
-
-    closeVentaModal?.addEventListener('click', () => ventaModal?.classList.add("hidden"));
-    ventaModal?.addEventListener('click', e => {
-      if (e.target === ventaModal) ventaModal.classList.add("hidden");
-    });
-
-
-
-
 
 
 

@@ -356,8 +356,7 @@ body.dark-mode .btn-add {
   background-color: #b4c24d !important;
 }
 
-</style>
-
+    </style>
 </head>
 <body class = "p-4 md:p-6">
     <div class="max-w-7xl mx-auto pb-32">

@@ -57,6 +57,161 @@ require_once __DIR__ . '/../config/translation.php';
     .card-gradient {
         background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
     }
+
+/* ================================
+   MODO OSCURO GLOBAL
+================================ */
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+/* Forzar textos blancos */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode small,
+body.dark-mode label,
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-slate-800 {
+    color: #ffffff !important;
+}
+
+/* ================================
+   TARJETAS / CARDS
+================================ */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100,
+body.dark-mode .bg-gray-200 {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+/* Bordes decorativos de tarjetas */
+body.dark-mode .card-border-green {
+    border-right-color: #b4c24d !important;
+}
+body.dark-mode .card-border-blue {
+    border-right-color: #4d9ac2 !important;
+}
+body.dark-mode .card-border-red {
+    border-right-color: #e15871 !important;
+}
+
+/* ================================
+   INPUTS
+================================ */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #bdbdbd !important;
+}
+
+
+
+/* Evitar que otros botones se oscurezcan */
+body.dark-mode button:not(#sidebar-menu-btn):not(.bg-secondary) {
+    background-color: inherit;
+}
+
+
+
+/* ================================
+   TABLAS (si las hay)
+================================ */
+body.dark-mode table,
+body.dark-mode thead,
+body.dark-mode tbody,
+body.dark-mode tr,
+body.dark-mode td,
+body.dark-mode th {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333 !important;
+}
+
+/* ================================
+   MODALES (Ingreso, Retiro, Corte)
+================================ */
+body.dark-mode .modal-content,
+body.dark-mode .modal {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .modal-header {
+    background: linear-gradient(135deg, #0f0f0f, #1a1a1a) !important;
+}
+
+/* Botón cerrar en modal */
+body.dark-mode .btn-close {
+    filter: invert(1);
+}
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-rcortecaja {
+  background-color: #3b82f6 !important;
+}
+body.dark-mode .btn-rcortecaja:hover {
+    background-color: #3b82f6 !important;
+}
+
+/* Texto */
+body.dark-mode .info-banner span {
+    color: #2563eb !important;
+}
+body.dark-mode .texto-cabierta span {
+    color: #15803d !important;
+}
+
+/* El span "Cargando..." */
+body.dark-mode .info-banner .loading-badge {
+    background-color: #2563eb !important;
+    color: #93c5fd !important;
+}
+/* Botón verde en modo oscuro */
+body.dark-mode .save-btn {
+    background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%) !important; 
+    color: #ffffff !important;
+}
+/* Hover del botón en modo oscuro */
+body.dark-mode .save-btn:hover {
+    background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%) !important;
+    transform: translateY(-2px);
+  
+}
+/* Botón Finalizar Corte en modo oscuro */
+body.dark-mode .finish-btn {
+    background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Hover del botón Finalizar Corte en modo oscuro */
+body.dark-mode .finish-btn:hover {
+    background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%) !important;
+    transform: translateY(-2px);
+}
+
+/* Icono dentro del botón */
+body.dark-mode .save-btn svg {
+    stroke: #ffffff !important;
+}
+
 </style>
 
 <div class="max-w-7xl mx-auto p-4 md:p-6 pb-32">

@@ -274,9 +274,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ==========================================
    Modo Oscuro - Agregar Producto
    ========================================== */
-body.dark-mode {
-  background-color: #121212 !important;
-  color: #e5e7eb !important;
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
 }
 
 /*  Tarjetas (card, secciones, aside) */
@@ -462,9 +462,7 @@ body.dark-mode thead tr:first-child th:first-child {
 body.dark-mode thead tr:first-child th:last-child {
   border-top-right-radius: 10px !important;
 }
-
-        
-    </style>
+</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-700">
 
