@@ -148,14 +148,14 @@ body.dark-mode .swal2-text {
             <!-- Filtros -->
             <div class="flex gap-3">
                 <select id="filterOrden" class="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none bg-white font-medium text-gray-700">
-                    <option value="fecha_desc">📅 Fecha (Recientes)</option>
-                    <option value="fecha_asc">📅 Fecha (Antiguas)</option>
-                    <option value="total_desc">💰 Total (Mayor)</option>
-                    <option value="total_asc">💰 Total (Menor)</option>
+                    <option value="fecha_desc"> Fecha (Recientes)</option>
+                    <option value="fecha_asc"> Fecha (Antiguas)</option>
+                    <option value="total_desc"> Total (Mayor)</option>
+                    <option value="total_asc"> Total (Menor)</option>
                 </select>
                 
                 <button id="resetFilters" class="px-4 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 font-medium text-gray-700 transition-all">
-                    🔄 Resetear
+                     Resetear
                 </button>
             </div>
         </div>
@@ -212,11 +212,11 @@ body.dark-mode .swal2-text {
                             <div class="flex items-center justify-center gap-2">
                                 <button class="ver-detalle-btn px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    👁️ Ver
+                                    Ver
                                 </button>
                                 <button class="delete-sale-btn px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg font-medium" 
                                         data-id="<?= $v['id_venta'] ?>">
-                                    🗑️ Eliminar
+                                    Eliminar
                                 </button>
                             </div>
                         </td>
