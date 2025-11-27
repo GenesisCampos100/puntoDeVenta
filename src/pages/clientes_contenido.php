@@ -371,6 +371,10 @@ body.dark-mode .btn-eliminar:hover {
 }
 
 
+body.dark-mode .btn-add:hover {
+    background-color: #b4c24d !important;
+}
+
 /* BOTÓN AGREGAR EN MODO OSCURO */
 body.dark-mode .btn-add {
   background-color: #b4c24d !important;

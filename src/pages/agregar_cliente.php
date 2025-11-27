@@ -998,11 +998,21 @@ body.dark-mode .section-title {
       title: '¡Cliente creado!',
       text: 'El cliente se ha registrado correctamente.',
       confirmButtonColor: '#b4c24d',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
+
+      /*  MODO OSCURO DIRECTO */
+      background: '#1e1e1e',
+      color: '#ffffff',
+      iconColor: '#4caf50',
+
+      /* Botón */
+      customClass: {
+        confirmButton: 'swal-dark-confirm'
+      }
     }).then(() => {
       window.location.href = 'index.php?view=clientes';
     });
-  <?php endif; ?>
+<?php endif; ?>
 
   // Server errors
   <?php if(!empty($errors)): ?>
@@ -1127,7 +1137,7 @@ cancelBtn.addEventListener('click', function(){
     icon: 'warning',
     showCancelButton: true,
 
-    // 🎨 COLORES DIFERENTES SEGÚN EL MODO
+    //  COLORES DIFERENTES SEGÚN EL MODO
     background: dark ? '#121212' : '#ffffff',      // fondo
     color: dark ? '#f1f5f9' : '#1e293b',            // texto
 

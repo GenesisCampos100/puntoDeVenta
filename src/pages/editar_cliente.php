@@ -979,18 +979,28 @@ body.dark-mode .btn-primary:hover {
   const cancelBtn = document.getElementById('cancelBtn');
   const progressSteps = document.querySelectorAll('.progress-step');
 
-  // Show success alert
   <?php if($success): ?>
     Swal.fire({
       icon: 'success',
       title: '¡Cliente actualizado!',
       text: 'Los cambios se han guardado correctamente.',
       confirmButtonColor: '#b4c24d',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
+
+      /* 🎯 MODO OSCURO DIRECTO */
+      background: '#1e1e1e',
+      color: '#ffffff',
+      iconColor: '#4caf50',
+
+      /* Botón */
+      customClass: {
+        confirmButton: 'swal-dark-confirm'
+      }
     }).then(() => {
       window.location.href = 'index.php?view=clientes';
     });
-  <?php endif; ?>
+<?php endif; ?>
+
 
   // Server errors
   <?php if(!empty($errors)): ?>
