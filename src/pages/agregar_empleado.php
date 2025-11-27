@@ -791,9 +791,25 @@ body.dark-mode .content {
                         url: "index.php?view=agregar_empleado",
                         type: "POST",
                         data: $form.serialize(),
-                        dataType: 'json',
+                        dataType: 'text', // Cambiar a text para parsear manualmente
                         headers: { 'Accept': 'application/json' },
-                        success: function(res) {
+                        success: function(response) {
+                            // Intentar parsear la respuesta como JSON
+                            let res;
+                            try {
+                                res = JSON.parse(response);
+                            } catch(e) {
+                                console.error("Error parsing JSON:", e);
+                                console.log("Response:", response);
+                                Swal.fire({
+                                    title: '❌ ' + <?= json_encode(__('error_title')) ?>,
+                                    text: <?= json_encode(__('error_processing_response')) ?>,
+                                    icon: 'error',
+                                    confirmButtonText: <?= json_encode(__('ok')) ?>
+                                });
+                                return;
+                            }
+
                             if (res.success) {
                                 Swal.fire({
                                     title: '✅ ' + res.success,
@@ -824,33 +840,16 @@ body.dark-mode .content {
                         error: function(xhr, status, error) {
                             console.error("AJAX Error: ", status, error);
                             console.log("Response Text:", xhr.responseText);
-                            // Intentar parsear la respuesta manualmente
-                            try {
-                                const res = JSON.parse(xhr.responseText);
-                                if (res.error) {
-                                    Swal.fire({
-                                        title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
-                                        html: res.error,
-                                        icon: res.icon || 'error',
-                                        confirmButtonText: <?= json_encode(__('ok')) ?>,
-                                        customClass: {
-                                            popup: 'swal2-popup-custom',
-                                            confirmButton: 'swal2-confirm-custom'
-                                        }
-                                    });
+                            Swal.fire({
+                                title: '❌ ' + <?= json_encode(__('connection_error_title')) ?>,
+                                text: <?= json_encode(__('connection_error_text')) ?>,
+                                icon: 'error',
+                                confirmButtonText: <?= json_encode(__('ok')) ?>,
+                                customClass: {
+                                    popup: 'swal2-popup-custom',
+                                    confirmButton: 'swal2-confirm-custom'
                                 }
-                            } catch (e) {
-                                Swal.fire({
-                                    title: '❌ ' + <?= json_encode(__('connection_error_title')) ?>,
-                                    text: <?= json_encode(__('connection_error_text')) ?>,
-                                    icon: 'error',
-                                    confirmButtonText: <?= json_encode(__('ok')) ?>,
-                                    customClass: {
-                                        popup: 'swal2-popup-custom',
-                                        confirmButton: 'swal2-confirm-custom'
-                                    }
-                                });
-                            }
+                            });
                         }
                     });
                 } else {
