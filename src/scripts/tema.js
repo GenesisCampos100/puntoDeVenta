@@ -1,24 +1,23 @@
-//  CAMBIO DE TEMA GLOBAL (CLARO / OSCURO)
-const themeToggle = document.getElementById('themeToggle');
-const themeIcon = document.getElementById('themeIcon');
 
-// Cargar tema guardado o predeterminado
-let temaGuardado = localStorage.getItem('tema') || 'claro';
-if (temaGuardado === 'oscuro') {
-  document.body.classList.add('dark-mode');
-  themeIcon.src = '../public/img/luna-modoOscuro.png'; // opcional, ícono alternativo
-} else {
-  themeIcon.src = '../public/img/tema.png';
-}
-
-// Detectar clic en el ícono
-themeToggle.addEventListener('click', () => {
-  const esOscuro = document.body.classList.toggle('dark-mode');
-  const nuevoTema = esOscuro ? 'oscuro' : 'claro';
-  localStorage.setItem('tema', nuevoTema);
-
-  // Cambiar ícono según el tema (opcional)
-  themeIcon.src = esOscuro ? '../public/img/luna-modoOscuro.png' : '../public/img/tema.png';
+// CAMBIO DE TEMA GLOBAL (CLARO / OSCURO)
+document.addEventListener('DOMContentLoaded', function() {
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  let temaGuardado = localStorage.getItem('tema') || 'claro';
+  if (temaGuardado === 'oscuro') {
+    document.body.classList.add('dark-mode');
+    themeIcon.src = '../public/img/luna-modoOscuro.png';
+  } else {
+    themeIcon.src = '../public/img/tema.png';
+  }
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const esOscuro = document.body.classList.toggle('dark-mode');
+      const nuevoTema = esOscuro ? 'oscuro' : 'claro';
+      localStorage.setItem('tema', nuevoTema);
+      themeIcon.src = esOscuro ? '../public/img/luna-modoOscuro.png' : '../public/img/tema.png';
+    });
+  }
 });
 
 //  CAMBIO DE IDIOMA SIMPLE
