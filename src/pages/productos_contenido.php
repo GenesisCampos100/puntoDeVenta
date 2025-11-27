@@ -1,15 +1,15 @@
-<?php
+﻿<?php
 // src/pages/productos_contenido.php
-// Versión Premium - Estilo consistente con clientes_contenido.php
-// Mantiene TODA la lógica de backend intacta.
+// VersiÃ³n Premium - Estilo consistente con clientes_contenido.php
+// Mantiene TODA la lÃ³gica de backend intacta.
 
 require_once __DIR__ . "/../config/db.php";
 
 // -----------------------
-// LÓGICA PHP (INTACTA)
+// LÃ“GICA PHP (INTACTA)
 // -----------------------
 
-// 1. Mapeo para prevenir errores de SQL Injection y columna inválida
+// 1. Mapeo para prevenir errores de SQL Injection y columna invÃ¡lida
 $mapOrder = [
     'nom_asc'    => 'p.nom_producto ASC',
     'nom_desc'   => 'p.nom_producto DESC',
@@ -80,7 +80,7 @@ foreach ($variantesRaw as $v) {
     $variantesPorProducto[$v['id_producto']][] = $v;
 }
 
-// Categorías
+// CategorÃ­as
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 $totalProductos = count($productos);
 $stockBajo = 0;
@@ -195,13 +195,26 @@ foreach($productos as $p) {
     }
 </style>
 
+    <style>
+        /* Pequeños ajustes visuales compartidos */
+        body { font-family: 'Poppins', sans-serif; background-color: #f3f6f9; color: #0f172a; }
+        .product-inactive { background-color: #f8fafc !important; color: #6b7280 !important; }
+        .product-inactive strong { color: #6b7280 !important; }
+        .fade-in { animation: fadeIn .18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0); } }
+        /* Utilities small-screen */
+        @media (max-width: 640px) {
+            .btn-text-mobile-hidden { display: none; }
+        }
+    </style>
+
 <div class="max-w-7xl mx-auto p-4 md:p-6 pb-32">
 
     <!-- Header Section -->
     <div class="mb-8 animate-slideDown">
         <div class="mb-6">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Inventario</h1>
-            <p class="text-gray-600 text-base">Administra tu catálogo y existencias de forma eficiente</p>
+            <p class="text-gray-600 text-base">Administra tu catalogo y existencias de forma eficiente</p>
         </div>
         
         <!-- Stats Cards -->
@@ -249,7 +262,7 @@ foreach($productos as $p) {
                     <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input id="busqueda" type="text" placeholder="Buscar por nombre, código o SKU..." 
+                    <input id="busqueda" type="text" placeholder="Buscar por nombre, cÃ³digo o SKU..." 
                            value="<?= htmlspecialchars($busqueda) ?>"
                            class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium">
                     <button id="clear-search" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
@@ -273,7 +286,7 @@ foreach($productos as $p) {
             <!-- Filters & Actions -->
             <div class="flex flex-wrap md:flex-nowrap gap-3 justify-end">
                 <select id="categoria" class="px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:outline-none cursor-pointer hover:bg-gray-50 transition-all">
-                    <option value="">Todas las categorías</option>
+                    <option value="">Todas las categorias</option>
                     <?php foreach ($categorias as $cat): ?>
                         <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($cat['nombre']) ?>
@@ -306,7 +319,7 @@ foreach($productos as $p) {
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">Categoría</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">CategorÃ­a</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Precio</th>
                         <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -343,7 +356,7 @@ foreach($productos as $p) {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
                                         <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o tu búsqueda</p>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o tu bÃºsqueda</p>
                                     </div>
                                   </td></tr>';
                         }
@@ -402,7 +415,7 @@ foreach($productos as $p) {
                         <svg class="w-5 h-5" style="color: #2d4353;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                         </svg>
-                        <p class="text-xs text-gray-600 uppercase font-bold">Código / SKU</p>
+                        <p class="text-xs text-gray-600 uppercase font-bold">CODIGO / SKU</p>
                     </div>
                     <p id="modal-codigo" class="font-mono text-gray-900 font-bold text-sm truncate"></p>
                 </div>
@@ -432,120 +445,15 @@ foreach($productos as $p) {
                     </svg>
                     Editar
                 </a>
-
-                <button id="modal-btn-eliminar"
-                    class="flex-1 bg-white border-2 border-red-200 py-4 rounded-xl font-bold transition-all hover:bg-red-50 hover:border-red-300 flex items-center justify-center gap-2"
-                    style="color: #e15871;">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Eliminar
-                </button>
             </div>
 
 <!-- Hidden input con ID -->
 <input type="hidden" id="id_producto_detalle" value="">
-
-
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
-// === BOTÓN ELIMINAR DESDE EL MODAL ===
-document.getElementById("modal-btn-eliminar").addEventListener("click", () => {
-
-    Swal.fire({
-        title: "¿Eliminar producto?",
-        text: "Esta acción no se puede deshacer",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#e15871",
-        cancelButtonColor: "#2d4353",
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-        customClass: {
-            popup: "rounded-2xl shadow-xl",
-            confirmButton: "rounded-lg px-4 py-2 font-bold",
-            cancelButton: "rounded-lg px-4 py-2 font-bold"
-        }
-    }).then((result) => {
-
-        if (!result.isConfirmed) return;
-
-        const idProducto = document.getElementById("id_producto_detalle").value;
-
-        fetch("eliminar_productos.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `cod_barras=${idProducto}`
-
-        })
-        .then(res => res.json())
-        .then(data => {
-
-            if (!data.success) {
-                Swal.fire({
-                    title: "Error",
-                    text: data.message,
-                    icon: "error",
-                    confirmButtonColor: "#2d4353"
-                });
-                return;
-            }
-
-            // Cerrar modal
-            const modal = document.getElementById("modalVerDetalles");
-            if (modal) modal.classList.add("hidden");
-
-            // Eliminar fila de la tabla
-            const fila = document.getElementById(`row-${idProducto}`);
-            if (fila) fila.remove();
-
-            // Alert de éxito
-            Swal.fire({
-                title: "Producto eliminado",
-                text: "El producto ha sido eliminado correctamente",
-                icon: "success",
-                confirmButtonColor: "#2d4353",
-                customClass: { popup: "rounded-2xl shadow-xl" }
-            });
-
-        })
-        .catch(err => {
-            Swal.fire({
-                title: "Error inesperado",
-                text: "Ocurrió un problema al eliminar el producto",
-                icon: "error",
-                confirmButtonColor: "#2d4353"
-            });
-            console.error(err);
-        });
-
-    });
-});
-</script>
-
-
-
-<script>
-    // Configuración Global para JS
-    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
-    console.log("API URL Configurada:", BASE_URL);
-</script>
-<script src="js/productos.js?v=<?= time() ?>"></script>
-<script src="js/producto_delete.js?v=<?= time() ?>"></script>
-
-            <button id="confirmBtn" class="flex-1 px-5 py-3.5 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">Eliminar</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Configuración Global para JS
+    // ConfiguraciÃ³n Global para JS
     const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
     console.log("API URL Configurada:", BASE_URL);
 </script>

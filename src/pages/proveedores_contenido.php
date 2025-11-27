@@ -270,7 +270,94 @@
             backdrop-filter: blur(8px);
             background: rgba(0, 0, 0, 0.4);
         }
-    </style>
+
+        /* Tema oscuro */
+    /* Textos oscuros en modo oscuro */
+    body.dark-mode .text-gray-500,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-900 {
+        color: #f5f5f5 !important; /* texto claro */
+    }
+    /* Sobrescribir fondos blancos */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+    background-color: #1e1e1e !important;
+}
+body.dark-mode table,
+body.dark-mode thead,
+body.dark-mode tbody,
+body.dark-mode tr,
+body.dark-mode td,
+body.dark-mode th {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+body.dark-mode .divide-gray-200 {
+    border-color: #444 !important;
+}
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+    border-color: #333 !important;
+}
+body.dark-mode span[style*="rgba("] {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+body.dark-mode button[style*="linear-gradient"] {
+    filter: brightness(0.8);
+}
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+body.dark-mode .dropdown-menu {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode .dropdown-menu p,
+body.dark-mode .dropdown-menu select,
+body.dark-mode .dropdown-menu option {
+    color: #ffffff !important;
+    background: #2a2a2a !important;
+}
+body.dark-mode select {
+    background: #2c2c2c !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+/* Botón Eliminar (modo oscuro) */
+body.dark-mode .btn-eliminar {
+    background-color: #b30000 !important;  /* Rojo fuerte */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-eliminar:hover {
+    background-color: #cc0000 !important; /* Rojo más brillante */
+}
+/* Botón Agregar (modo oscuro) */
+body.dark-mode .btn-agregar {
+    background-color: #3ba55d !important; /* Verde moderno */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-add:hover {
+    background-color: #b4c24d !important;
+}
+
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-add {
+  background-color: #b4c24d !important;
+}
+
+</style>
+
 </head>
 <body class = "p-4 md:p-6">
     <div class="max-w-7xl mx-auto pb-32">
@@ -453,7 +540,7 @@
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Representante</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
                             <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Compra</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Catálogo</th>
                             <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
@@ -495,12 +582,12 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
                                         <button
-                                            onclick="window.location.href='index.php?view=compra_proveedor=<?= urlencode($pr['numero']) ?>'"
+                                            onclick="window.location.href='index.php?view=catalogo_proveedor&proveedor=<?= urlencode($pr['numero']) ?>'"
                                             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-semibold transition-shadow"
                                             style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 6px 18px rgba(31, 64, 24, 0.12);">
-                                            <!-- Shopping bag icon -->
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M8 7V5a4 4 0 018 0v2"/></svg>
-                                            <span>Compra</span>
+                                            <!-- Catalog icon -->
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M7 7v10M12 7v10M17 7v10"/></svg>
+                                            <span>Catálogo</span>
                                         </button>
                                     </td>
                                     <td class="px-6 py-4 text-right">

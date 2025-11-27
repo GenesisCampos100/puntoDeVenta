@@ -702,7 +702,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 max-width: 95%;
             }
         }
-    </style>
+
+        /* Tema oscuro */
+        /* Inputs Tailwind en modo oscuro */
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+        border-color: #444 !important;
+        }
+
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+        color: #bbbbbb !important;
+        }
+        body.dark-mode label,
+        body.dark-mode .text-gray-700,
+        body.dark-mode .text-gray-600 {
+        color: #eaeaea !important;
+        }
+        body.dark-mode .card,
+        body.dark-mode .form-box,
+        body.dark-mode .bg-white,
+        body.dark-mode .bg-gray-50,
+        body.dark-mode .bg-gray-100 {
+        background-color: #1f1f1f !important;
+        color: #f5f5f5 !important;
+        }
+        /* Card footer en modo oscuro */
+body.dark-mode .card-footer {
+  background-color: #1f1f1f !important;
+  border-top: 1px solid #333 !important;
+}
+
+/* Guardar Cliente → Verde en modo oscuro */
+body.dark-mode #saveBtn,
+body.dark-mode .btn-primary {
+  background-color: #b4c24d !important; /* Verde */
+  color: #ffffff !important;
+  border: none !important;
+}
+/* H2 en modo oscuro (Informacion Personal, Dirección, etc.) */
+body.dark-mode .section-title {
+  color: #ffffff !important;
+}
+</style>
+
 </head>
 <body>
   <div class="container">

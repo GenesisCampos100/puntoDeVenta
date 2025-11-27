@@ -10,13 +10,34 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json; charset=utf-8');
 
 // Verificar autenticación básica
-if (!isset($_SESSION['id_empleado'])) {
+if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id_empleado'])) {
     echo json_encode(['status' => 'error', 'message' => 'No hay sesión activa']);
     exit;
 }
 
 $action = $_POST['action'] ?? '';
-$id_empleado = $_SESSION['id_empleado'];
+$id_empleado = $_SESSION['id_empleado'] ?? null;
+
+// Si no hay id_empleado en sesión, buscarlo por usuario_id
+if (!$id_empleado && isset($_SESSION['usuario_id'])) {
+    $stmt = $pdo->prepare("SELECT id_empleado FROM usuarios WHERE id_usuario = ?");
+    $stmt->execute([$_SESSION['usuario_id']]);
+    $id_empleado = $stmt->fetchColumn();
+}
+
+// Si aún no hay id_empleado (ej. usuario sin empleado asignado), manejar error o usar null
+if (!$id_empleado) {
+    // Opcional: permitir continuar si la acción no requiere id_empleado estricto, 
+    // pero para movimientos de caja generalmente se requiere.
+    // Por ahora, si es null, algunas DB podrían fallar si la columna es NOT NULL.
+    // Asumiremos que se requiere.
+    // Sin embargo, para fetch_totales no es estrictamente necesario el ID del empleado actual,
+    // pero para registrar movimientos sí.
+    if ($action !== 'fetch_totales') {
+         echo json_encode(['status' => 'error', 'message' => 'Usuario no vinculado a un empleado']);
+         exit;
+    }
+}
 
 try {
     switch ($action) {
@@ -46,15 +67,15 @@ try {
  */
 function handleMovimiento($pdo, $type, $id_empleado) {
     $monto = floatval($_POST['monto'] ?? 0);
-    $motivo = $_POST['motivo'] ?? '';
-    $metodo = 'EFECTIVO'; // Por defecto, movimientos manuales suelen ser efectivo, pero podría ser parametrizable si se requiere.
-                          // El prompt dice "ingreso / retiro -> Inserción en caja_movimientos".
-                          // Asumiremos EFECTIVO para caja chica, salvo que se especifique lo contrario.
-                          // Revisando tabla: metodo enum('EFECTIVO','TARJETA').
-                          // Generalmente retiros/ingresos manuales son de efectivo.
+    $motivo = trim($_POST['motivo'] ?? '');
+    $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Usar el método seleccionado en el formulario
 
     if ($monto <= 0) {
         throw new Exception("El monto debe ser mayor a 0");
+    }
+
+    if (empty($motivo)) {
+        throw new Exception("El motivo es obligatorio");
     }
 
     // Si es retiro, convertir a negativo
@@ -75,18 +96,7 @@ function handleFetchTotales($pdo) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $ultimoCorte = $row['ultimo_corte'];
 
-    // Filtro de fecha para las consultas
-    $fechaFilter = $ultimoCorte ? "WHERE fecha_pago > '$ultimoCorte'" : "";
-    $fechaFilterMov = $ultimoCorte ? "WHERE fecha_movimiento > '$ultimoCorte'" : "";
-
     // 2. Sumar Pagos de Ventas (Ingresos por venta)
-    // EFECTIVO
-    $sqlVentasEf = "SELECT SUM(monto) as total FROM pagos_venta $fechaFilter AND metodo = 'EFECTIVO'";
-    if (!$ultimoCorte) $sqlVentasEf = "SELECT SUM(monto) as total FROM pagos_venta WHERE metodo = 'EFECTIVO'"; // Si no hay corte, todo
-    
-    // Ajuste: La lógica de $fechaFilter arriba estaba un poco simplificada. Hagámoslo bien con params o string directo si es seguro (aquí viene de DB, es seguro).
-    // Mejor usemos lógica condicional clara.
-    
     $ventasEfectivo = getSum($pdo, "pagos_venta", "monto", "metodo = 'EFECTIVO'", "fecha_pago", $ultimoCorte);
     $ventasTarjeta = getSum($pdo, "pagos_venta", "monto", "metodo = 'TARJETA'", "fecha_pago", $ultimoCorte);
 
@@ -96,9 +106,6 @@ function handleFetchTotales($pdo) {
     $movsTarjeta = getSum($pdo, "caja_movimientos", "monto", "metodo = 'TARJETA'", "fecha_movimiento", $ultimoCorte);
 
     // 4. Totales Esperados
-    // Se asume un fondo inicial? El prompt no menciona tabla de fondos iniciales, solo "ingresos/retiros".
-    // Asumiremos que el "saldo" es la suma de todo lo ocurrido desde el corte.
-    
     $totalEfectivo = $ventasEfectivo + $movsEfectivo;
     $totalTarjeta = $ventasTarjeta + $movsTarjeta;
 
@@ -114,14 +121,17 @@ function handleFetchTotales($pdo) {
  * Helper para sumar columnas con filtro de fecha opcional
  */
 function getSum($pdo, $table, $sumCol, $whereStatic, $dateCol, $dateVal) {
-    $sql = "SELECT SUM($sumCol) as total FROM $table WHERE $whereStatic";
     if ($dateVal) {
-        $sql .= " AND $dateCol > ?";
+        // Si hay fecha de corte, filtrar registros posteriores a esa fecha
+        $sql = "SELECT COALESCE(SUM($sumCol), 0) as total FROM $table WHERE $whereStatic AND $dateCol > ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$dateVal]);
     } else {
+        // Si no hay fecha de corte, sumar todos los registros
+        $sql = "SELECT COALESCE(SUM($sumCol), 0) as total FROM $table WHERE $whereStatic";
         $stmt = $pdo->query($sql);
     }
+    
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
     return floatval($res['total'] ?? 0);
 }

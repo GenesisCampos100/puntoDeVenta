@@ -12,8 +12,8 @@ if (!$id) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT * FROM productos WHERE cod_barras = ? OR id_producto = ? OR id = ?");
-$stmt->execute([$id, $id, $id]);
+$stmt = $pdo->prepare("SELECT * FROM productos WHERE cod_barras = ?");
+$stmt->execute([$id]);
 $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$producto) {
@@ -22,8 +22,8 @@ if (!$producto) {
 }
 
 // 🧩 Obtener variantes (si las hay)
-$stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE cod_barras = ? OR id_producto = ?");
-$stmtVar->execute([$producto['cod_barras'], $producto['cod_barras']]);
+$stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE cod_barras = ?");
+$stmtVar->execute([$producto['cod_barras']]);
 $variantes = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 
 // 🧾 Actualizar producto
@@ -67,25 +67,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text: 'El producto ha sido actualizado correctamente',
             icon: 'success',
             confirmButtonColor: '#b4c24d',
-            timer: 2000,
-            showConfirmButton: false
+            confirmButtonText: 'Aceptar',
+            allowOutsideClick: false
         }).then(() => {
             window.location='index.php?view=productos';
         });
     </script>";
-    // No exit here to allow layout to finish if needed, but usually redirect handles it.
-    
+    exit;
   } catch (Exception $e) {
-    echo "<script>
-        Swal.fire({
-            title: 'Error',
-            text: '" . addslashes($e->getMessage()) . "',
-            icon: 'error',
-            confirmButtonColor: '#e15871'
-        });
-    </script>";
+      echo "<script>
+          Swal.fire({
+              title: 'Error',
+              text: '" . addslashes($e->getMessage()) . "',
+              icon: 'error',
+              confirmButtonColor: '#e15871'
+          });
+      </script>";
   }
 }
+
 ?>
 
 <!-- Dependencias (si no están ya en layout) -->

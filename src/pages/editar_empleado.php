@@ -548,7 +548,6 @@
         .btn-change-password {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             padding: 0.5rem 1rem;
             font-size: 0.875rem;
         }
@@ -576,7 +575,66 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+         /* Títulos del formulario (Registro de Empleados) */
+body.dark-mode .form-header h1,
+body.dark-mode .form-header p,
+body.dark-mode .section-title {
+  color: #ffffff !important;
+}
+/* Formularios en modo oscuro */
+body.dark-mode .form-card,
+body.dark-mode .form-body,
+body.dark-mode .section {
+  background-color: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+/* Inputs */
+body.dark-mode .form-input,
+body.dark-mode .form-select {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #444 !important;
+}
+
+/* Placeholders */
+body.dark-mode .form-input::placeholder,
+body.dark-mode .form-select::placeholder {
+  color: #cccccc !important;
+}
+
+/* Labels */
+body.dark-mode .form-label,
+body.dark-mode label {
+  color: #eaeaea !important;
+}
+body.dark-mode .switch-label {
+  color: #eaeaea !important;
+}
+
+body.dark-mode .slider {
+  background-color: #444 !important;
+}
+body.dark-mode .form-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
+}
+/* Botón Guardar Empleado → verde en modo oscuro */
+body.dark-mode .btn-primary {
+  background-color:  #b4c24d  !important; /* verde */
+  color: white !important;
+  border: none !important;
+}
+/* Botón Guardar Empleado → verde en modo oscuro */
+body.dark-mode .btn-primary:hover {
+  background-color:  #b4c24d  !important; /* verde */
+  
+}
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
     </style>
+    
 </head>
 <body>
     <div class="form-container animate-in">

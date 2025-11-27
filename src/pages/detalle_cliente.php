@@ -112,6 +112,186 @@ body { font-family: var(--font); background: linear-gradient(180deg,#f8fafc 0%, 
 @media (min-width:1024px) {
   .layout-grid { display:grid; grid-template-columns: 400px 1fr; gap:24px; }
 }
+
+/* Estilos modo oscuro */
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+/* En modo oscuro: textos dentro de .stat en negro */
+body.dark .stat {
+  color: #000000; /* negro puro */
+}
+
+/* En modo oscuro: quitar los colores específicos en elementos hijos que pongan grises */
+/* Por ejemplo: texto pequeño que puede tener color gris */
+body.dark .stat .text-gray-500,
+body.dark .stat .text-gray-400,
+body.dark .stat .text-gray-600 {
+  color: inherit; /* hereda el negro del contenedor .stat */
+}
+
+/* En modo oscuro: encabezado de tabla color gris oscuro */
+body.dark .table th {
+  color: #374151; /* gris oscuro */
+}
+
+body.dark .card {
+  background: #1e293b; /* gris oscuro */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  color: #cbd5e1;
+}
+
+body.dark .avatar {
+  color: #e0e0e0;
+}
+
+body.dark .btn-danger {
+  background: #be123c; /* rojo oscuro */
+  color: #fef2f2;
+}
+/* BOTÓN volver EN MODO OSCURO */
+body.dark-mode .btn-volver {
+  background-color: transparent !important;
+}
+
+body.dark-mode .btn-volver:hover {
+  background-color: transparent !important;
+}
+
+body.dark .btn-primary {
+  background: #2563eb; /* azul oscuro */
+  color: #dbeafe;
+}
+
+body.dark .stat {
+  background: linear-gradient(180deg, #334155, #1e293b);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  color: #cbd5e1;
+}
+
+body.dark .table th {
+  color: #e2e8f0;
+  background: #334155;
+  border-bottom: 1px solid #475569;
+}
+
+body.dark .table td {
+  border-bottom: 1px solid #475569;
+  color: #cbd5e1;
+}
+
+body.dark a {
+  color: #93c5fd; /* azul claro */
+}
+
+body.dark a:hover {
+  color: #bfdbfe;
+}
+
+/* Modal modo oscuro */
+body.dark #modalTW {
+  background-color: rgba(15, 23, 42, 0.8);
+}
+
+body.dark #modalTWContent {
+  background-color: #1e293b;
+  color: #cbd5e1;
+}
+
+body.dark #modalTWContent button {
+  background-color: #2563eb;
+  color: white;
+}
+
+body.dark #modalTWContent button:hover {
+  background-color: #1e40af;
+}
+body.dark-mode .btn-eliminar:hover {
+    background-color: #dc2626 !important;
+}
+
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-eliminar {
+  background-color: #dc2626 !important;
+}
+//* Modo oscuro: fondo oscuro para la tarjeta que contiene las stat */
+body.dark-mode aside .card {
+  background-color: #1e293b; /* azul/gris oscuro */
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  color: #f9fafb; /* texto blanco */
+}
+
+/* Modo oscuro: las cajas stat con fondo un poco más claro y texto blanco */
+body.dark-mode aside .stat {
+  background: #334155; /* fondo gris oscuro */
+  color: #f9fafb !important; /* texto blanco */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+
+/* Forzar que textos con clase gris hereden el color blanco */
+body.dark-mode aside .stat .text-gray-500,
+body.dark-mode aside .stat .text-gray-400,
+body.dark-mode aside .stat .text-gray-600 {
+  color: inherit !important;
+}
+body.dark-mode aside p.text-gray-600,
+body.dark-mode aside p.text-gray-500 {
+  color: #cbd5e1 !important; /* gris claro */
+}
+/* Modo oscuro: fondo oscuro y texto claro en encabezado de la tabla compras */
+body.dark-mode .card.mb-10 table thead tr th {
+  background-color: #334155; /* fondo gris oscuro */
+  color: #f9fafb;            /* texto blanco */
+  border-bottom: 1px solid #475569;
+}
+/* Fondo semi-transparente del overlay: ya es negro con opacidad, está bien */
+
+/* Contenedor principal del modal */
+body.dark-mode #modalTWContent {
+  background-color: #121212;  /* fondo azul/gris oscuro */
+  color: #f9fafb;             /* texto blanco */
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+/* Encabezado */
+body.dark-mode #modalTWContent > div.flex.justify-between {
+  border-color: #475569;
+}
+
+body.dark-mode #modalTWContent h2 {
+  color: #f9fafb;
+}
+
+/* Botón cerrar (cruz) */
+body.dark-mode #modalTWContent button.text-gray-500 {
+  color: #cbd5e1;
+}
+
+body.dark-mode #modalTWContent button.text-gray-500:hover {
+  color: #e2e8f0;
+}
+
+/* Contenido con loader */
+body.dark-mode #contenidoTW .animate-spin {
+  border-top-color: #cbd5e1; /* hacer que el spinner sea claro */
+}
+
+/* Pie de modal (botón cerrar) */
+body.dark-mode #modalTWContent > div.flex.justify-end {
+  border-top-color: #475569;
+}
+
+body.dark-mode #modalTWContent > div.flex.justify-end button {
+  background-color: #334155;
+  color: #f9fafb;
+  transition: background-color 0.3s;
+}
+
+body.dark-mode #modalTWContent > div.flex.justify-end button:hover {
+  background-color: #475569;
+}
+
 </style>
 </head>
 

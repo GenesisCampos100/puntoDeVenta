@@ -54,6 +54,7 @@ $views = [
     'agregar_proveedor' => __DIR__ . "/pages/agregar_proveedor.php",
     'editar_proveedor' => __DIR__ . "/pages/editar_proveedor.php",
     'eliminar_proveedor' => __DIR__ . "/pages/eliminar_proveedor.php",
+    'catalogo_proveedor' => __DIR__ . "/pages/catalogo_proveedor.php",
     'reportes' => __DIR__ . "/pages/reportes_contenido.php",
     'agregar_producto' => __DIR__ . "/pages/agregar_producto.php",
     'agregar_empleado' => __DIR__ . "/pages/agregar_empleado.php",

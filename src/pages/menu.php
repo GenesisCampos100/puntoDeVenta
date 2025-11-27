@@ -160,6 +160,50 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
   }
 </style>
 
+<style>
+  /* Sidebar compacto (solo íconos) */
+.sidebar-cerrado {
+  width: 80px !important;
+  transition: width 0.3s ease;
+}
+
+.sidebar-cerrado ul li a {
+  justify-content: center;
+  padding: 1rem;
+}
+
+.sidebar-cerrado svg {
+  margin: 0 auto;
+}
+
+/* Usuario reducido a círculo */
+.user-mini {
+  justify-content: center !important;
+  width: 60px !important;
+  height: 60px !important;
+  padding: 0 !important;
+  
+  
+}
+
+.user-mini img {
+  width: 45px !important;
+  height: 45px !important;
+  border-radius: 50%;
+}
+
+.user-mini div {
+  display: none;
+}
+
+/* Transiciones suaves */
+#sidebar,
+#userBlock {
+  transition: all 0.3s ease;
+}
+
+</style>
+
 <!-- Header Premium -->
 <header class="flex items-center bg-white text-black p-4 fixed top-0 left-0 right-0 z-40 shadow-lg h-18">
   <button id="menu-btn" class="text-2xl focus:outline-none mr-4 transition-all hover:scale-110">&#9776;</button>

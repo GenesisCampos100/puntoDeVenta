@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
+
 // Búsqueda de cliente (AJAX)
 if (isset($_GET['buscar_cliente'])) {
     $texto = $_GET['buscar_cliente'];
@@ -16,10 +17,106 @@ if (isset($_GET['buscar_cliente'])) {
     ");
     $like = "%$texto%";
     $sql->execute([$like, $like, $like]);
-    echo json_encode($sql->fetchAll(PDO::FETCH_ASSOC));
+    $clientes = $sql->fetchAll(PDO::FETCH_ASSOC);
+    // Aplicar traducción a nombres de clientes
+    foreach ($clientes as &$c) {
+        $c['nombre_completo'] = tr_content($c['nombre_completo']);
+    }
+    echo json_encode($clientes);
     exit;
 }
 
+// =========================
+//      BÚSQUEDA PRODUCTO
+// =========================
+if (isset($_GET['buscar_producto'])) {
+    $texto = trim($_GET['buscar_producto']);
+
+    $sql = $pdo->prepare("
+        (SELECT 
+            p.cod_barras,
+            p.nom_producto,
+            p.descripcion,
+            p.marca,
+            p.imagen,
+            p.talla,
+            p.color,
+            p.sku,
+            p.cantidad,
+            p.precio,
+            c.nombre AS categoria
+        FROM productos p
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE 
+            (p.nom_producto LIKE ?
+            OR p.cod_barras LIKE ?
+            OR p.sku LIKE ?)
+            AND p.is_active = 1
+        LIMIT 15)
+        
+        UNION
+        
+        (SELECT 
+            p.cod_barras,
+            p.nom_producto,
+            p.descripcion,
+            p.marca,
+            v.imagen,
+            v.talla,
+            v.color,
+            v.sku,
+            v.cantidad,
+            v.precio,
+            c.nombre AS categoria
+        FROM variantes v
+        JOIN productos p ON v.cod_barras = p.cod_barras
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE 
+            (v.sku LIKE ?
+            OR v.cod_barras LIKE ?)
+            AND v.is_active = 1
+        LIMIT 15)
+    ");
+
+    $like = "%$texto%";
+    $sql->execute([$like, $like, $like, $like, $like]);
+
+    $resultados = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($resultados);
+    exit;
+}
+
+
+
+
+// Traer productos con variantes
+$sql = "SELECT 
+            p.cod_barras AS producto_cod_barras,
+            p.nom_producto AS producto_nombre,
+            p.descripcion,
+            p.imagen AS producto_imagen,
+            p.talla AS producto_talla,
+            p.color AS producto_color,
+            p.precio AS producto_precio,
+            p.cantidad AS producto_cantidad,
+            c.nombre AS categoria,
+            v.id_variante AS id_variante,
+            v.cod_barras AS variante_cod_barras,
+            v.talla AS variante_talla,
+            v.color AS variante_color,
+            v.imagen AS variante_imagen,
+            v.precio AS variante_precio,
+            v.cantidad AS variante_cantidad
+        FROM productos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
+        ORDER BY p.nom_producto ASC";
+
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar productos con variantes
 // Traer productos con variantes
 $sql = "SELECT 
             p.cod_barras AS producto_cod_barras,
@@ -59,7 +156,7 @@ foreach ($rows as $row) {
             'precio' => $row['producto_precio'] ?: 0,
             'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
-            'talla_default' => $row['producto_talla'] ?: 'Única',
+            'talla_default' => $row['producto_talla'] ?: 'N/A',
             'color_default' => $row['producto_color'] ?: 'Sin color',
             'stock' => $row['producto_cantidad'] ?: 0,
         ];
@@ -77,6 +174,7 @@ foreach ($rows as $row) {
     }
 }
 
+
 // Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -87,484 +185,228 @@ function normalizeCategory($name) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punto de Venta - Caja</title>
-    
-    <!-- Poppins Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    
-    <style>
-        :root {
-            --primary: #b4c24d;
-            --primary-dark: #9fb03d;
-            --secondary: #2d4353;
-            --accent: #e15871;
-            --bg-gray: #eeeeee;
-            --font: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        body {
-            font-family: var(--font);
-            background: linear-gradient(135deg, #f9fafb 0%, var(--bg-gray) 100%);
-            min-height: 100vh;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .animate-fade { animation: fadeIn 0.5s ease-out; }
-        .animate-slide { animation: slideIn 0.5s ease-out; }
-        .animate-slide-right { animation: slideInRight 0.3s ease-out; }
-        
-        .producto {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .producto:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-        }
-        
-        .category-btn {
-            transition: all 0.25s ease;
-        }
-        
-        .category-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(225, 88, 113, 0.3);
-        }
-        
-        .category-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        }
-        
-        #cart {
-            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
-        }
-        
-        .search-container {
-            position: relative;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 1rem 1.5rem 1rem 3.5rem;
-            font-size: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 4px 16px rgba(180, 194, 77, 0.2);
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punto de Venta - Caja</title>
 
-<!-- HEADER CON BÚSQUEDA -->
-<div class="px-6 pt-6 pb-4 animate-fade">
-    <div class="search-container">
-        <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <input type="text" id="search-products" class="search-input" placeholder="Buscar productos por nombre, categoría o código...">
-    </div>
-</div>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-<!-- CATEGORÍAS -->
-<div class="flex flex-wrap justify-start gap-2 mb-6 px-6 animate-slide">
-    <button data-category="all" class="category-btn active px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-        Todos
-    </button>
-    <?php foreach($categorias as $cat): ?>
-        <button data-category="<?= normalizeCategory($cat['nombre']) ?>" class="category-btn px-6 py-2.5 rounded-full text-white font-semibold text-sm shadow-md" style="background-color:#e15871;">
-            <?= htmlspecialchars($cat['nombre']) ?>
-        </button>
-    <?php endforeach; ?>
-</div>
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-<!-- GRID PRODUCTOS -->
-<div class="px-6 pb-24">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productos-grid">
-        <?php foreach($productos as $prod): 
-            $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
-            $precio = $prod['precio'] ?: 0;
-            $variants_json = htmlspecialchars(json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE), ENT_QUOTES);
-        ?>
-            <article class="producto bg-white shadow-lg rounded-2xl p-4 text-center animate-slide"
-                     data-code="<?= htmlspecialchars($prod['producto_cod_barras']) ?>"
-                     data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-                     data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-                     data-price="<?= htmlspecialchars($precio) ?>"
-                     data-category="<?= htmlspecialchars($prod['categoria']) ?>"
-                     data-stock="<?= $prod['stock'] ?>"
-                     data-variants='<?= $variants_json ?>'>
-                
-                <div class="relative overflow-hidden rounded-xl mb-3">
-                    <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
-                         alt="<?= htmlspecialchars($prod['nombre']) ?>" 
-                         class="w-full h-48 object-cover rounded-xl product-image">
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        --primary: #1e293b;      /* Slate 800 */
+        --primary-dark: #0f172a; /* Slate 900 */
+        --accent: #6366f1;       /* Indigo 500 */
+        --accent-hover: #4f46e5; /* Indigo 600 */
+        --bg-main: #f8fafc;      /* Slate 50 */
+        --surface: #ffffff;
+        --border: #e2e8f0;       /* Slate 200 */
+        --text-main: #334155;    /* Slate 700 */
+        --text-muted: #64748b;   /* Slate 500 */
+        --success: #10b981;      /* Emerald 500 */
+        --danger: #ef4444;       /* Red 500 */
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-transition {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-transition:active {
+        transform: scale(0.98);
+    }
+
+    .row-hover:hover {
+        background-color: #f1f5f9; /* Slate 100 */
+    }
+
+    input:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        border-color: var(--accent);
+    }
+</style>
+
+<div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
+
+    <!-- PANEL IZQUIERDO (Buscador y Carrito) -->
+    <div class="flex-1 flex flex-col overflow-hidden gap-4">
+
+        <!-- Top: Buscador -->
+        <div class="flex gap-3 shrink-0">
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
                 </div>
-                
-                <h3 class="font-semibold text-gray-800 text-base mb-1"><?= htmlspecialchars($prod['nombre']) ?></h3>
-                <p class="text-gray-500 text-sm mb-2"><?= htmlspecialchars($prod['categoria']) ?></p>
-                <p class="text-xl font-bold price mb-2" style="color: var(--primary);">$<?= number_format($precio, 2) ?></p>
-                
-                <!-- STOCK -->
-                <p class="text-sm mb-3 font-semibold stock-text" style="color: #10b981;">
-                    Stock: <?= count($prod['variantes']) > 0 ? 'Según variante' : $prod['stock'] ?>
-                </p>
-                
-                <!-- VARIANTES -->
-                <select class="variant-size border-2 rounded-lg px-3 py-2 text-sm mb-2 w-full focus:border-primary focus:outline-none">
-                    <?php 
-                        $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'] ?? null, $prod['variantes'])));
-                        if (empty($sizes)) $sizes = [$prod['talla_default']];
-                        foreach ($sizes as $size): ?>
-                        <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                
-                <select class="variant-color border-2 rounded-lg px-3 py-2 text-sm mb-3 w-full focus:border-primary focus:outline-none">
-                    <?php 
-                        $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'] ?? null, $prod['variantes'])));
-                        if (empty($colors)) $colors = [$prod['color_default']];
-                        foreach ($colors as $color): ?>
-                        <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                
-                <button class="add-to-cart w-full font-semibold py-3 rounded-xl text-white transition-all hover:shadow-lg" style="background: linear-gradient(135deg, var(--secondary) 0%, #1e3244 100%);">
-                    Agregar al Carrito
-                </button>
-            </article>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-0 right-0 w-96 h-full bg-white flex flex-col p-5 z-50 animate-slide-right">
-    <div class="flex justify-between items-center mb-5">
-        <h2 class="text-2xl font-bold" style="color: var(--secondary);">Mi Carrito</h2>
-        <div class="flex gap-2">
-            <button id="client-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--secondary);" title="Seleccionar Cliente">👤</button>
-            <button id="discount-btn" class="p-2.5 text-white rounded-full transition-all hover:scale-110" style="background: var(--primary);" title="Descuento General">%</button>
-            <button id="clear-cart" class="p-2.5 bg-red-100 text-red-600 rounded-full transition-all hover:bg-red-200" title="Limpiar Carrito">🗑</button>
-        </div>
-    </div>
-    
-    <div id="cliente_info" class="hidden mb-4 p-4 rounded-xl" style="background: #e0f2fe;">
-        <p class="text-sm font-semibold text-gray-700">Cliente seleccionado:</p>
-        <p id="cliente_nombre" class="text-gray-800 font-medium">No hay cliente seleccionado</p>
-        <div class="flex gap-2 mt-3">
-            <button id="cambiarCliente" class="px-4 py-2 text-white rounded-lg text-sm font-medium transition-all hover:shadow-md" style="background: var(--secondary);">Cambiar</button>
-            <button id="eliminarCliente" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium transition-all hover:bg-red-700">Eliminar</button>
-        </div>
-        <input type="hidden" id="cliente_id" value="">
-    </div>
-    
-    <div id="cart-items" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
-    
-    <form id="checkout-form" class="mt-auto">
-        <input type="hidden" name="id_cliente" id="id_cliente">
-        <div class="border-t-2 pt-4">
-            <div class="flex justify-between text-base mb-2">
-                <span class="font-medium text-gray-600">Subtotal:</span>
-                <span id="subtotal" class="font-semibold text-gray-800">$0.00</span>
+                <input id="quick-search" type="text" placeholder="Buscar producto por código, nombre o SKU..." 
+                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-lg shadow-sm focus:outline-none transition-all placeholder-slate-400 font-medium">
             </div>
-            <div class="flex justify-between text-base mb-3">
-                <span class="font-medium text-red-600">Descuento:</span>
-                <span id="discount" class="font-semibold text-red-600">$0.00</span>
-            </div>
-            <div class="flex justify-between font-bold text-2xl mb-4" style="color: var(--primary);">
-                <span>Total:</span>
-                <span id="total">$0.00</span>
-            </div>
-            <button type="button" id="pay-btn" class="w-full font-bold py-4 rounded-xl text-white transition-all hover:shadow-xl text-lg" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-                💳 Procesar Venta
+            <button id="open-product-modal" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3 rounded-2xl font-semibold shadow-lg btn-transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                Catálogo
             </button>
         </div>
-    </form>
-</aside>
 
-<!-- MODAL CLIENTES -->
-<div id="modalClientes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
-        <div class="flex justify-between items-center mb-5">
-            <h2 class="text-2xl font-bold" style="color: var(--secondary);">Seleccionar Cliente</h2>
-            <button id="cerrar-modal-cliente" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
-        </div>
-        <input type="text" id="buscarCliente" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar cliente por nombre...">
-        <div class="overflow-y-auto max-h-96">
-            <table class="w-full text-left border-collapse">
-                <thead class="sticky top-0" style="background: var(--bg-gray);">
+        <!-- Resultados búsqueda (Flotante) -->
+        <div id="search-results" class="hidden absolute top-28 left-6 right-[28%] z-50 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[400px] animate-fade-in-down">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider border-b border-slate-100">
                     <tr>
-                        <th class="p-3 border-b-2 font-semibold">ID</th>
-                        <th class="p-3 border-b-2 font-semibold">Cliente</th>
-                        <th class="p-3 border-b-2 font-semibold">Teléfono</th>
-                        <th class="p-3 border-b-2 font-semibold">Acción</th>
+                        <th class="py-3 px-4">Código</th>
+                        <th class="py-3 px-4">Producto</th>
+                        <th class="py-3 px-4">Variante</th>
+                        <th class="py-3 px-4 text-right">Precio</th>
+                        <th class="py-3 px-4 text-center">Stock</th>
                     </tr>
                 </thead>
-                <tbody id="tablaClientes">
-                    <?php
-                        $sql = "SELECT * FROM clientes ORDER BY nombre ASC";
-                        $stmt = $pdo->query($sql);
-                        while ($cli = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            $full = htmlspecialchars($cli['nombre'].' '.$cli['apellido_paterno'].' '.$cli['apellido_materno']);
-                            echo "<tr class='border-b hover:bg-gray-50 transition-colors'>
-                                <td class='p-3'>{$cli['id_cliente']}</td>
-                                <td class='p-3 font-medium'>{$full}</td>
-                                <td class='p-3'>".htmlspecialchars($cli['celular'])."</td>
-                                <td class='p-3'>
-                                    <button class='seleccionarCliente px-4 py-2 text-white rounded-lg font-medium transition-all hover:shadow-md' style='background: var(--primary);' data-id='{$cli['id_cliente']}' data-nombre='{$full}'>Seleccionar</button>
-                                </td>
-                            </tr>";
-                        }
-                    ?>
-                </tbody>
+                <tbody id="search-body" class="divide-y divide-slate-50"></tbody>
             </table>
         </div>
-    </div>
-</div>
 
-<!-- MODAL PAGO -->
-<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-slide">
-        <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--secondary);">Método de Pago</h2>
-        
-        <form id="payment-form">
-            <input type="hidden" name="cart_data" id="cart-data-input">
-            <input type="hidden" id="cliente-input" name="id_cliente" value="">
-            <input type="hidden" name="descuento_general" id="descuento-general-input">
-            <input type="hidden" name="tipo_descuento_general" id="descuento-general-type">
-            <input type="hidden" name="subtotal" id="subtotal-input">
-            <input type="hidden" name="total" id="total-input">
-            
-            <div class="space-y-3 mb-6">
-                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
-                    <input type="radio" name="metodo" value="EFECTIVO" checked class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💵 Efectivo</span>
-                </label>
-                
-                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
-                    <input type="radio" name="metodo" value="TARJETA" class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💳 Tarjeta</span>
-                </label>
-                
-                <label class="flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer hover:bg-gray-50 transition-all">
-                    <input type="radio" name="metodo" value="MIXTO" class="payment-method w-5 h-5">
-                    <span class="text-lg font-medium">💵💳 Pago Mixto</span>
-                </label>
+        <!-- Ticket / Carrito -->
+        <div class="flex-1 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden card-shadow">
+            <!-- Header Ticket -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
+                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+                    Caja Principal
+                </div>
             </div>
-            
-            <div id="efectivo-section" class="mb-4">
-                <label class="block text-sm font-semibold mb-2">Monto recibido (efectivo):</label>
-                <input type="number" step="0.01" id="monto-efectivo" name="monto_efectivo" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="0.00">
-            </div>
-            
-            <div id="tarjeta-section" class="mb-4 hidden">
-                <label class="block text-sm font-semibold mb-2">Monto pagado con tarjeta:</label>
-                <input type="number" step="0.01" id="monto-tarjeta" name="monto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
-                
-                <label class="block text-sm font-semibold mb-2">Referencia / Folio:</label>
-                <input type="text" id="referencia-tarjeta" name="referencia_tarjeta" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Ingrese referencia">
-            </div>
-            
-            <div id="mixto-section" class="mb-4 hidden">
-                <label class="block text-sm font-semibold mb-2">Efectivo:</label>
-                <input type="number" step="0.01" id="mixto-efectivo" name="mixto_efectivo" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
-                
-                <label class="block text-sm font-semibold mb-2">Tarjeta:</label>
-                <input type="number" step="0.01" id="mixto-tarjeta" name="mixto_tarjeta" class="w-full border-2 rounded-xl p-3 mb-3 focus:border-primary focus:outline-none" placeholder="0.00">
-                
-                <label class="block text-sm font-semibold mb-2">Referencia tarjeta:</label>
-                <input type="text" id="mixto-referencia" name="mixto_referencia" class="w-full border-2 rounded-xl p-3 focus:border-primary focus:outline-none" placeholder="Folio, referencia, etc.">
-            </div>
-            
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" id="cancel-payment" class="px-6 py-3 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-                <button type="submit" id="confirm-payment" class="px-6 py-3 text-white rounded-xl font-semibold transition-all hover:shadow-xl" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">Confirmar</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- MODAL DESCUENTO GENERAL -->
-<div id="discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento General</h2>
-        <div class="flex gap-3 mb-5">
-            <select id="discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
-                <option value="percent">%</option>
-                <option value="amount">$</option>
-            </select>
-            <input type="number" id="discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
-        </div>
-        <div class="flex justify-end gap-3">
-            <button id="close-discount" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="apply-discount" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+            <!-- Tabla Header -->
+            <div class="bg-slate-50 border-b border-slate-100 px-2">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="py-3 px-4 text-left w-[15%]">Código</th>
+                            <th class="py-3 px-4 text-left w-[30%]">Descripción</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Precio</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Cant.</th>
+                            <th class="py-3 px-4 text-right w-[15%]">Total</th>
+                            <th class="py-3 px-4 text-center w-[10%]"></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <!-- Filas Carrito -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                <table class="w-full text-sm border-separate border-spacing-y-1">
+                    <tbody id="cart-rows"></tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL DESCUENTO POR PRODUCTO -->
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-96 animate-slide">
-        <h2 class="text-xl font-bold mb-5" style="color: var(--secondary);">Descuento del Producto</h2>
-        <div class="flex gap-3 mb-5">
-            <select id="product-discount-type" class="border-2 rounded-xl p-3 w-1/3 text-center font-semibold focus:border-primary focus:outline-none">
-                <option value="percent">%</option>
-                <option value="amount">$</option>
-            </select>
-            <input type="number" id="product-discount-input" class="border-2 rounded-xl p-3 w-2/3 focus:border-primary focus:outline-none" placeholder="Valor">
+    <!-- PANEL DERECHO (Totales y Acciones) -->
+    <div class="w-[340px] flex flex-col gap-4 shrink-0">
+
+        <!-- Tarjeta Cliente -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 card-shadow relative overflow-hidden group shrink-0">
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg class="w-20 h-20 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            
+            <div class="relative z-10">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Cliente Asignado</label>
+                <div class="flex justify-between items-start">
+                    <div class="truncate pr-2">
+                        <h3 id="client-name" class="text-lg font-bold text-slate-800 leading-tight truncate">Público General</h3>
+                        <p id="client-phone" class="text-xs text-slate-500 mt-0.5 font-medium h-4"></p>
+                    </div>
+                    <button id="remove-client" class="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <button id="client-btn" class="mt-3 w-full py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Cambiar Cliente
+                </button>
+            </div>
         </div>
-        <div class="flex justify-end gap-3">
-            <button id="product-discount-close" class="px-5 py-2.5 bg-gray-200 rounded-xl font-semibold hover:bg-gray-300 transition-all">Cancelar</button>
-            <button id="product-discount-apply" class="px-5 py-2.5 text-white rounded-xl font-semibold transition-all hover:shadow-lg" style="background: var(--primary);">Aplicar</button>
+
+        <!-- Preview Producto -->
+        <div id="preview-producto" class="hidden bg-white rounded-2xl p-3 shadow-sm border border-slate-200 card-shadow text-center shrink-0">
+            <img id="preview-img" src="" class="h-32 w-full object-contain mx-auto rounded-lg">
         </div>
+
+        <!-- Panel de Totales -->
+        <div class="flex-1 bg-slate-900 rounded-2xl p-5 text-white shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-0">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20"></div>
+
+            <div class="relative z-10 space-y-3 overflow-y-auto custom-scrollbar pr-1">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="text-base font-medium">Subtotal</span>
+                    <span id="subtotal" class="text-lg font-semibold tracking-wide">$0.00</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-rose-300">
+                    <span class="flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        Descuento
+                    </span>
+                    <span id="discount" class="text-base font-semibold">-$0.00</span>
+                </div>
+
+                <div class="h-px bg-slate-700 my-3"></div>
+
+                <div class="flex justify-between items-end">
+                    <span class="text-slate-400 font-medium mb-1 text-sm">Total a Pagar</span>
+                    <span id="total" class="text-4xl font-bold tracking-tight text-white">$0.00</span>
+                </div>
+            </div>
+
+            <div class="relative z-10 mt-4 space-y-3 shrink-0">
+                <button id="discount-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-slate-700 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                    Aplicar Descuento
+                </button>
+
+                <button id="pay-btn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 btn-transition flex items-center justify-center gap-2">
+                    <span>Cobrar</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </button>
+            </div>
+        </div>
+
     </div>
+
 </div>
 
+
+<!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
-<script>
-// BÚSQUEDA EN TIEMPO REAL
-document.getElementById('search-products').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const products = document.querySelectorAll('.producto');
-    
-    products.forEach(product => {
-        const name = product.dataset.name.toLowerCase();
-        const category = product.dataset.category.toLowerCase();
-        const code = product.dataset.code.toLowerCase();
-        
-        if (name.includes(searchTerm) || category.includes(searchTerm) || code.includes(searchTerm)) {
-            product.style.display = '';
-        } else {
-            product.style.display = 'none';
-        }
-    });
-});
-
-// FILTRO POR CATEGORÍA
-document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        const category = this.dataset.category;
-        const products = document.querySelectorAll('.producto');
-        
-        products.forEach(product => {
-            if (category === 'all') {
-                product.style.display = '';
-            } else {
-                const productCategory = product.dataset.category.toLowerCase().replace(/\s+/g, '');
-                if (productCategory === category) {
-                    product.style.display = '';
-                } else {
-                    product.style.display = 'none';
-                }
-            }
-        });
-    });
-});
-
-// ACTUALIZAR STOCK SEGÚN VARIANTE
-document.querySelectorAll('.producto').forEach(card => {
-    const variants = JSON.parse(card.dataset.variants);
-    const sizeSelect = card.querySelector('.variant-size');
-    const colorSelect = card.querySelector('.variant-color');
-    const stockText = card.querySelector('.stock-text');
-    
-    function updateStock() {
-        if (!variants.length) return;
-        
-        const talla = sizeSelect.value;
-        const color = colorSelect.value;
-        
-        const variante = variants.find(v => v.talla === talla && v.color === color);
-        
-        stockText.textContent = variante ? `Stock: ${variante.cantidad}` : 'Stock: 0';
-    }
-    
-    if (variants.length) {
-        sizeSelect.addEventListener('change', updateStock);
-        colorSelect.addEventListener('change', updateStock);
-        updateStock();
-    }
-});
-
-// BÚSQUEDA DE CLIENTES
-$('#buscarCliente').on('input', function() {
-    const searchTerm = $(this).val().toLowerCase();
-    $('#tablaClientes tr').each(function() {
-        const rowText = $(this).text().toLowerCase();
-        $(this).toggle(rowText.includes(searchTerm));
-    });
-});
-
-// SELECCIONAR CLIENTE
-$(document).on('click', '.seleccionarCliente', function() {
-    const id = $(this).data('id');
-    const nombre = $(this).data('nombre');
-    window.guardarCliente(id, nombre);
-    $('#modalClientes').addClass('hidden');
-});
-
-// ABRIR/CERRAR MODAL CLIENTES
-$('#client-btn').click(() => $('#modalClientes').removeClass('hidden').addClass('flex'));
-$('#cerrar-modal-cliente').click(() => $('#modalClientes').addClass('hidden').removeClass('flex'));
-</script>
-
-</body>
-</html>
+<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>

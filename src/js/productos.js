@@ -172,6 +172,12 @@ $(document).ready(function () {
             const id = data.cod_barras || data.id_producto; // Ajustar según datos
             $('#modal-btn-eliminar').data('id', id).data('type', 'producto'); // Simplificado
 
+            // FIX: Actualizar input oculto para que el script inline lo detecte
+            $('#id_producto_detalle').val(id);
+
+            // FIX: Actualizar enlace de edición
+            $('#modal-btn-editar').attr('href', `index.php?view=editar_producto&id=${id}`);
+
             $('#modalDetalle').removeClass('hidden').fadeIn(200).css('display', 'flex');
         } catch (err) {
             console.error("Error al abrir modal:", err);
