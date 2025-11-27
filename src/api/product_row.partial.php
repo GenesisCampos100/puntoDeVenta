@@ -93,28 +93,28 @@ $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
     <td class="px-6 py-4 text-right">
         <div class="inline-flex gap-2">
             <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
-                    title="Ver Detalles"
+                    title="<?= __('view') ?>"
                     data-id="<?= $pid ?>"
                     data-details='<?= $jsonProducto ?>'>
-                Ver
+                <?= __('view') ?>
             </button>
             
             <?php if (!$tieneVariantes): ?>
                 <button class="btn-ajuste px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
-                    title="Ajustar Stock"
+                    title="<?= __('adjust_stock') ?>"
                     data-id="<?= $pid ?>"
                     data-type="producto"
                     data-nombre="<?= htmlspecialchars($nombre) ?>">
-                    Ajustar
+                    <?= __('adjust_stock') ?>
                 </button>
             <?php endif; ?>
             
             <button class="toggle-active px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 <?= $is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' ?>" 
-                    title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
+                    title="<?= $is_active ? __('deactivate') : __('activate') ?>"
                     data-id="<?= $pid ?>" 
                     data-type="producto" 
                     data-active="<?= $is_active ? 'true' : 'false' ?>">
-                <?= $is_active ? 'Descatalogar' : 'Activar' ?>
+                <?= $is_active ? __('deactivate') : __('activate') ?>
             </button>
         </div>
     </td>
