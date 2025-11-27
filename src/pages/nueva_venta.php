@@ -404,9 +404,8 @@ function normalizeCategory($name) {
 
 </div>
 
-
+<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
 <!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
 
-<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
