@@ -1,4 +1,7 @@
 <?php 
+    // Iniciar buffer de salida para prevenir output antes de JSON
+    ob_start();
+
     require_once __DIR__ . "/../config/db.php";
     require_once __DIR__ . "/../config/translation.php";
 
@@ -970,3 +973,10 @@ body.dark-mode .content {
             if (btnCancel) btnCancel.addEventListener('click', confirmDiscard);
         })();
 
+
+    </script>
+</body>
+</html>
+<?php
+ob_end_flush();
+?>
