@@ -75,18 +75,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         $contraseña = trim($_POST['contra']);
 
         if (strlen($contraseña) < 8) {
-            echo json_encode(["error" => "La contraseña debe tener al menos 8 caracteres.", "icon" => "warning"]);
+            echo json_encode(["error" => __('password_min_8'), "icon" => "warning"]);
             exit;
         }
 
         if (!preg_match('/[A-Z]/', $contraseña)) {
-            echo json_encode(["error" => "La contraseña debe contener al menos un carácter en mayúscula.", "icon" => "warning"]);
+            echo json_encode(["error" => __('password_uppercase'), "icon" => "warning"]);
             exit;
         } else if (!preg_match('/[a-z]/', $contraseña)) {
-            echo json_encode(["error" => "La contraseña debe contener al menos un carácter en minúscula.", "icon" => "warning"]);
+            echo json_encode(["error" => __('password_lowercase'), "icon" => "warning"]);
             exit;
         } else if (!preg_match('/[0-9)]/', $contraseña)) {
-            echo json_encode(["error" => "La contraseña debe contener al menos un número.", "icon" => "warning"]);
+            echo json_encode(["error" => __('password_number'), "icon" => "warning"]);
             exit;
         }
 
@@ -571,6 +571,74 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* SweetAlert2 Custom Styles */
+        .swal2-popup {
+            font-family: var(--font) !important;
+            border-radius: 1.5rem !important;
+            padding: 2rem !important;
+        }
+
+        .swal2-title {
+            font-size: 1.375rem !important;
+            font-weight: 600 !important;
+            color: var(--text-primary) !important;
+            padding: 0.5rem 0 !important;
+        }
+
+        .swal2-html-container {
+            font-size: 0.9375rem !important;
+            color: var(--text-tertiary) !important;
+            line-height: 1.6 !important;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            border-radius: 10px !important;
+            padding: 0.75rem 1.75rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9375rem !important;
+            box-shadow: 0 4px 12px rgba(180, 194, 77, 0.3) !important;
+            border: none !important;
+        }
+
+        .swal2-confirm:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(180, 194, 77, 0.4) !important;
+        }
+
+        .swal2-cancel {
+            background: #e5e7eb !important;
+            color: #374151 !important;
+            border-radius: 10px !important;
+            padding: 0.75rem 1.75rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9375rem !important;
+            border: none !important;
+        }
+
+        .swal2-cancel:hover {
+            background: #d1d5db !important;
+        }
+
+        .swal2-icon {
+            border-width: 3px !important;
+        }
+
+        .swal2-icon.swal2-warning {
+            border-color: var(--accent) !important;
+            color: var(--accent) !important;
+        }
+
+        .swal2-icon.swal2-error {
+            border-color: var(--error) !important;
+            color: var(--error) !important;
+        }
+
+        .swal2-icon.swal2-success {
+            border-color: var(--success) !important;
+            color: var(--success) !important;
+        }
     </style>
 <body>
     <div class="form-container animate-in">
@@ -748,10 +816,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 if (hasErrors) {
                     Swal.fire({
                         icon: 'error',
-                        title: '<?= __('incomplete_form') ?>',
+                        title: '❌ <?= __('incomplete_form') ?>',
                         html: errors.join('<br>'),
                         confirmButtonText: '<?= __('ok') ?>',
-                        confirmButtonColor: '#b4c24d'
+                        customClass: {
+                            popup: 'swal2-popup-custom',
+                            confirmButton: 'swal2-confirm-custom'
+                        }
                     });
                     return false;
                 }
@@ -783,9 +854,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                 });
                             } else if (res.error) {
                                 Swal.fire({
-                                    title: res.error,
+                                    title: res.icon === 'warning' ? '⚠️ <?= __("incomplete_form") ?>' : '❌ <?= __("error_title") ?>',
+                                    html: res.error,
                                     icon: res.icon || 'error',
-                                    showConfirmButton: true
+                                    confirmButtonText: '<?= __("ok") ?>',
+                                    customClass: {
+                                        popup: 'swal2-popup-custom',
+                                        confirmButton: 'swal2-confirm-custom'
+                                    }
                                 });
                                 submitBtn.disabled = false;
                                 btnText.textContent = originalText;
