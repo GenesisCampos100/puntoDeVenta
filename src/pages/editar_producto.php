@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/translation.php";
 
 // 📦 Cargar categorías
 $stmt = $pdo->query("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC");
@@ -110,24 +111,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!-- 🧾 FORMULARIO -->
+<!-- 🧧 FORMULARIO -->
 <div class="producto-form">
-  <h2>Editar producto</h2>
+  <h2><?= __('edit_product_title') ?></h2>
 
   <form method="post" enctype="multipart/form-data">
     <section>
-      <h3>🧾 Datos generales</h3>
+      <h3>🧧 <?= __('general_data') ?></h3>
       <div class="grid">
         <div>
-          <label>Nombre</label>
+          <label><?= __('product_name') ?></label>
           <input type="text" name="nombre" value="<?= tr_content(htmlspecialchars($producto['nombre'])) ?>" required>
         </div>
         <div>
-          <label>Código de barras</label>
+          <label><?= __('barcode') ?></label>
           <input type="text" name="cod_barras" value="<?= htmlspecialchars($producto['cod_barras']) ?>">
         </div>
         <div>
-          <label>Imagen principal</label><br>
+          <label><?= __('main_image') ?></label><br>
           <?php if ($producto['imagen']): ?>
             <img src="../uploads/<?= htmlspecialchars($producto['imagen']) ?>" width="100"><br>
           <?php endif; ?>
@@ -137,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 
     <section>
-      <h3>🧩 Variantes</h3>
+      <h3>🧩 <?= __('variants') ?></h3>
       <div id="variantes-container" class="variantes">
         <?php foreach ($variantes as $i => $v): ?>
           <div class="var">
@@ -156,14 +157,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
         <?php endforeach; ?>
       </div>
-      <button type="button" id="add-variant" class="btn-secundario">+ Agregar variante</button>
+      <button type="button" id="add-variant" class="btn-secundario">+ <?= __('add_variant') ?></button>
     </section>
 
     <section>
-      <h3>⚙️ Datos adicionales</h3>
+      <h3>⚙️ <?= __('additional_data') ?></h3>
       <div class="grid">
         <div>
-          <label>Categoría</label>
+          <label><?= __('category') ?></label>
           <select name="id_categoria" required>
             <?php foreach ($categorias as $cat): ?>
               <option value="<?= $cat['id_categoria'] ?>" <?= $cat['id_categoria'] == $producto['id_categoria'] ? 'selected' : '' ?>>
@@ -173,46 +174,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </select>
         </div>
         <div>
-          <label>Marca</label>
+          <label><?= __('brand') ?></label>
           <input type="text" name="marca" value="<?= tr_content(htmlspecialchars($producto['marca'])) ?>">
         </div>
         <div class="full">
-          <label>Descripción</label>
+          <label><?= __('description') ?></label>
           <textarea name="descripcion"><?= tr_content(htmlspecialchars($producto['descripcion'])) ?></textarea>
         </div>
         <div class="full">
-          <label>Color base</label>
+          <label><?= __('base_color') ?></label>
           <input type="text" name="color_base" value="<?= htmlspecialchars($producto['color']) ?>">
         </div>
       </div>
     </section>
 
     <section>
-      <h3>📦 Inventario</h3>
+      <h3>📦 <?= __('inventory') ?></h3>
       <div class="grid">
         <div>
-          <label>Cantidad</label>
+          <label><?= __('quantity') ?></label>
           <input type="number" name="cantidad" value="<?= htmlspecialchars($producto['cantidad']) ?>">
         </div>
         <div>
-          <label>Cantidad mínima</label>
+          <label><?= __('minimum_quantity') ?></label>
           <input type="number" name="cantidad_min" value="<?= htmlspecialchars($producto['cantidad_min']) ?>">
         </div>
       </div>
     </section>
 
     <section>
-      <h3>💰 Costo</h3>
+      <h3>💰 <?= __('cost') ?></h3>
       <div class="grid">
         <div>
-      <label>Costo ($)</label>
+      <label><?= __('cost') ?> ($)</label>
       <input type="number" step="0.01" id="costo" name="costo" value="<?= htmlspecialchars($producto['costo'] ?? '') ?>">
     </div>
         <div>
-          <label>Tipo de costo</label>
+          <label><?= __('cost_type') ?></label>
           <select name="tipo_costo">
-            <option value="bruto" <?= $producto['tipo_costo'] === 'bruto' ? 'selected' : '' ?>>Bruto</option>
-            <option value="neto" <?= $producto['tipo_costo'] === 'neto' ? 'selected' : '' ?>>Neto</option>
+            <option value="bruto" <?= $producto['tipo_costo'] === 'bruto' ? 'selected' : '' ?>><?= __('gross') ?></option>
+            <option value="neto" <?= $producto['tipo_costo'] === 'neto' ? 'selected' : '' ?>><?= __('net') ?></option>
           </select>
         </div>
       </div>
@@ -220,26 +221,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     <section>
-      <h3>💵 Precio de venta</h3>
+      <h3>💵 <?= __('sale_price') ?></h3>
       <div class="grid">
         <div>
-          <label>Precio unitario</label>
+          <label><?= __('unit_price') ?></label>
            <input type="number" step="0.01" id="precio_unitario" name="precio_unitario" value="<?= htmlspecialchars($producto['precio_unitario']) ?>">
         </div>
         <div>
-          <label>Margen (%)</label>
+          <label><?= __('margin') ?> (%)</label>
           <input type="text" id="margen" readonly>
         </div>
         <div>
-          <label>Ganancia ($)</label>
+          <label><?= __('profit') ?> ($)</label>
           <input type="text" id="ganancia" readonly>
         </div>
       </div>
     </section>
 
     <div class="botones">
-      <button type="submit" class="btn-principal">💾 Guardar cambios</button>
-      <a href="index.php?view=productos" class="btn-cancelar">Cancelar</a>
+      <button type="submit" class="btn-principal">💾 <?= __('save_changes') ?></button>
+      <a href="index.php?view=productos" class="btn-cancelar"><?= __('cancel') ?></a>
     </div>
   </form>
 </div>

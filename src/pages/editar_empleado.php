@@ -1,5 +1,6 @@
 <?php 
     require_once __DIR__ . "/../config/db.php";
+    require_once __DIR__ . "/../config/translation.php";
 
     $id_empleado = '';
 
@@ -583,8 +584,8 @@
         <div class="form-card">
             <!-- Header -->
             <div class="form-header animate-in-delay-1">
-                <h1>Editar Empleado</h1>
-                <p>Actualiza la información del empleado</p>
+                <h1><?= __('edit_employee_title') ?></h1>
+                <p><?= __('edit_employee_subtitle') ?></p>
             </div>
 
             <!-- Form -->
@@ -592,91 +593,91 @@
                 <div class="form-body">
                     <!-- Información Personal -->
                     <div class="section animate-in-delay-2">
-                        <h2 class="section-title">Información Personal</h2>
+                        <h2 class="section-title"><?= __('personal_information') ?></h2>
                         
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Apellido Paterno<span class="required">*</span></label>
+                                <label class="form-label"><?= __('paternal_surname') ?><span class="required">*</span></label>
                                 <input type="text" name="apellido_p" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['apellido_paterno'] ?? '') ?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Apellido Materno</label>
+                                <label class="form-label"><?= __('maternal_surname') ?></label>
                                 <input type="text" name="apellido_m" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['apellido_materno'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Nombre(s)<span class="required">*</span></label>
+                            <label class="form-label"><?= __('names') ?><span class="required">*</span></label>
                             <input type="text" name="nombres" maxlength="50" class="form-input" value="<?= htmlspecialchars($empleado['nombre'] ?? '') ?>">
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Correo Electrónico<span class="required">*</span></label>
+                                <label class="form-label"><?= __('email') ?><span class="required">*</span></label>
                                 <input type="email" name="correo" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['correo'] ?? '') ?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Teléfono<span class="required">*</span></label>
-                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="10 dígitos" value="<?= htmlspecialchars($empleado['celular'] ?? '') ?>">
+                                <label class="form-label"><?= __('phone') ?><span class="required">*</span></label>
+                                <input type="text" name="telefono" maxlength="10" class="form-input" placeholder="<?= __('phone_10_digits') ?>" value="<?= htmlspecialchars($empleado['celular'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Contraseña</label>
-                                <input id="contra" type="password" name="contra" maxlength="255" class="form-input" placeholder="Dejar vacío para no cambiar" disabled>
+                                <label class="form-label"><?= __('password') ?></label>
+                                <input id="contra" type="password" name="contra" maxlength="255" class="form-input" placeholder="<?= __('leave_empty_no_change') ?>" disabled>
                             </div>
                             <div class="form-group" style="display: flex; align-items: flex-end;">
-                                <button type="button" id="btnCambiarContra" class="btn btn-change-password">Cambiar Contraseña</button>
+                                <button type="button" id="btnCambiarContra" class="btn btn-change-password"><?= __('change_password_btn') ?></button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Dirección -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Dirección</h2>
+                        <h2 class="section-title"><?= __('address') ?></h2>
                         
                         <div class="grid-3">
                             <div class="form-group" style="grid-column: span 2;">
-                                <label class="form-label">Calle<span class="required">*</span></label>
+                                <label class="form-label"><?= __('street') ?><span class="required">*</span></label>
                                 <input type="text" name="calle" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['calle'] ?? '') ?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">No. Exterior<span class="required">*</span></label>
+                                <label class="form-label"><?= __('ext_num') ?><span class="required">*</span></label>
                                 <input type="text" name="num_ext" maxlength="10" class="form-input" value="<?= htmlspecialchars($empleado['num_ext'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="grid-3">
                             <div class="form-group">
-                                <label class="form-label">No. Interior</label>
+                                <label class="form-label"><?= __('int_num') ?></label>
                                 <input type="text" name="num_int" maxlength="10" class="form-input" value="<?= htmlspecialchars($empleado['num_int'] ?? '') ?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Colonia<span class="required">*</span></label>
+                                <label class="form-label"><?= __('colony') ?><span class="required">*</span></label>
                                 <input type="text" name="colonia" maxlength="100" class="form-input" value="<?= htmlspecialchars($empleado['colonia'] ?? '') ?>">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Código Postal</label>
-                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="5 dígitos" value="<?= htmlspecialchars($empleado['cp'] ?? '') ?>">
+                                <label class="form-label"><?= __('zip_code') ?></label>
+                                <input type="text" name="cp" maxlength="5" class="form-input" placeholder="<?= __('zip_code_5_digits') ?>" value="<?= htmlspecialchars($empleado['cp'] ?? '') ?>">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Estado<span class="required">*</span></label>
+                            <label class="form-label"><?= __('state') ?><span class="required">*</span></label>
                             <input type="text" name="estado" maxlength="100" class="form-input" value="<?= tr_content(htmlspecialchars($empleado['estado'] ?? '')) ?>">
                         </div>
                     </div>
 
                     <!-- Información Laboral -->
                     <div class="section animate-in-delay-3">
-                        <h2 class="section-title">Información Laboral</h2>
+                        <h2 class="section-title"><?= __('work_information') ?></h2>
                         
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Puesto<span class="required">*</span></label>
+                                <label class="form-label"><?= __('position') ?><span class="required">*</span></label>
                                 <select id="id_rol" name="id_rol" class="form-select">
-                                    <option value="">Seleccionar el puesto</option>
+                                    <option value=""><?= __('select_position') ?></option>
                                     <?php foreach ($roles as $rol): ?>
                                         <?php if ($rol['id_rol'] != $rol_actual_id): ?>
                                             <option value="<?= $rol['id_rol'] ?>">
@@ -687,25 +688,25 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Número de Empleado Actual</label>
+                                <label class="form-label"><?= __('current_employee_number') ?></label>
                                 <input id="actual_empleado" type="text" name="actual_empleado" value="<?= htmlspecialchars($empleado['id_empleado'] ?? '') ?>" class="form-input" readonly>
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Nuevo Número de Empleado</label>
+                                <label class="form-label"><?= __('new_employee_number') ?></label>
                                 <input id="num_empleado" type="text" name="num_empleado" value="<?php echo htmlspecialchars($id_empleado); ?>" class="form-input" readonly>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Estatus</label>
+                                <label class="form-label"><?= __('status') ?></label>
                                 <div class="switch-container">
                                     <label class="switch">
                                         <input type="hidden" name="estatus" value="0">
                                         <input type="checkbox" name="estatus" value="1" <?= ($estatus == 1 ? 'checked' : '') ?>>
                                         <span class="slider"></span>
                                     </label>
-                                    <span class="switch-label">Empleado activo</span>
+                                    <span class="switch-label"><?= __('employee_status_active') ?></span>
                                 </div>
                             </div>
                         </div>
@@ -714,12 +715,12 @@
 
                 <!-- Footer -->
                 <div class="form-footer">
-                    <button type="button" id="btnCancelar" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="btnCancelar" class="btn btn-secondary"><?= __('cancel') ?></button>
                     <button type="submit" class="btn btn-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1.25rem; height: 1.25rem;">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span class="btn-text">Actualizar Empleado</span>
+                        <span class="btn-text"><?= __('update_employee') ?></span>
                     </button>
                 </div>
             </form>
