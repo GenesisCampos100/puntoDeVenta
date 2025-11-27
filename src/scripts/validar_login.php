@@ -51,7 +51,8 @@ try {
                 e.nombre,
                 e.apellido_paterno,
                 e.apellido_materno,
-                r.nombre_rol
+                r.nombre_rol,
+                r.id_rol
             FROM usuarios u
             LEFT JOIN empleados e ON u.id_empleado = e.id_empleado
             LEFT JOIN roles r ON e.id_rol = r.id_rol
@@ -97,6 +98,7 @@ try {
         $_SESSION['correo'] = $user['correo'];
         $_SESSION['nombre_completo'] = $nombreCompleto ?: $user['correo'];
         $_SESSION['rol'] = $user['nombre_rol'] ?? 'empleado';
+        $_SESSION['id_rol'] = $user['id_rol'] ?? null;
         $_SESSION['foto_perfil'] = $user['imagen'] ?? '../public/img/1.png';
 
         // Respuesta exitosa

@@ -21,10 +21,10 @@ function send_json_response($data) {
 $estatus = 1;
 if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
     try {
-        /* --- Validación de campos obligatorios --- */
+        // Validación de campos obligatorios
         $campos_obligatorios = [
             'apellido_p' => 'Apellido Paterno',
-            'nombres' => 'Nombre',
+            'nombres' => 'Nombres',
             'correo' => 'Correo',
             'contra' => 'Contraseña',
             'telefono' => 'Teléfono',
@@ -41,65 +41,53 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             }
         }
 
-        /* --- Validar nombre y apellidos --- */
+        // Validar nombre y apellidos
         $nombre = trim(filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING));
         $apellido_paterno = trim(filter_input(INPUT_POST, 'apellido_p', FILTER_SANITIZE_STRING));
         $apellido_materno = trim(filter_input(INPUT_POST, 'apellido_m', FILTER_SANITIZE_STRING));
 
-        $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
+        $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
         if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno)) {
             send_json_response(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
         }
-        
-        // Validar apellido materno solo si no está vacío
         if ($apellido_materno !== "" && !preg_match($regexNombre, $apellido_materno)) {
             send_json_response(["error" => "El apellido materno solo debe contener letras.", "icon" => "warning"]);
         }
 
-        /* --- Validar correo --- */
+        // Validar correo y duplicados
         $correo = trim(filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL));
         if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
             send_json_response(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
-        } else {
-            try {
-                $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
-                $stmt->execute(['correo' => $correo]);
-                $existe = $stmt->fetchColumn();
-                
-                if ($existe > 0) {
-                    send_json_response(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
-                }
-            } catch (PDOException $e) {
-                send_json_response(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
-            }
+        }
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE correo = :correo");
+        $stmt->execute(['correo' => $correo]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            send_json_response(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
         }
 
-        /* --- Validar y cifrar nuestra contraseña --- */
-        $contraseña = trim($_POST['contra']);
-
-        if (strlen($contraseña) < 8) {
+        // Validar y cifrar contraseña
+        $contrasena = trim($_POST['contra']);
+        if (strlen($contrasena) < 8) {
             send_json_response(["error" => __('password_min_8'), "icon" => "warning"]);
         }
-
-        if (!preg_match('/[A-Z]/', $contraseña)) {
+        if (!preg_match('/[A-Z]/', $contrasena)) {
             send_json_response(["error" => __('password_uppercase'), "icon" => "warning"]);
-        } else if (!preg_match('/[a-z]/', $contraseña)) {
+        }
+        if (!preg_match('/[a-z]/', $contrasena)) {
             send_json_response(["error" => __('password_lowercase'), "icon" => "warning"]);
-        } else if (!preg_match('/[0-9)]/', $contraseña)) {
+        }
+        if (!preg_match('/[0-9]/', $contrasena)) {
             send_json_response(["error" => __('password_number'), "icon" => "warning"]);
         }
+        $hash = password_hash($contrasena, PASSWORD_DEFAULT);
 
-        $hash = password_hash($contraseña, PASSWORD_DEFAULT);
-
-        /* --- Validar telefono --- */
+        // Validar teléfono
         $telefono = trim(filter_input(INPUT_POST, 'telefono', FILTER_SANITIZE_STRING));
-
-        $regexTelefono = "/^[0-9]{10}$/";
-        if (!preg_match($regexTelefono, $telefono)) { 
+        if (!preg_match("/^[0-9]{10}$/", $telefono)) {
             send_json_response(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
         }
 
-        /* --- Validar domicilio  --- */
+        // Validar domicilio
         $calle = trim(filter_input(INPUT_POST, 'calle', FILTER_SANITIZE_STRING));
         $num_ext = trim(filter_input(INPUT_POST, 'num_ext', FILTER_SANITIZE_STRING));
         $num_int = trim(filter_input(INPUT_POST, 'num_int', FILTER_SANITIZE_STRING));
@@ -107,42 +95,28 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         $cp = trim(filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_STRING));
         $estado = trim(filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING));
 
-        $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
-        $regexAlfanumerico = "/^[A-Za-z0-9\\s]+$/u";  
+        $regexLetras = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/u";
+        $regexAlfanumerico = "/^[A-Za-z0-9\s]+$/u";
         $regexCP = "/^[0-9]{5}$/";
 
         $errores = [];
-
-        if (!preg_match($regexAlfanumerico, $calle)) {
-            $errores[] = "Calle inválida."; 
-        } elseif (!preg_match($regexAlfanumerico, $num_ext)) {
-            $errores[] = "Número exterior inválido.";
-        } elseif ($num_int !== "" && !preg_match($regexAlfanumerico, $num_int)) {
-            $errores[] = "Número interior inválido.";
-        } elseif (!preg_match($regexAlfanumerico, $colonia)) {
-            $errores[] = "Colonia inválida.";
-        } elseif ($cp !== "" && !preg_match($regexCP, $cp)) {
-            $errores[] = "Código postal inválido.";
-        } elseif (!preg_match($regexLetras, $estado)) {
-            $errores[] = "Estado inválido.";
-        }
-
-        if (count($errores) > 0) {
+        if (!preg_match($regexAlfanumerico, $calle)) { $errores[] = "Calle inválida."; }
+        if (!preg_match($regexAlfanumerico, $num_ext)) { $errores[] = "Número exterior inválido."; }
+        if ($num_int !== "" && !preg_match($regexAlfanumerico, $num_int)) { $errores[] = "Número interior inválido."; }
+        if (!preg_match($regexAlfanumerico, $colonia)) { $errores[] = "Colonia inválida."; }
+        if ($cp !== "" && !preg_match($regexCP, $cp)) { $errores[] = "Código postal inválido."; }
+        if (!preg_match($regexLetras, $estado)) { $errores[] = "Estado inválido."; }
+        if (!empty($errores)) {
             send_json_response(["error" => $errores[0], "icon" => "warning"]);
         }
 
-        /* --- Validar estatus  --- */
+        // Estatus y rol
         $estatus = isset($_POST['estatus']) ? (int)$_POST['estatus'] : 0;
-
-        /* --- Validar puesto --- */
         $id_rol = filter_input(INPUT_POST, 'id_rol', FILTER_SANITIZE_NUMBER_INT);
 
-        /* --- Validar numero de empleado --- */
+        // Número de empleado (autogenerado si vacío)
         $id_empleado = trim(filter_input(INPUT_POST, 'num_empleado', FILTER_SANITIZE_STRING));
-        
-        // Si el número de empleado está vacío, generarlo automáticamente
         if (empty($id_empleado)) {
-            // Obtener el prefijo del rol
             $stmtRol = $pdo->prepare("SELECT nombre_rol FROM roles WHERE id_rol = :id_rol");
             $stmtRol->execute(['id_rol' => $id_rol]);
             $rolData = $stmtRol->fetch(PDO::FETCH_ASSOC);
@@ -150,12 +124,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             if ($rolData && !empty($rolData['nombre_rol'])) {
                 $prefijo = strtoupper(substr($rolData['nombre_rol'], 0, 3));
             }
-            
-            // Buscar el último número de empleado con este prefijo
             $stmtLast = $pdo->prepare("SELECT id_empleado FROM empleados WHERE id_empleado LIKE :prefijo ORDER BY id_empleado DESC LIMIT 1");
             $stmtLast->execute(['prefijo' => $prefijo . '%']);
             $lastEmp = $stmtLast->fetch(PDO::FETCH_ASSOC);
-            
             if ($lastEmp) {
                 $lastNum = (int) substr($lastEmp['id_empleado'], strlen($prefijo));
                 $id_empleado = $prefijo . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
@@ -164,60 +135,56 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             }
         }
 
-        try {
-            $stmt = $pdo->prepare("SELECT * FROM empleados WHERE id_empleado = :id_empleado");
-            $stmt->execute(['id_empleado' => $id_empleado]);
-            $existeEmpleado = $stmt->fetchColumn();
+        // Validar duplicado de número de empleado
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM empleados WHERE id_empleado = :id_empleado");
+        $stmt->execute(['id_empleado' => $id_empleado]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            send_json_response(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
+        }
 
-            if ($existeEmpleado > 0) {
-                send_json_response(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
-            }
+        // Insertar empleado
+        $sql = "INSERT INTO empleados (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
+                VALUES (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id_empleado' => $id_empleado,
+            'nombre' => $nombre,
+            'apellido_paterno' => $apellido_paterno,
+            'apellido_materno' => $apellido_materno,
+            'celular' => $telefono,
+            'calle' => $calle,
+            'num_ext' => $num_ext,
+            'num_int' => $num_int,
+            'colonia' => $colonia,
+            'cp' => $cp,
+            'estado' => $estado,
+            'estatus' => $estatus,
+            'id_rol' => $id_rol
+        ]);
 
-            // Consulta para insertar el empleado
-            $sql = "INSERT INTO empleados 
-                (id_empleado, nombre, apellido_paterno, apellido_materno, celular, calle, num_ext, num_int, colonia, cp, estado, estatus, fecha, id_rol)
-                VALUES
-                (:id_empleado, :nombre, :apellido_paterno, :apellido_materno, :celular, :calle, :num_ext, :num_int, :colonia, :cp, :estado, :estatus, NOW(), :id_rol)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                'id_empleado' => $id_empleado,
-                'nombre' => $nombre,
-                'apellido_paterno' => $apellido_paterno,
-                'apellido_materno' => $apellido_materno,
-                'celular' => $telefono,
-                'calle' => $calle,
-                'num_ext' => $num_ext,
-                'num_int' => $num_int,
-                'colonia' => $colonia,
-                'cp' => $cp,
-                'estado' => $estado,
-                'estatus' => $estatus,
-                'id_rol' => $id_rol
-            ]);
+        // Insertar usuario
+        $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado) VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
+        $stmt_2 = $pdo->prepare($sql_2);
+        $stmt_2->execute([
+            'id_usuario' => NULL,
+            'correo' => $correo,
+            'contrasena' => $hash,
+            'id_empleado' => $id_empleado
+        ]);
 
-            // Consulta para insertar el usuario asociado al empleado
-            $sql_2 = "INSERT INTO usuarios (id_usuario, correo, contrasena, id_empleado)
-                VALUES (:id_usuario, :correo, :contrasena, :id_empleado)";
-            $stmt_2 = $pdo->prepare($sql_2);
-            $stmt_2->execute([
-                'id_usuario' => NULL,
-                'correo' => $correo,
-                'contrasena' => $hash,
-                'id_empleado' => $id_empleado
-            ]);
-
-            $nombre_p = 'No especificado';
-            if (!empty($id_rol) && is_array($roles)) {
-                foreach ($roles as $rol_item) {
-                    // id_rol en la base puede ser string o int, normalizamos
-                    if (isset($rol_item['id_rol']) && (string)$rol_item['id_rol'] === (string)$id_rol) {
-                        $nombre_p = isset($rol_item['nombre_rol']) && $rol_item['nombre_rol'] !== '' ? $rol_item['nombre_rol'] : $nombre_p;
-                        break;
-                    }
+        // Nombre del puesto (para correo)
+        $nombre_p = 'No especificado';
+        if (!empty($id_rol) && is_array($roles)) {
+            foreach ($roles as $rol_item) {
+                if (isset($rol_item['id_rol']) && (string)$rol_item['id_rol'] === (string)$id_rol) {
+                    $nombre_p = isset($rol_item['nombre_rol']) && $rol_item['nombre_rol'] !== '' ? $rol_item['nombre_rol'] : $nombre_p;
+                    break;
                 }
             }
+        }
 
-            // Enviar el correo en segundo plano
+        // Enviar correo en segundo plano (best-effort)
+        try {
             $datosCorreo = [
                 'nombre' => $nombre,
                 'apellido_paterno' => $apellido_paterno,
@@ -226,22 +193,17 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 'nombre_p' => $nombre_p,
                 'correo' => $correo
             ];
-
-            try {
-                $url = "http://localhost/puntoDeVenta/src/scripts/enviar_correo.php?" . http_build_query($datosCorreo);
-
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
-                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 100);
-                curl_exec($ch);
-                curl_close($ch);
-            } catch (Exception $e) {
-                error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
-            }
-            send_json_response(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
+            $url = "http://localhost/puntoDeVenta/src/scripts/enviar_correo.php?" . http_build_query($datosCorreo);
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 100);
+            curl_exec($ch);
+            curl_close($ch);
         } catch (Exception $e) {
-            send_json_response(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
+            error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
         }
+
+        send_json_response(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
     } catch (Exception $e) {
         send_json_response(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
     }
@@ -643,7 +605,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             </div>
 
             <!-- Form -->
-            <form id="agregar" action="index.php?view=agregar_empleado" method="POST" enctype="multipart/form-data">
+            <form id="agregar" action="index.php?view=agregar_empleado" method="POST" enctype="multipart/form-data" onsubmit="return submitAgregarForm(event);">
                 <div class="form-body">
                     <!-- Información Personal -->
                     <div class="section animate-in-delay-2">
@@ -769,10 +731,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
     </div>
 
     <script>
-        // Form submission with AJAX (ORIGINAL LOGIC PRESERVED)
-        $(document).ready(function() {
-            $('#agregar').on('submit', function(e) {
-               e.preventDefault();
+        // Función reutilizable para enviar el formulario por AJAX
+        function submitAgregarForm(e){
+            if (e) e.preventDefault();
+            var formEl = document.getElementById('agregar');
+            if (!formEl) return false;
+            var $form = window.jQuery ? window.jQuery('#agregar') : null;
                
                 // Clear previous errors
                 document.querySelectorAll('.form-input, .form-select').forEach(input => {
@@ -820,18 +784,20 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     return false;
                 }
 
-                const submitBtn = this.querySelector('button[type="submit"]');
+                const submitBtn = formEl.querySelector('button[type="submit"]');
                 const btnText = submitBtn.querySelector('.btn-text');
                 const originalText = btnText.textContent;
                 
-                submitBtn.disabled = true;
-                btnText.innerHTML = `<span class="loading-spinner"></span> <?= __('saving') ?>...`;
-
-                $.ajax({
-                    url: "index.php?view=agregar_empleado",
-                    type: "POST",
-                    data: $(this).serialize(),
+                if (window.jQuery && $form) {
+                    $.ajax({
+                        url: "index.php?view=agregar_empleado",
+                        type: "POST",
+                        data: $form.serialize(),
+                        dataType: 'json',
+                        headers: { 'Accept': 'application/json' },
+                        success: function(res) {
                     dataType: 'json',
+                    headers: { 'Accept': 'application/json' },
                     success: function(res) {
                         if (res.success) {
                             Swal.fire({
@@ -858,8 +824,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                     confirmButton: 'swal2-confirm-custom'
                                 }
                             });
-                            submitBtn.disabled = false;
-                            btnText.textContent = originalText;
+                        },
+                        error: function(xhr, status, error) {
                         }
                     },
                     error: function(xhr, status, error) {
@@ -893,12 +859,69 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                 }
                             });
                         }
+                    });
+                } else {
+                    // Fallback sin jQuery: usar fetch
+                    const formData = new FormData(formEl);
+                    const params = new URLSearchParams();
+                    formData.forEach((v, k) => params.append(k, v));
+                    fetch('index.php?view=agregar_empleado', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params.toString()
+                    }).then(async resp => {
+                        let res = {};
+                        try { res = await resp.json(); } catch(_) {}
+                        if (res.success) {
+                            Swal.fire({
+                                title: '✅ ' + res.success,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                customClass: { popup: 'swal2-popup-custom' }
+                            }).then(() => { if (res.redirect) window.location.href = res.redirect; });
+                        } else {
+                            Swal.fire({
+                                title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
+                                html: res.error || '<?= __('connection_error_text') ?>',
+                                icon: (res.icon || 'error'),
+                                confirmButtonText: '<?= __('ok') ?>',
+                                customClass: { popup: 'swal2-popup-custom', confirmButton: 'swal2-confirm-custom' }
+                            });
+                        }
+                    }).catch(() => {
+                        Swal.fire({
+                            title: '❌ <?= __('connection_error_title') ?>',
+                            text: '<?= __('connection_error_text') ?>',
+                            icon: 'error',
+                            confirmButtonText: '<?= __('ok') ?>',
+                            customClass: { popup: 'swal2-popup-custom', confirmButton: 'swal2-confirm-custom' }
+                        });
+                    }).finally(() => {
                         submitBtn.disabled = false;
+                        btnText.textContent = originalText;
+                    });
+                }
                         btnText.textContent = originalText;
                     }
                 });
-            });
-        });
+            return false;
+        }
+
+        // Envío del formulario con AJAX (delegado y robusto)
+        (function($){
+            if (!$ || !$.fn) return;
+            $(document).on('submit', '#agregar', submitAgregarForm);
+        })(jQuery);
+
+        // Captura en fase de captura por máxima robustez
+        document.addEventListener('submit', function(ev){
+            const t = ev.target;
+            if (t && t.id === 'agregar') {
+                ev.preventDefault();
+                submitAgregarForm(ev);
+            }
+        }, true);
 
         // Auto-generate employee number (ORIGINAL LOGIC PRESERVED)
         document.addEventListener('DOMContentLoaded', function () {
