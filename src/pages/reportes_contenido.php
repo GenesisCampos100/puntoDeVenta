@@ -248,14 +248,14 @@ body.dark-mode canvas {
                 <div class="absolute right-0 top-0 h-full w-1 bg-secondary"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Transacciones</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?php echo __('kpi_transactions'); ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-transacciones">0</h3>
                     </div>
                     <div class="p-3 bg-secondary/10 rounded-xl text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
                         <i data-lucide="shopping-bag" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-gray-400 mt-1">Tickets generados en el periodo</div>
+                <div class="text-xs text-gray-400 mt-1"><?php echo __('kpi_tickets_generated_period'); ?></div>
             </div>
 
             <!-- KPI 3: Ticket Promedio -->
@@ -263,14 +263,14 @@ body.dark-mode canvas {
                 <div class="absolute right-0 top-0 h-full w-1 bg-accent"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ticket Promedio</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?php echo __('kpi_avg_ticket'); ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-ticket">$0.00</h3>
                     </div>
                     <div class="p-3 bg-accent/10 rounded-xl text-accent group-hover:bg-accent group-hover:text-white transition-colors">
                         <i data-lucide="credit-card" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-gray-400 mt-1">Promedio por venta realizada</div>
+                <div class="text-xs text-gray-400 mt-1"><?php echo __('kpi_avg_ticket_sub'); ?></div>
             </div>
 
             <!-- KPI 4: Margen Bruto -->
@@ -278,7 +278,7 @@ body.dark-mode canvas {
                 <div class="absolute right-0 top-0 h-full w-1 bg-indigo-500"></div>
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Margen Bruto</p>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider"><?php echo __('kpi_gross_margin'); ?></p>
                         <h3 class="text-3xl font-bold text-secondary mt-1" id="kpi-margen">$0.00</h3>
                     </div>
                     <div class="p-3 bg-indigo-50 rounded-xl text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
@@ -287,7 +287,7 @@ body.dark-mode canvas {
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-2xl font-bold text-primary" id="kpi-margen-pct">0%</span>
-                    <span class="text-xs text-gray-400">de rentabilidad</span>
+                    <span class="text-xs text-gray-400"><?php echo __('kpi_profitability_suffix'); ?></span>
                 </div>
             </div>
         </div>
@@ -300,7 +300,7 @@ body.dark-mode canvas {
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="activity" class="w-5 h-5 text-primary"></i>
-                        Tendencia de Ingresos
+                        <?php echo __('chart_income_trend_title'); ?>
                     </h3>
                     <button class="text-gray-400 hover:text-secondary transition-colors"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
                 </div>
@@ -314,14 +314,14 @@ body.dark-mode canvas {
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="layers" class="w-5 h-5 text-accent"></i>
-                        Ventas por Categoría
+                        <?php echo __('chart_sales_by_category_title'); ?>
                     </h3>
                 </div>
                 <div class="relative h-64 w-full flex items-center justify-center">
                     <canvas id="chartCategorias"></canvas>
                 </div>
                 <div class="mt-4 text-center">
-                    <p class="text-xs text-gray-400">Distribución de ingresos por familia de productos</p>
+                    <p class="text-xs text-gray-400"><?php echo __('chart_sales_by_category_sub'); ?></p>
                 </div>
             </div>
         </div>
@@ -334,7 +334,7 @@ body.dark-mode canvas {
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="star" class="w-5 h-5 text-yellow-500"></i>
-                        Top 10 Productos Más Vendidos
+                        <?php echo __('chart_top_products_title'); ?>
                     </h3>
                 </div>
                 <div class="relative h-72 w-full">
@@ -347,7 +347,7 @@ body.dark-mode canvas {
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-bold text-secondary flex items-center gap-2">
                         <i data-lucide="users" class="w-5 h-5 text-blue-500"></i>
-                        Rendimiento por Empleado
+                        <?php echo __('chart_employee_performance_title'); ?>
                     </h3>
                 </div>
                 <div class="relative h-72 w-full">

@@ -405,7 +405,7 @@ body.dark-mode .btn-add {
                 <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-500 text-sm font-medium mb-1">Inactivos</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('inactive_suppliers'); ?></p>
                             <p class="text-3xl font-bold text-gray-900"><?= count(array_filter($proveedores, fn($e) => $e['estatus'] == 0)) ?></p>
                         </div>
                         <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -450,7 +450,7 @@ body.dark-mode .btn-add {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                             </svg>
-                            Filtrar
+                            <?php echo __('filter'); ?>
                             <svg class="w-4 h-4 transition-transform duration-300" id="filterIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
@@ -458,9 +458,9 @@ body.dark-mode .btn-add {
 
                         <div id="filterMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Filtrar por categorías</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?php echo __('filter_by_categories'); ?></p>
                                 <select name="categoria" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                                    <option value="">-- Todas las categorías --</option>
+                                    <option value=""><?php echo __('all_categories_suppliers'); ?></option>
                                     <?php foreach ($categorias as $ca): ?>
                                         <option value="<?= $ca['id_categoria']?>" <?= ($categoria == $ca['id_categoria']) ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($ca['nombre']) ?>
@@ -487,10 +487,10 @@ body.dark-mode .btn-add {
                             <div>
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?php echo __('sort_by'); ?></p>
                                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                                    <option value="p.nombre ASC" <?= ($orden == 'p.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                                    <option value="p.nombre DESC" <?= ($orden == 'p.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
-                                    <option value="p.correo ASC" <?= ($orden == 'p.correo ASC') ? 'selected' : '' ?>>Correo A-Z</option>
-                                    <option value="p.correo DESC" <?= ($orden == 'p.correo DESC') ? 'selected' : '' ?> >Correo Z-A</option>
+                                    <option value="p.nombre ASC" <?= ($orden == 'p.nombre ASC') ? 'selected' : '' ?>><?php echo __('name_az_suppliers'); ?></option>
+                                    <option value="p.nombre DESC" <?= ($orden == 'p.nombre DESC') ? 'selected' : '' ?>><?php echo __('name_za_suppliers'); ?></option>
+                                    <option value="p.correo ASC" <?= ($orden == 'p.correo ASC') ? 'selected' : '' ?>><?php echo __('email_az'); ?></option>
+                                    <option value="p.correo DESC" <?= ($orden == 'p.correo DESC') ? 'selected' : '' ?> ><?php echo __('email_za'); ?></option>
                                 </select>
                             </div>
                         </div>

@@ -254,9 +254,9 @@ body.dark-mode .save-btn svg {
         <div class="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-gray-100 relative overflow-hidden group">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Tarjeta Esperado</p>
+                    <p class="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider"><?php echo __('expected_card'); ?></p>
                     <h3 class="text-3xl font-bold text-gray-900 tracking-tight" id="stat-tarjeta">$0.00</h3>
-                    <p class="text-xs text-gray-400 mt-2 font-medium">Pagos procesados con tarjeta</p>
+                    <p class="text-xs text-gray-400 mt-2 font-medium"><?php echo __('card_payments_processed'); ?></p>
                 </div>
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -271,21 +271,21 @@ body.dark-mode .save-btn svg {
         <!-- Actions Card -->
         <div class="rounded-2xl shadow-lg p-6 text-white flex flex-col justify-between relative overflow-hidden" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <div class="relative z-10">
-                <h3 class="text-xl font-bold mb-1">Acciones Rápidas</h3>
-                <p class="text-gray-300 text-sm mb-6">Gestiona los movimientos del día</p>
+                <h3 class="text-xl font-bold mb-1"><?php echo __('quick_actions'); ?></h3>
+                <p class="text-gray-300 text-sm mb-6"><?php echo __('manage_daily_movements'); ?></p>
             </div>
             <div class="grid grid-cols-2 gap-3 relative z-10">
                 <button onclick="abrirModalMovimiento('ingreso')" class="bg-white/10 hover:bg-white/20 border border-white/10 p-3 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                     <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
-                    <span class="text-xs font-bold">Ingreso</span>
+                    <span class="text-xs font-bold"><?php echo __('cash_deposit'); ?></span>
                 </button>
                 <button onclick="abrirModalMovimiento('retiro')" class="bg-white/10 hover:bg-white/20 border border-white/10 p-3 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-0.5 backdrop-blur-sm">
                     <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
-                    <span class="text-xs font-bold">Retiro</span>
+                    <span class="text-xs font-bold"><?php echo __('cash_withdrawal'); ?></span>
                 </button>
                 <button onclick="abrirModalCorte()" class="col-span-2 p-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-white" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>
-                    Realizar Corte de Caja
+                    <?php echo __('perform_cash_cut'); ?>
                 </button>
             </div>
             <!-- Decorative Background -->
@@ -301,10 +301,10 @@ body.dark-mode .save-btn svg {
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
         </div>
         <div>
-            <h4 class="text-base font-bold text-gray-900">Información del Turno</h4>
+            <h4 class="text-base font-bold text-gray-900"><?php echo __('shift_information'); ?></h4>
             <p class="text-sm text-gray-600 mt-1 leading-relaxed">
-                Último corte registrado: <span id="last-cut-date" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Cargando...</span>. 
-                Los totales mostrados corresponden a los movimientos realizados después de esta fecha.
+                <?php echo __('last_cut_registered'); ?>: <span id="last-cut-date" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded"><?php echo __('loading_text'); ?></span>. 
+                <?php echo __('totals_after_cut'); ?>
             </p>
         </div>
     </div>
