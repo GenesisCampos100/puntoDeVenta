@@ -10,19 +10,12 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json; charset=utf-8');
 
 // Verificar autenticación básica
-<<<<<<< HEAD
-if (!isset($_SESSION['empleado_id'])) {
-=======
 if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id_empleado'])) {
->>>>>>> origin/Genesis
     echo json_encode(['status' => 'error', 'message' => 'No hay sesión activa']);
     exit;
 }
 
 $action = $_POST['action'] ?? '';
-<<<<<<< HEAD
-$id_empleado = $_SESSION['empleado_id'];
-=======
 $id_empleado = $_SESSION['id_empleado'] ?? null;
 
 // Si no hay id_empleado en sesión, buscarlo por usuario_id
@@ -45,7 +38,6 @@ if (!$id_empleado) {
          exit;
     }
 }
->>>>>>> origin/Genesis
 
 try {
     switch ($action) {
@@ -75,13 +67,8 @@ try {
  */
 function handleMovimiento($pdo, $type, $id_empleado) {
     $monto = floatval($_POST['monto'] ?? 0);
-<<<<<<< HEAD
-    $motivo = $_POST['motivo'] ?? '';
-    $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Obtener del formulario o usar EFECTIVO por defecto
-=======
     $motivo = trim($_POST['motivo'] ?? '');
     $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Usar el método seleccionado en el formulario
->>>>>>> origin/Genesis
 
     if ($monto <= 0) {
         throw new Exception("El monto debe ser mayor a 0");

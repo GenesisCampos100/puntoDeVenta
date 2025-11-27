@@ -216,15 +216,15 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
     
     <!-- Botón de tema -->
     <div id="themeToggle"
-         style="width:38px; height:38px; 
-                display:flex; align-items:center; justify-content:center;
-                border-radius:50%; background:#0A2342; 
-                cursor:pointer; transition:all 0.3s ease; 
-                box-shadow:0 4px 12px rgba(0,0,0,0.2);"
-         onmouseover="this.style.transform='scale(1.15) rotate(15deg)';"
-         onmouseout="this.style.transform='scale(1) rotate(0deg)';">
-      <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
-    </div>
+          style="width:38px; height:38px; 
+            display:flex; align-items:center; justify-content:center;
+            border-radius:50%; background:#0A2342; 
+            cursor:pointer; transition:all 0.3s ease; 
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);"
+          onmouseover="this.style.transform='scale(1.15) rotate(15deg)';"
+          onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+            <img id="themeIcon" src="../public/img/tema.png" alt="Tema" style="width:18px; height:18px; filter:invert(1);">
+          </div>
 
     <!-- Botón de idioma MEJORADO con funcionalidad de HEAD -->
     <?php

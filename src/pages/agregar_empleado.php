@@ -527,140 +527,69 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             to { transform: rotate(360deg); }
         }
 
-<<<<<<< HEAD
-        /* SweetAlert2 Custom Styles */
-        .swal2-popup {
-            font-family: var(--font) !important;
-            border-radius: 1.5rem !important;
-            padding: 2rem !important;
-        }
-
-        .swal2-title {
-            font-size: 1.375rem !important;
-            font-weight: 600 !important;
-            color: var(--text-primary) !important;
-            padding: 0.5rem 0 !important;
-        }
-
-        .swal2-html-container {
-            font-size: 0.9375rem !important;
-            color: var(--text-tertiary) !important;
-            line-height: 1.6 !important;
-        }
-
-        .swal2-confirm {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            border-radius: 10px !important;
-            padding: 0.75rem 1.75rem !important;
-            font-weight: 600 !important;
-            font-size: 0.9375rem !important;
-            box-shadow: 0 4px 12px rgba(180, 194, 77, 0.3) !important;
-            border: none !important;
-        }
-
-        .swal2-confirm:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 16px rgba(180, 194, 77, 0.4) !important;
-        }
-
-        .swal2-cancel {
-            background: #e5e7eb !important;
-            color: #374151 !important;
-            border-radius: 10px !important;
-            padding: 0.75rem 1.75rem !important;
-            font-weight: 600 !important;
-            font-size: 0.9375rem !important;
-            border: none !important;
-        }
-
-        .swal2-cancel:hover {
-            background: #d1d5db !important;
-        }
-
-        .swal2-icon {
-            border-width: 3px !important;
-        }
-
-        .swal2-icon.swal2-warning {
-            border-color: var(--accent) !important;
-            color: var(--accent) !important;
-        }
-
-        .swal2-icon.swal2-error {
-            border-color: var(--error) !important;
-            color: var(--error) !important;
-        }
-
-        .swal2-icon.swal2-success {
-            border-color: var(--success) !important;
-            color: var(--success) !important;
-        }
-    </style>
-=======
-         /* Títulos del formulario (Registro de Empleados) */
+/* Títulos del formulario (Registro de Empleados) */
 body.dark-mode .form-header h1,
 body.dark-mode .form-header p,
 body.dark-mode .section-title {
-  color: #ffffff !important;
+    color: #ffffff !important;
 }
 /* Formularios en modo oscuro */
 body.dark-mode .form-card,
 body.dark-mode .form-body,
 body.dark-mode .section {
-  background-color: #1f1f1f !important;
-  color: #f5f5f5 !important;
+    background-color: #1f1f1f !important;
+    color: #f5f5f5 !important;
 }
 /* Inputs */
 body.dark-mode .form-input,
 body.dark-mode .form-select {
-  background-color: #2a2a2a !important;
-  color: #ffffff !important;
-  border-color: #444 !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
 }
 
 /* Placeholders */
 body.dark-mode .form-input::placeholder,
 body.dark-mode .form-select::placeholder {
-  color: #cccccc !important;
+    color: #cccccc !important;
 }
 
 /* Labels */
 body.dark-mode .form-label,
 body.dark-mode label {
-  color: #eaeaea !important;
+    color: #eaeaea !important;
 }
 body.dark-mode .switch-label {
-  color: #eaeaea !important;
+    color: #eaeaea !important;
 }
 
 body.dark-mode .slider {
-  background-color: #444 !important;
+    background-color: #444 !important;
 }
 body.dark-mode .form-footer {
-  background-color: #1a1a1a !important;
-  border-top: 1px solid #333 !important;
+    background-color: #1a1a1a !important;
+    border-top: 1px solid #333 !important;
 }
 /* Botón Guardar Empleado → verde en modo oscuro */
 body.dark-mode .btn-primary {
-  background-color:  #b4c24d  !important; /* verde */
-  color: white !important;
-  border: none !important;
+    background-color:  #b4c24d  !important; /* verde */
+    color: white !important;
+    border: none !important;
 }
 
 body.dark-mode .btn-primary:hover {
-  background-color:  #b4c24d  !important; /* verde */
-  color: white !important;
-  border: none !important;
+    background-color:  #b4c24d  !important; /* verde */
+    color: white !important;
+    border: none !important;
 }
 
 body.dark-mode main,
 body.dark-mode .content {
-    background-color: #121212 !important;
+        background-color: #121212 !important;
 }
 </style>
 
 </head>
->>>>>>> origin/Genesis
 <body>
     <div class="form-container animate-in">
         <div class="form-card">
@@ -862,46 +791,21 @@ body.dark-mode .content {
                         dataType: 'json',
                         headers: { 'Accept': 'application/json' },
                         success: function(res) {
-                    dataType: 'json',
-                    headers: { 'Accept': 'application/json' },
-                    success: function(res) {
-                        if (res.success) {
-                            Swal.fire({
-                                title: '✅ ' + res.success,
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1500,
-                                customClass: {
-                                    popup: 'swal2-popup-custom'
-                                }
-                            }).then(() => {
-                                if (res.redirect) {
-                                    window.location.href = res.redirect;
-                                }
-                            });
-                        } else if (res.error) {
-                            Swal.fire({
-                                title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
-                                html: res.error,
-                                icon: res.icon || 'error',
-                                confirmButtonText: '<?= __("ok") ?>',
-                                customClass: {
-                                    popup: 'swal2-popup-custom',
-                                    confirmButton: 'swal2-confirm-custom'
-                                }
-                            });
-                        },
-                        error: function(xhr, status, error) {
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("AJAX Error: ", status, error);
-                        console.log("Response Text:", xhr.responseText);
-                        
-                        // Intentar parsear la respuesta manualmente
-                        try {
-                            const res = JSON.parse(xhr.responseText);
-                            if (res.error) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: '✅ ' + res.success,
+                                    icon: 'success',
+                                    showConfirmButton: false,
+                                    timer: 1500,
+                                    customClass: {
+                                        popup: 'swal2-popup-custom'
+                                    }
+                                }).then(() => {
+                                    if (res.redirect) {
+                                        window.location.href = res.redirect;
+                                    }
+                                });
+                            } else if (res.error) {
                                 Swal.fire({
                                     title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
                                     html: res.error,
@@ -913,17 +817,37 @@ body.dark-mode .content {
                                     }
                                 });
                             }
-                        } catch (e) {
-                            Swal.fire({
-                                title: '❌ <?= __('connection_error_title') ?>',
-                                text: '<?= __('connection_error_text') ?>',
-                                icon: 'error',
-                                confirmButtonText: '<?= __("ok") ?>',
-                                customClass: {
-                                    popup: 'swal2-popup-custom',
-                                    confirmButton: 'swal2-confirm-custom'
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("AJAX Error: ", status, error);
+                            console.log("Response Text:", xhr.responseText);
+                            // Intentar parsear la respuesta manualmente
+                            try {
+                                const res = JSON.parse(xhr.responseText);
+                                if (res.error) {
+                                    Swal.fire({
+                                        title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
+                                        html: res.error,
+                                        icon: res.icon || 'error',
+                                        confirmButtonText: '<?= __("ok") ?>',
+                                        customClass: {
+                                            popup: 'swal2-popup-custom',
+                                            confirmButton: 'swal2-confirm-custom'
+                                        }
+                                    });
                                 }
-                            });
+                            } catch (e) {
+                                Swal.fire({
+                                    title: '❌ <?= __('connection_error_title') ?>',
+                                    text: '<?= __('connection_error_text') ?>',
+                                    icon: 'error',
+                                    confirmButtonText: '<?= __("ok") ?>',
+                                    customClass: {
+                                        popup: 'swal2-popup-custom',
+                                        confirmButton: 'swal2-confirm-custom'
+                                    }
+                                });
+                            }
                         }
                     });
                 } else {
@@ -968,9 +892,6 @@ body.dark-mode .content {
                         btnText.textContent = originalText;
                     });
                 }
-                        btnText.textContent = originalText;
-                    }
-                });
             return false;
         }
 

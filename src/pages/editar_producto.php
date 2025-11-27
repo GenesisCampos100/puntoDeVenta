@@ -10,23 +10,14 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $id = $_GET['id'] ?? null;
 if (!$id) die("ID de producto no especificado.");
 
-<<<<<<< HEAD
-$stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
-=======
 $stmt = $pdo->prepare("SELECT * FROM productos WHERE cod_barras = ?");
->>>>>>> origin/Genesis
 $stmt->execute([$id]);
 $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$producto) die("Producto no encontrado.");
 
 // 🧩 Obtener variantes (si las hay)
-<<<<<<< HEAD
-$stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE id_producto = ?");
-$stmtVar->execute([$id]);
-=======
 $stmtVar = $pdo->prepare("SELECT * FROM variantes WHERE cod_barras = ?");
 $stmtVar->execute([$producto['cod_barras']]);
->>>>>>> origin/Genesis
 $variantes = $stmtVar->fetchAll(PDO::FETCH_ASSOC);
 
 // 🧾 Actualizar producto
@@ -67,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $color_base, $imagen, $cantidad, $cantidad_min, $costo, $tipo_costo, $precio_unitario, $id
     ]);
 
-<<<<<<< HEAD
     // 🧩 Actualizar variantes
     $pdo->prepare("DELETE FROM variantes WHERE id_producto = ?")->execute([$id]);
     if (!empty($_POST['variantes'])) {
@@ -112,12 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $pdo->prepare("UPDATE productos SET cantidad=? WHERE id=?")->execute([$totalCantidad, $id]);
     }
 
-    echo "<script>alert('✅ Producto actualizado correctamente'); window.location='index.php?view=productos';</script>";
-    exit;
-
-  } catch (Exception $e) {
-    echo "<script>alert('❌ Error: " . addslashes($e->getMessage()) . "');</script>";
-=======
     echo "<script>
         Swal.fire({
             title: '¡Actualizado!',
@@ -131,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>";
     exit;
+
   } catch (Exception $e) {
       echo "<script>
           Swal.fire({
@@ -140,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               confirmButtonColor: '#e15871'
           });
       </script>";
->>>>>>> origin/Genesis
   }
 }
 

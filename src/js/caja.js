@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-// js/caja.js - Gestión de Caja Principal
-// Conecta con src/api/caja_controller.php
-=======
 // src/js/caja.js – Gestión de Caja Principal
 let expectedTotals = { efectivo: 0, tarjeta: 0 };
->>>>>>> origin/Genesis
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,12 +15,8 @@ async function cargarTotales() {
         const formData = new FormData();
         formData.append('action', 'fetch_totales');
 
-<<<<<<< HEAD
-        const response = await fetch('/PrismaMK2C/src/api/caja_controller.php', {
-=======
-        // Ruta relativa desde src/index.php
-        const response = await fetch('api/caja_controller.php', {
->>>>>>> origin/Genesis
+    // Ruta relativa desde src/index.php
+    const response = await fetch('api/caja_controller.php', {
             method: 'POST',
             body: formData
         });
@@ -80,22 +71,12 @@ function abrirModalMovimiento(tipo) {
     if (tipo === 'ingreso') {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
-<<<<<<< HEAD
-            ${window.TR?.ingreso_registrado || 'Registrar Ingreso'}
-        `;
-=======
             Registrar Ingreso`;
->>>>>>> origin/Genesis
         actionInput.value = 'ingreso';
     } else {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
-<<<<<<< HEAD
-            ${window.TR?.retiro_registrado || 'Registrar Retiro'}
-        `;
-=======
             Registrar Retiro`;
->>>>>>> origin/Genesis
         actionInput.value = 'retiro';
     }
 
@@ -212,13 +193,8 @@ async function handleSubmitMovimiento(e) {
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
-<<<<<<< HEAD
-                title: action === 'ingreso' ? (window.TR?.ingreso_registrado || 'Ingreso Registrado') : (window.TR?.retiro_registrado || 'Retiro Registrado'),
-                text: window.TR?.movimiento_guardado || 'El movimiento se ha guardado correctamente.',
-=======
                 title: formData.get('action') === 'ingreso' ? 'Ingreso Registrado' : 'Retiro Registrado',
                 text: 'El movimiento se ha guardado correctamente.',
->>>>>>> origin/Genesis
                 confirmButtonColor: '#2d4353',
                 timer: 2000
             });
@@ -265,19 +241,11 @@ async function handleSubmitCorte(e) {
         title: window.TR?.confirmar_corte || '¿Confirmar Corte de Caja?',
         html: `
             <div class="text-left space-y-2 text-sm">
-<<<<<<< HEAD
-                <p><strong>${window.TR?.efectivo_esperado || 'Efectivo Esperado'}:</strong> ${formatCurrency(efectivoEsperado)}</p>
-                <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoContado)}</p>
-                <hr class="my-2">
-                <p><strong>${window.TR?.tarjeta_esperado || 'Tarjeta Esperado'}:</strong> ${formatCurrency(tarjetaEsperado)}</p>
-                <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaContado)}</p>
-=======
                 <p><strong>Efectivo Esperado:</strong> ${formatCurrency(efectivoEsp)}</p>
                 <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoCont)}</p>
                 <hr class="my-2">
                 <p><strong>Tarjeta Esperado:</strong> ${formatCurrency(tarjetaEsp)}</p>
                 <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaCont)}</p>
->>>>>>> origin/Genesis
                 <hr class="my-2">
                 <p class="text-lg font-bold ${diferencia < 0 ? 'text-red-600' : diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
                     <strong>${window.TR?.diferencia_label || 'Diferencia'}:</strong> ${formatCurrency(diferencia)}

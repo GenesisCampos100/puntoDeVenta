@@ -104,13 +104,9 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
   </script>
   
-<<<<<<< HEAD
-  <style>
-=======
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
->>>>>>> origin/Genesis
     :root {
       --primary: #b4c24d;
       --primary-dark: #9fb03d;

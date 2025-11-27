@@ -50,20 +50,15 @@ document.addEventListener("DOMContentLoaded", () => {
         setSelectedClient(null);
     }
 
-<<<<<<< HEAD
     // ==============================
     // Selección desde el modal
     // ==============================
-=======
-    // Selección desde el modal
->>>>>>> origin/Genesis
     $(document).on('click', '.seleccionarCliente', function () {
         const cliente = {
             id_cliente: $(this).data('id'),
             nombre_completo: $(this).data('nombre'),
             celular: $(this).closest('tr').find('td').eq(2).text()
         };
-<<<<<<< HEAD
 
         setSelectedClient(cliente);
 
@@ -304,7 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-=======
         setSelectedClient(cliente);
 
         // Cerrar modal
@@ -589,7 +583,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
->>>>>>> origin/Genesis
     document.addEventListener('click', (e) => {
         const sel = e.target.closest && e.target.closest('.seleccionarCliente');
         if (sel) {
@@ -628,10 +621,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (existente) {
-<<<<<<< HEAD
             existente.quantity++;
-        } else {
-=======
+        if (existente) {
             if (existente.quantity + 1 > existente.stock) {
                 Swal.fire({
                     icon: 'warning',
@@ -650,7 +641,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 return;
             }
->>>>>>> origin/Genesis
             cart.push({
                 cod_barras: prod.cod_barras,
                 name: prod.name,
@@ -660,12 +650,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 color: prod.color ?? '',
                 categoria: prod.categoria ?? '',
                 imagen: prod.imagen ?? null,
-<<<<<<< HEAD
-                discount: null
-=======
                 discount: null,
                 stock: prod.stock ?? 0
->>>>>>> origin/Genesis
             });
         }
 
@@ -738,7 +724,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("❌ Error al procesar la venta. Revisa la consola para más detalles.");
         }
     });
-<<<<<<< HEAD
 
     // CERRAR MODALES CON ESCAPE
     document.addEventListener('keydown', (e) => {
@@ -801,73 +786,5 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(err => console.error("Error en búsqueda:", err));
     });
-
-
-});
-=======
-
-    // CERRAR MODALES CON ESCAPE
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
-    });
-
-    // INICIALIZAR
-    updateCart();
-
-    const searchInput = document.getElementById("search-input");
-
-    // BÚSQUEDA DE PRODUCTOS
-    searchInput?.addEventListener("input", function () {
-        const texto = this.value.trim();
-        if (texto.length < 1) {
-            searchResults?.classList.add("hidden");
-            searchBody.innerHTML = "";
-            return;
-        }
-
-        fetch(`pages/nueva_venta.php?buscar_producto=${encodeURIComponent(texto)}`)
-            .then(res => res.json())
-            .then(data => {
-                searchBody.innerHTML = "";
-                if (!data || data.length === 0) {
-                    searchBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-gray-500">No hay resultados</td></tr>`;
-                    searchResults?.classList.remove("hidden");
-                    return;
-                }
-
-                data.forEach(prod => {
-                    const tr = document.createElement("tr");
-                    tr.className = "row-hover cursor-pointer";
-                    tr.innerHTML = `
-                    <td class="py-2 px-3">${prod.cod_barras}</td>
-                    <td class="py-2 px-3">${prod.nom_producto}</td>
-                    <td class="py-2 px-3 text-center">${prod.talla} / ${prod.color}</td>
-                    <td class="py-2 px-3 text-center">$${parseFloat(prod.precio).toFixed(2)}</td>
-                    <td class="py-2 px-3 text-center">${prod.categoria ?? ''}</td>
-                    <td class="py-2 px-3 text-center">${prod.stock}</td>
-                `;
-
-                    // Agregar al carrito la variante específica
-                    tr.addEventListener("click", () => addToCart({
-                        cod_barras: prod.cod_barras,
-                        name: prod.nom_producto,           // ← cambiar
-                        price: parseFloat(prod.precio),    // ← cambiar
-                        talla: prod.talla ?? '',
-                        color: prod.color ?? '',
-                        quantity: 1,                        // ← siempre quantity
-                        imagen: prod.imagen ?? null,
-                        categoria: prod.categoria ?? '',
-                        discount: null,
-                        stock: prod.stock ?? 0
-                    }));
-
-                    searchBody.appendChild(tr);
-                });
-
-                searchResults?.classList.remove("hidden");
-            })
-            .catch(err => console.error("Error en búsqueda:", err));
-    });
-
 
 });

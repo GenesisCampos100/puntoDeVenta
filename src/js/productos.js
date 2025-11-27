@@ -9,10 +9,10 @@
 // Usamos la BASE_URL inyectada desde PHP. Si no existe, fallback (aunque no debería pasar)
 // Construcción robusta del endpoint evitando 404 relativos.
 // Preferimos ruta absoluta basada en carpeta del proyecto.
-const PROJECT_ROOT = '/PrismaMK2C';
+const PROJECT_ROOT = '/PrismaMK2C/src';
 const API_ENDPOINT = (function(){
     if (typeof BASE_URL === 'string' && BASE_URL.trim() !== '') return BASE_URL;
-    // Si la URL actual contiene /src/ asumimos que API está un nivel arriba en /api/
+    // Si la URL actual contiene /src/ asumimos que API está en /src/api/
     if (window.location.pathname.includes('/src/')) return PROJECT_ROOT + '/api/inventario_api.php';
     // Fallback
     return 'api/inventario_api.php';

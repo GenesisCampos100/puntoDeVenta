@@ -7,11 +7,8 @@
   <!-- Fonts & Styles -->
   <link rel="stylesheet" href="../CSS/layout.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
-=======
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="./styles/modo-oscuro.css">
->>>>>>> origin/Genesis
   
   <style>
     :root {
@@ -490,6 +487,7 @@
   </script>
 
   <script src="scripts/menu.js"></script>
+  <script src="scripts/tema.js"></script>
 
   <?php if (!empty($_SESSION['mensaje'])): ?>
     <div id="toast" class="toast <?= $_SESSION['mensaje_tipo'] ?? 'info' ?>">

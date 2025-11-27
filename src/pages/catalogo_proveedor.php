@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
-<<<<<<< HEAD
 require_once __DIR__ . '/../config/translation.php';
 
 $proveedor_id = $_GET['proveedor'] ?? '';
@@ -11,17 +10,6 @@ $mapOrder = [
     'nom_desc' => 'p.nom_producto DESC',
     'precio_asc' => 'p.precio ASC',
     'precio_desc' => 'p.precio DESC'
-=======
-
-$proveedor_id = $_GET['proveedor'] ?? '';
-$orden_get    = $_GET['orden'] ?? 'nom_asc';
-
-$mapOrder = [
-    'nom_asc'    => 'p.nom_producto ASC',
-    'nom_desc'   => 'p.nom_producto DESC',
-    'precio_asc' => 'p.precio ASC',
-    'precio_desc'=> 'p.precio DESC'
->>>>>>> origin/Genesis
 ];
 
 // Normalizar y validar el parámetro de orden para evitar inyección SQL
@@ -30,17 +18,9 @@ $orden_sql = $mapOrder['nom_asc'];
 if (isset($mapOrder[$orden_get_trim])) {
     $orden_sql = $mapOrder[$orden_get_trim];
 } else {
-<<<<<<< HEAD
-    // Si se pasó la forma completa (ej. 'p.nom_producto ASC'), aceptar solo si coincide exactamente con un valor permitido
     if (in_array($orden_get_trim, $mapOrder, true)) {
         $orden_sql = $orden_get_trim;
     } else {
-        // Intento de interpretación tolerante (p. ej. 'nombre desc', 'precio_asc', 'precio desc')
-=======
-    if (in_array($orden_get_trim, $mapOrder, true)) {
-        $orden_sql = $orden_get_trim;
-    } else {
->>>>>>> origin/Genesis
         $low = strtolower($orden_get_trim);
         if (strpos($low, 'precio') !== false) {
             $orden_sql = (strpos($low, 'desc') !== false) ? $mapOrder['precio_desc'] : $mapOrder['precio_asc'];
@@ -69,7 +49,6 @@ $proveedor_nombre = trim(($prov['nombre'] ?? '') . ' ' . ($prov['apellido_patern
 if (empty($proveedor_nombre)) $proveedor_nombre = $prov['empresa'] ?? 'Proveedor';
 
 // Obtener productos del proveedor
-<<<<<<< HEAD
 $sql = "SELECT 
             p.cod_barras AS id_producto,
             p.nom_producto,
@@ -83,28 +62,10 @@ $sql = "SELECT
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         WHERE p.id_proveedor = :proveedor
         ORDER BY $orden_sql";
-=======
-$sql = "
-    SELECT
-        p.cod_barras AS id_producto,
-        p.nom_producto,
-        p.imagen,
-        p.marca,
-        p.descripcion,
-        c.nombre AS categoria,
-        p.cantidad,
-        p.precio
-    FROM productos p
-    LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-    WHERE p.id_proveedor = :proveedor
-    ORDER BY $orden_sql
-";
->>>>>>> origin/Genesis
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute([':proveedor' => $proveedor_id]);
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-<<<<<<< HEAD
 
 ?>
 <!DOCTYPE html>
@@ -184,15 +145,6 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </body>
 </html>
-=======
-?>
-
-<style>
-    /* ==========================================
-       CATÁLOGO PROVEEDOR - DISEÑO MODERNO
-       ========================================== */
-    
-    .catalogo-container {
         max-width: 1400px;
         margin: 0 auto;
         padding: 2rem;
@@ -631,4 +583,3 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
 </div>
->>>>>>> origin/Genesis

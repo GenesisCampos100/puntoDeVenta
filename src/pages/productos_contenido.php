@@ -1,17 +1,11 @@
 ﻿<?php
 // src/pages/productos_contenido.php
-<<<<<<< HEAD
 // Versión corregida y funcional — Inventario (productos + variantes + filtros AJAX)
 
 require_once __DIR__ . '/../config/translation.php';
+require_once __DIR__ . "/../config/db.php";
 // Versión Premium - Estilo consistente con clientes_contenido.php
 // Mantiene TODA la lógica de backend intacta.
-=======
-// VersiÃ³n Premium - Estilo consistente con clientes_contenido.php
-// Mantiene TODA la lÃ³gica de backend intacta.
->>>>>>> origin/Genesis
-
-require_once __DIR__ . "/../config/db.php";
 
 // -----------------------
 // LÃ“GICA PHP (INTACTA)
@@ -227,13 +221,8 @@ foreach($productos as $p) {
     <!-- Header Section -->
     <div class="mb-8 animate-slideDown">
         <div class="mb-6">
-<<<<<<< HEAD
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('inventory_management') ?></h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2 color-black"><?= __('inventory_management') ?></h1>
             <p class="text-gray-600 text-base"><?= __('manage_catalog_stock') ?></p>
-=======
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?= __('inventory_management') ?></h1>
-            <p class="text-gray-600 text-base"><?= __('manage_catalog_stock') ?></p>
->>>>>>> origin/Genesis
         </div>
         
         <div class="flex items-center gap-3 w-full lg:w-3/5">
@@ -276,7 +265,7 @@ foreach($productos as $p) {
                 <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>><?= __('price_desc') ?></option>
             </select>
 
-            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success text-white font-semibold transition duration-200 hover:bg-primary-dark shadow-md">
+            <button id="btnAgregarProducto" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold transition duration-200 shadow-md hover:opacity-90" style="background-color: #B6C649;">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <?= __('add') ?>
             </button>
@@ -286,8 +275,8 @@ foreach($productos as $p) {
     <div class="bg-white rounded-2xl shadow-xl overflow-x-auto productos-container">
     <div class="relative"> 
         <table id="productos-table" class="w-full border-collapse min-w-max">
-            <thead class="bg-primary text-white sticky top-0 z-10">
-                <tr class="divide-x divide-primary/30">
+            <thead class="bg-black text-white sticky top-0 z-10">
+                <tr class="divide-x divide-black/30">
                     <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider w-auto min-w-[280px]"><?= __('product') ?></th>
                     
                     <th class="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider w-24 min-w-[96px]"><?= __('stock') ?></th>
@@ -623,7 +612,7 @@ foreach($productos as $p) {
             <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>><?= __('name_za') ?></option>
             <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>><?= __('price_asc') ?></option>
             <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>><?= __('price_desc') ?></option>
-        </select>                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+        </select>                <button id="btnAgregarProducto" onclick="window.location.href='index.php?view=agregar_producto'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 hover:opacity-90" style="background-color: #B6C649;">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -633,24 +622,11 @@ foreach($productos as $p) {
         </div>
     </div>
 
-<<<<<<< HEAD
-    <script>
-/* ==========================
-   CONFIGURACIÓN
-   ========================== */
-const API_URL = '../api/inventario_api.php';
-const $tablaCuerpo = $("#tabla-productos");
-const $barraBusqueda = $("#busqueda");
-const $selectCategoria = $("#categoria");
-const $selectOrden = $("#orden");
-const $tabsButtons = $("#tabs .tab-btn");
-const $clearSearchBtn = $("#clear-search");
-=======
     <!-- Table Container -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-slideUp delay-200 border border-gray-100">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
+                <thead style="background-color: #000000;">
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
@@ -700,7 +676,18 @@ const $clearSearchBtn = $("#clear-search");
             </table>
         </div>
     </div>
->>>>>>> origin/Genesis
+
+    <script>
+/* ==========================
+   CONFIGURACIÓN
+   ========================== */
+const API_URL = 'api/inventario_api.php';
+const $tablaCuerpo = $("#tabla-productos");
+const $barraBusqueda = $("#busqueda");
+const $selectCategoria = $("#categoria");
+const $selectOrden = $("#orden");
+const $tabsButtons = $("#tabs .tab-btn");
+const $clearSearchBtn = $("#clear-search");
 
 // Helper debounce
 function debounce(fn, wait=300){
@@ -731,7 +718,6 @@ function cargarProductos() {
         // *** IMPORTANTE: Especificar que esperas JSON ***
         dataType: "json", 
         
-<<<<<<< HEAD
         beforeSend: function() {
             $tablaCuerpo.html(`<tr><td colspan="5" class="text-center py-8 text-gray-500"><?= __('loading_products') ?></td></tr>`);
         },
@@ -1066,8 +1052,6 @@ $(document).on('click', '.toggle-variants', function(){
 </script>
 </body>
 </html>
-=======
-        <!-- Header con gradiente -->
         <div class="px-6 py-4 border-b flex items-center justify-between" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
             <h3 class="text-xl font-bold text-white flex items-center gap-2">
                 <svg class="w-6 h-6" style="color: #b4c24d;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1147,10 +1131,9 @@ $(document).on('click', '.toggle-variants', function(){
     </div>
 </div>
 <script>
-    // ConfiguraciÃ³n Global para JS
-    const BASE_URL = "/puntoDeVenta/src/api/inventario_api.php";
+    // Configuración Global para JS
+    const BASE_URL = "/PrismaMK2C/src/api/inventario_api.php";
     console.log("API URL Configurada:", BASE_URL);
 </script>
 <script src="js/productos.js?v=<?= time() ?>"></script>
 <script src="js/producto_delete.js?v=<?= time() ?>"></script>
->>>>>>> origin/Genesis
