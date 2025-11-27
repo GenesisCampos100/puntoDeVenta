@@ -273,7 +273,92 @@ $puestos = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
       backdrop-filter: blur(8px);
       background: rgba(0, 0, 0, 0.4);
     }
-  </style>
+
+    /* Tema oscuro */
+    /* Textos oscuros en modo oscuro */
+    body.dark-mode .text-gray-500,
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-800,
+    body.dark-mode .text-gray-900 {
+        color: #f5f5f5 !important; /* texto claro */
+    }
+    /* Sobrescribir fondos blancos */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+    background-color: #1e1e1e !important;
+}
+body.dark-mode table,
+body.dark-mode thead,
+body.dark-mode tbody,
+body.dark-mode tr,
+body.dark-mode td,
+body.dark-mode th {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+body.dark-mode .divide-gray-200 {
+    border-color: #444 !important;
+}
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+    border-color: #333 !important;
+}
+body.dark-mode span[style*="rgba("] {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+body.dark-mode button[style*="linear-gradient"] {
+    filter: brightness(0.8);
+}
+body.dark-mode main,
+body.dark-mode .content {
+    background-color: #121212 !important;
+}
+body.dark-mode .dropdown-menu {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode .dropdown-menu p,
+body.dark-mode .dropdown-menu select,
+body.dark-mode .dropdown-menu option {
+    color: #ffffff !important;
+    background: #2a2a2a !important;
+}
+body.dark-mode select {
+    background: #2c2c2c !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+/* Botón Eliminar (modo oscuro) */
+body.dark-mode .btn-eliminar {
+    background-color: #b30000 !important;  /* Rojo fuerte */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-eliminar:hover {
+    background-color: #cc0000 !important; /* Rojo más brillante */
+}
+/* Botón Agregar (modo oscuro) */
+body.dark-mode .btn-agregar {
+    background-color: #3ba55d !important; /* Verde moderno */
+    color: #fff !important;
+    border: none !important;
+}
+
+body.dark-mode .btn-add:hover {
+    background-color: #b4c24d !important;
+}
+
+/* BOTÓN AGREGAR EN MODO OSCURO */
+body.dark-mode .btn-add {
+  background-color: #b4c24d !important;
+}
+</style>
 </head>
 <body class="p-4 md:p-6">
   <div class="max-w-7xl mx-auto pb-32">

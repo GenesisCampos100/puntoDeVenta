@@ -79,6 +79,104 @@ require_once __DIR__ . '/../config/translation.php';
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8; 
         }
+        
+/* ================================
+   MODO OSCURO GLOBAL
+================================ */
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+}
+
+/* Forzar todos los textos a blanco */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode small,
+body.dark-mode label,
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-slate-800 {
+    color: #ffffff !important;
+}
+
+/* ================================
+   TARJETAS / CARDS BLANCAS 
+================================ */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100,
+body.dark-mode .bg-gray-200 {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+/* Bordes decorativos de colores → mantener pero más discretos */
+body.dark-mode .card-border-green {
+    border-right-color: #b4c24d !important;
+}
+body.dark-mode .card-border-blue {
+    border-right-color: #4d9ac2 !important;
+}
+body.dark-mode .card-border-red {
+    border-right-color: #e15871 !important;
+}
+
+
+/* ================================
+   INPUTS Y SELECTS
+================================ */
+body.dark-mode input,
+body.dark-mode select {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #ffffff !important;
+}
+
+/* Placeholder */
+body.dark-mode input::placeholder,
+body.dark-mode select::placeholder {
+    color: #bbbbbb !important;
+}
+
+/* ================================
+   BOTONES DEL FILTRO (Hoy, Semana, Mes)
+================================ */
+body.dark-mode .filter-btn {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
+}
+
+body.dark-mode .filter-btn:hover {
+    background-color: #3a3a3a !important;
+    color: #b4c24d !important;
+}
+
+/* ================================
+   CONTENEDORES GRANDES
+================================ */
+body.dark-mode .content,
+body.dark-mode main {
+    background-color: #121212 !important;
+}
+
+/* ================================
+   GRÁFICAS CHART.JS
+================================ */
+body.dark-mode canvas {
+    background-color: transparent !important;
+}
+
+
     </style>
 </head>
 <body class="text-gray-800 antialiased p-4 md:p-8 ml-0 md:ml-20"> <!-- Margin left to account for sidebar if needed -->

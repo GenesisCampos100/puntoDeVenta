@@ -1,29 +1,31 @@
+<<<<<<< HEAD
 // js/caja.js - Gestión de Caja Principal
 // Conecta con src/api/caja_controller.php
+=======
+// src/js/caja.js – Gestión de Caja Principal
+let expectedTotals = { efectivo: 0, tarjeta: 0 };
+>>>>>>> origin/Genesis
 
-// Estado global
-let expectedTotals = {
-    efectivo: 0,
-    tarjeta: 0
-};
-
-// ========================================
-// INICIALIZACIÓN
-// ========================================
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     cargarTotales();
     configurarEventos();
 });
 
-// ========================================
-// CARGAR TOTALES DESDE API
-// ========================================
+// -------------------------------------------------
+// Cargar totales desde API
+// -------------------------------------------------
 async function cargarTotales() {
     try {
         const formData = new FormData();
         formData.append('action', 'fetch_totales');
 
+<<<<<<< HEAD
         const response = await fetch('/PrismaMK2C/src/api/caja_controller.php', {
+=======
+        // Ruta relativa desde src/index.php
+        const response = await fetch('api/caja_controller.php', {
+>>>>>>> origin/Genesis
             method: 'POST',
             body: formData
         });
@@ -34,20 +36,19 @@ async function cargarTotales() {
             expectedTotals.efectivo = parseFloat(data.efectivo_esperado) || 0;
             expectedTotals.tarjeta = parseFloat(data.tarjeta_esperado) || 0;
 
-            // Actualizar UI
             actualizarStatsUI();
 
-            // Obtener fecha del último corte
-            if (data.ultima_fecha_corte) {
-                document.getElementById('last-cut-date').textContent = formatearFecha(data.ultima_fecha_corte);
-            } else {
-                document.getElementById('last-cut-date').textContent = 'Sin cortes previos';
+            const lastCutEl = document.getElementById('last-cut-date');
+            if (lastCutEl) {
+                lastCutEl.textContent = data.ultima_fecha_corte
+                    ? formatearFecha(data.ultima_fecha_corte)
+                    : 'Sin cortes previos';
             }
         } else {
             console.error('Error al cargar totales:', data.message);
         }
-    } catch (error) {
-        console.error('Error de conexión:', error);
+    } catch (err) {
+        console.error('Error de conexión:', err);
         Swal.fire({
             icon: 'error',
             title: 'Error de Conexión',
@@ -57,20 +58,20 @@ async function cargarTotales() {
     }
 }
 
-// ========================================
-// ACTUALIZAR UI CON TOTALES
-// ========================================
+// -------------------------------------------------
+// Actualizar UI con totales
+// -------------------------------------------------
 function actualizarStatsUI() {
-    const elEfectivo = document.getElementById('stat-efectivo');
-    const elTarjeta = document.getElementById('stat-tarjeta');
+    const eEfectivo = document.getElementById('stat-efectivo');
+    const eTarjeta = document.getElementById('stat-tarjeta');
 
-    if (elEfectivo) elEfectivo.textContent = formatCurrency(expectedTotals.efectivo);
-    if (elTarjeta) elTarjeta.textContent = formatCurrency(expectedTotals.tarjeta);
+    if (eEfectivo) eEfectivo.textContent = formatCurrency(expectedTotals.efectivo);
+    if (eTarjeta) eTarjeta.textContent = formatCurrency(expectedTotals.tarjeta);
 }
 
-// ========================================
-// MODALES - ABRIR/CERRAR
-// ========================================
+// -------------------------------------------------
+// Modales – abrir / cerrar
+// -------------------------------------------------
 function abrirModalMovimiento(tipo) {
     const modal = document.getElementById('modalMovimiento');
     const title = document.getElementById('modal-mov-title');
@@ -79,18 +80,25 @@ function abrirModalMovimiento(tipo) {
     if (tipo === 'ingreso') {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
+<<<<<<< HEAD
             ${window.TR?.ingreso_registrado || 'Registrar Ingreso'}
         `;
+=======
+            Registrar Ingreso`;
+>>>>>>> origin/Genesis
         actionInput.value = 'ingreso';
     } else {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
+<<<<<<< HEAD
             ${window.TR?.retiro_registrado || 'Registrar Retiro'}
         `;
+=======
+            Registrar Retiro`;
+>>>>>>> origin/Genesis
         actionInput.value = 'retiro';
     }
 
-    // Limpiar formulario
     document.getElementById('formMovimiento').reset();
     actionInput.value = tipo;
 
@@ -101,11 +109,9 @@ function abrirModalMovimiento(tipo) {
 function abrirModalCorte() {
     const modal = document.getElementById('modalCorte');
 
-    // Pre-cargar valores esperados
     document.getElementById('corte-efectivo-esp').value = formatCurrency(expectedTotals.efectivo);
     document.getElementById('corte-tarjeta-esp').value = formatCurrency(expectedTotals.tarjeta);
 
-    // Limpiar valores contados
     document.getElementById('corte-efectivo-real').value = '';
     document.getElementById('corte-tarjeta-real').value = '';
     document.getElementById('corte-diferencia').textContent = '$0.00';
@@ -115,80 +121,67 @@ function abrirModalCorte() {
     modal.classList.add('flex');
 }
 
-function cerrarModal(modalId) {
-    const modal = document.getElementById(modalId);
+function cerrarModal(id) {
+    const modal = document.getElementById(id);
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
 
-// ========================================
-// CONFIGURAR EVENTOS
-// ========================================
+// -------------------------------------------------
+// Configurar eventos
+// -------------------------------------------------
 function configurarEventos() {
-    // Form Movimiento
     const formMov = document.getElementById('formMovimiento');
-    if (formMov) {
-        formMov.addEventListener('submit', handleSubmitMovimiento);
-    }
+    if (formMov) formMov.addEventListener('submit', handleSubmitMovimiento);
 
-    // Form Corte
     const formCorte = document.getElementById('formCorte');
     if (formCorte) {
         formCorte.addEventListener('submit', handleSubmitCorte);
 
-        // Calcular diferencia en tiempo real
-        const inputEfectivo = document.getElementById('corte-efectivo-real');
-        const inputTarjeta = document.getElementById('corte-tarjeta-real');
-
-        if (inputEfectivo) inputEfectivo.addEventListener('input', calcularDiferenciaCorte);
-        if (inputTarjeta) inputTarjeta.addEventListener('input', calcularDiferenciaCorte);
+        const inpE = document.getElementById('corte-efectivo-real');
+        const inpT = document.getElementById('corte-tarjeta-real');
+        if (inpE) inpE.addEventListener('input', calcularDiferenciaCorte);
+        if (inpT) inpT.addEventListener('input', calcularDiferenciaCorte);
     }
 
-    // Cerrar modales al hacer clic fuera
-    document.getElementById('modalMovimiento')?.addEventListener('click', (e) => {
-        if (e.target.id === 'modalMovimiento') cerrarModal('modalMovimiento');
-    });
-
-    document.getElementById('modalCorte')?.addEventListener('click', (e) => {
-        if (e.target.id === 'modalCorte') cerrarModal('modalCorte');
-    });
+    // Cerrar al hacer clic fuera
+    window.onclick = function (event) {
+        const modalMov = document.getElementById('modalMovimiento');
+        const modalCorte = document.getElementById('modalCorte');
+        if (event.target === modalMov) cerrarModal('modalMovimiento');
+        if (event.target === modalCorte) cerrarModal('modalCorte');
+    }
 }
 
-// ========================================
-// CALCULAR DIFERENCIA EN CORTE (LIVE)
-// ========================================
+// -------------------------------------------------
+// Calcular diferencia en corte (live)
+// -------------------------------------------------
 function calcularDiferenciaCorte() {
-    const efectivoReal = parseFloat(document.getElementById('corte-efectivo-real').value) || 0;
-    const tarjetaReal = parseFloat(document.getElementById('corte-tarjeta-real').value) || 0;
+    const efectivo = parseFloat(document.getElementById('corte-efectivo-real').value) || 0;
+    const tarjeta = parseFloat(document.getElementById('corte-tarjeta-real').value) || 0;
 
-    const totalReal = efectivoReal + tarjetaReal;
-    const totalEsperado = expectedTotals.efectivo + expectedTotals.tarjeta;
-    const diferencia = totalReal - totalEsperado;
+    const totalReal = efectivo + tarjeta;
+    const totalEsp = expectedTotals.efectivo + expectedTotals.tarjeta;
+    const diff = totalReal - totalEsp;
 
-    const elDiferencia = document.getElementById('corte-diferencia');
-    elDiferencia.textContent = formatCurrency(diferencia);
-
-    // Colorear según diferencia
-    if (diferencia < 0) {
-        elDiferencia.className = 'text-xl font-bold text-red-600';
-    } else if (diferencia > 0) {
-        elDiferencia.className = 'text-xl font-bold text-green-600';
-    } else {
-        elDiferencia.className = 'text-xl font-bold text-gray-900';
-    }
+    const el = document.getElementById('corte-diferencia');
+    el.textContent = formatCurrency(diff);
+    el.className = diff < 0
+        ? 'text-xl font-bold text-red-600'
+        : diff > 0
+            ? 'text-xl font-bold text-green-600'
+            : 'text-xl font-bold text-gray-900';
 }
 
-// ========================================
-// SUBMIT MOVIMIENTO (INGRESO/RETIRO)
-// ========================================
+// -------------------------------------------------
+// Submit movimiento (ingreso / retiro)
+// -------------------------------------------------
 async function handleSubmitMovimiento(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
-    const action = formData.get('action');
     const monto = parseFloat(formData.get('monto'));
 
-    // Validación
     if (!monto || monto <= 0) {
         Swal.fire({
             icon: 'error',
@@ -214,20 +207,23 @@ async function handleSubmitMovimiento(e) {
             method: 'POST',
             body: formData
         });
-
         const data = await response.json();
 
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
+<<<<<<< HEAD
                 title: action === 'ingreso' ? (window.TR?.ingreso_registrado || 'Ingreso Registrado') : (window.TR?.retiro_registrado || 'Retiro Registrado'),
                 text: window.TR?.movimiento_guardado || 'El movimiento se ha guardado correctamente.',
+=======
+                title: formData.get('action') === 'ingreso' ? 'Ingreso Registrado' : 'Retiro Registrado',
+                text: 'El movimiento se ha guardado correctamente.',
+>>>>>>> origin/Genesis
                 confirmButtonColor: '#2d4353',
                 timer: 2000
             });
-
             cerrarModal('modalMovimiento');
-            cargarTotales(); // Recargar totales
+            cargarTotales();
         } else {
             Swal.fire({
                 icon: 'error',
@@ -236,8 +232,8 @@ async function handleSubmitMovimiento(e) {
                 confirmButtonColor: '#2d4353'
             });
         }
-    } catch (error) {
-        console.error('Error:', error);
+    } catch (err) {
+        console.error(err);
         Swal.fire({
             icon: 'error',
             title: window.TR?.error_conexion_title || 'Error de Conexión',
@@ -247,42 +243,46 @@ async function handleSubmitMovimiento(e) {
     }
 }
 
-// ========================================
-// SUBMIT CORTE DE CAJA
-// ========================================
+// -------------------------------------------------
+// Submit corte de caja
+// -------------------------------------------------
 async function handleSubmitCorte(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
+    const efectivoEsp = expectedTotals.efectivo;
+    const tarjetaEsp = expectedTotals.tarjeta;
+    const efectivoCont = parseFloat(formData.get('efectivo_contado')) || 0;
+    const tarjetaCont = parseFloat(formData.get('tarjeta_contado')) || 0;
 
-    const efectivoEsperado = expectedTotals.efectivo;
-    const tarjetaEsperado = expectedTotals.tarjeta;
-    const efectivoContado = parseFloat(formData.get('efectivo_contado')) || 0;
-    const tarjetaContado = parseFloat(formData.get('tarjeta_contado')) || 0;
+    formData.set('efectivo_esperado', efectivoEsp);
+    formData.set('tarjeta_esperado', tarjetaEsp);
 
-    // Agregar valores esperados al FormData
-    formData.set('efectivo_esperado', efectivoEsperado);
-    formData.set('tarjeta_esperado', tarjetaEsperado);
-
-    // Confirmación
-    const diferencia = (efectivoContado + tarjetaContado) - (efectivoEsperado + tarjetaEsperado);
+    const diferencia = (efectivoCont + tarjetaCont) - (efectivoEsp + tarjetaEsp);
 
     const result = await Swal.fire({
         icon: 'warning',
         title: window.TR?.confirmar_corte || '¿Confirmar Corte de Caja?',
         html: `
             <div class="text-left space-y-2 text-sm">
+<<<<<<< HEAD
                 <p><strong>${window.TR?.efectivo_esperado || 'Efectivo Esperado'}:</strong> ${formatCurrency(efectivoEsperado)}</p>
                 <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoContado)}</p>
                 <hr class="my-2">
                 <p><strong>${window.TR?.tarjeta_esperado || 'Tarjeta Esperado'}:</strong> ${formatCurrency(tarjetaEsperado)}</p>
                 <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaContado)}</p>
+=======
+                <p><strong>Efectivo Esperado:</strong> ${formatCurrency(efectivoEsp)}</p>
+                <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoCont)}</p>
+                <hr class="my-2">
+                <p><strong>Tarjeta Esperado:</strong> ${formatCurrency(tarjetaEsp)}</p>
+                <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaCont)}</p>
+>>>>>>> origin/Genesis
                 <hr class="my-2">
                 <p class="text-lg font-bold ${diferencia < 0 ? 'text-red-600' : diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
                     <strong>${window.TR?.diferencia_label || 'Diferencia'}:</strong> ${formatCurrency(diferencia)}
                 </p>
-            </div>
-        `,
+            </div>`,
         showCancelButton: true,
         confirmButtonText: window.TR?.yes_finalize_cut || 'Sí, Finalizar Corte',
         cancelButtonText: window.TR?.cancel_btn || 'Cancelar',
@@ -297,7 +297,6 @@ async function handleSubmitCorte(e) {
             method: 'POST',
             body: formData
         });
-
         const data = await response.json();
 
         if (data.status === 'success') {
@@ -308,13 +307,11 @@ async function handleSubmitCorte(e) {
                     <p class="text-lg mb-2">El corte de caja se ha registrado correctamente.</p>
                     <p class="text-2xl font-bold ${data.diferencia < 0 ? 'text-red-600' : data.diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
                         Diferencia: ${formatCurrency(data.diferencia)}
-                    </p>
-                `,
+                    </p>`,
                 confirmButtonColor: '#2d4353'
             });
-
             cerrarModal('modalCorte');
-            location.reload(); // Recargar página para nuevo turno
+            location.reload();
         } else {
             Swal.fire({
                 icon: 'error',
@@ -323,8 +320,8 @@ async function handleSubmitCorte(e) {
                 confirmButtonColor: '#2d4353'
             });
         }
-    } catch (error) {
-        console.error('Error:', error);
+    } catch (err) {
+        console.error(err);
         Swal.fire({
             icon: 'error',
             title: 'Error de Conexión',
@@ -334,21 +331,21 @@ async function handleSubmitCorte(e) {
     }
 }
 
-// ========================================
-// UTILIDADES
-// ========================================
+// -------------------------------------------------
+// Utilidades
+// -------------------------------------------------
 function formatCurrency(value) {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('es-MX', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'MXN',
         minimumFractionDigits: 2
     }).format(value);
 }
 
-function formatearFecha(fechaStr) {
-    if (!fechaStr) return 'N/A';
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleString('es-MX', {
+function formatearFecha(str) {
+    if (!str) return 'N/A';
+    const d = new Date(str);
+    return d.toLocaleString('es-MX', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',

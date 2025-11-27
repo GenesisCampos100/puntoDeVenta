@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
   </script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <style>
+ <style>
         :root {
             --primary: #b4c24d;
             --primary-dark: #9fb03d;
@@ -681,7 +681,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 max-width: 95%;
             }
         }
-    </style>
+
+        /* Tema oscuro */
+        /* Títulos del formulario */
+body.dark-mode .form-header h1,
+body.dark-mode .form-header p,
+body.dark-mode .section-title {
+  color: #ffffff !important;
+}
+/* Formularios en modo oscuro */
+body.dark-mode .form-card,
+body.dark-mode .card-body,
+body.dark-mode .section {
+  background-color: #1f1f1f !important;
+  color: #f5f5f5 !important;
+}
+/* Inputs */
+body.dark-mode .form-input,
+body.dark-mode .form-select {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #444 !important;
+}
+
+/* Placeholders */
+body.dark-mode .form-input::placeholder,
+body.dark-mode .form-select::placeholder {
+  color: #cccccc !important;
+}
+
+/* Labels */
+body.dark-mode .form-label,
+body.dark-mode label {
+  color: #eaeaea !important;
+}
+body.dark-mode .switch-label {
+  color: #eaeaea !important;
+}
+
+body.dark-mode .slider {
+  background-color: #444 !important;
+}
+body.dark-mode .card-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
+}
+/* Botón Guardar  → verde en modo oscuro */
+body.dark-mode .btn-primary {
+  background-color: #b4c24d !important; /* verde */
+  color: white !important;
+  border: none !important;
+}
+
+body.dark-mode .btn-primary:hover {
+  background-color: #b4c24d !important; /* verde más claro */
+}
+
+</style>
+
 </head>
 <body>
   <div class="container">

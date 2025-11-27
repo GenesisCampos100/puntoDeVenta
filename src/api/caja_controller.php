@@ -10,13 +10,42 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json; charset=utf-8');
 
 // Verificar autenticación básica
+<<<<<<< HEAD
 if (!isset($_SESSION['empleado_id'])) {
+=======
+if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id_empleado'])) {
+>>>>>>> origin/Genesis
     echo json_encode(['status' => 'error', 'message' => 'No hay sesión activa']);
     exit;
 }
 
 $action = $_POST['action'] ?? '';
+<<<<<<< HEAD
 $id_empleado = $_SESSION['empleado_id'];
+=======
+$id_empleado = $_SESSION['id_empleado'] ?? null;
+
+// Si no hay id_empleado en sesión, buscarlo por usuario_id
+if (!$id_empleado && isset($_SESSION['usuario_id'])) {
+    $stmt = $pdo->prepare("SELECT id_empleado FROM usuarios WHERE id_usuario = ?");
+    $stmt->execute([$_SESSION['usuario_id']]);
+    $id_empleado = $stmt->fetchColumn();
+}
+
+// Si aún no hay id_empleado (ej. usuario sin empleado asignado), manejar error o usar null
+if (!$id_empleado) {
+    // Opcional: permitir continuar si la acción no requiere id_empleado estricto, 
+    // pero para movimientos de caja generalmente se requiere.
+    // Por ahora, si es null, algunas DB podrían fallar si la columna es NOT NULL.
+    // Asumiremos que se requiere.
+    // Sin embargo, para fetch_totales no es estrictamente necesario el ID del empleado actual,
+    // pero para registrar movimientos sí.
+    if ($action !== 'fetch_totales') {
+         echo json_encode(['status' => 'error', 'message' => 'Usuario no vinculado a un empleado']);
+         exit;
+    }
+}
+>>>>>>> origin/Genesis
 
 try {
     switch ($action) {
@@ -46,11 +75,20 @@ try {
  */
 function handleMovimiento($pdo, $type, $id_empleado) {
     $monto = floatval($_POST['monto'] ?? 0);
+<<<<<<< HEAD
     $motivo = $_POST['motivo'] ?? '';
     $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Obtener del formulario o usar EFECTIVO por defecto
+=======
+    $motivo = trim($_POST['motivo'] ?? '');
+    $metodo = $_POST['metodo'] ?? 'EFECTIVO'; // Usar el método seleccionado en el formulario
+>>>>>>> origin/Genesis
 
     if ($monto <= 0) {
         throw new Exception("El monto debe ser mayor a 0");
+    }
+
+    if (empty($motivo)) {
+        throw new Exception("El motivo es obligatorio");
     }
 
     // Si es retiro, convertir a negativo
@@ -96,14 +134,17 @@ function handleFetchTotales($pdo) {
  * Helper para sumar columnas con filtro de fecha opcional
  */
 function getSum($pdo, $table, $sumCol, $whereStatic, $dateCol, $dateVal) {
-    $sql = "SELECT SUM($sumCol) as total FROM $table WHERE $whereStatic";
     if ($dateVal) {
-        $sql .= " AND $dateCol > ?";
+        // Si hay fecha de corte, filtrar registros posteriores a esa fecha
+        $sql = "SELECT COALESCE(SUM($sumCol), 0) as total FROM $table WHERE $whereStatic AND $dateCol > ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$dateVal]);
     } else {
+        // Si no hay fecha de corte, sumar todos los registros
+        $sql = "SELECT COALESCE(SUM($sumCol), 0) as total FROM $table WHERE $whereStatic";
         $stmt = $pdo->query($sql);
     }
+    
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
     return floatval($res['total'] ?? 0);
 }
