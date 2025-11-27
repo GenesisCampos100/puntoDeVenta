@@ -1,7 +1,96 @@
 <?php
 require_once __DIR__ . "/../config/db.php";
 
-// ✅ Traer productos con sus variantes (según la nueva BD)
+
+// Búsqueda de cliente (AJAX)
+if (isset($_GET['buscar_cliente'])) {
+    $texto = $_GET['buscar_cliente'];
+    $sql = $pdo->prepare("
+        SELECT id_cliente, 
+               CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) AS nombre_completo,
+               celular
+        FROM clientes
+        WHERE nombre LIKE ? 
+           OR apellido_paterno LIKE ?
+           OR apellido_materno LIKE ?
+        LIMIT 20
+    ");
+    $like = "%$texto%";
+    $sql->execute([$like, $like, $like]);
+    $clientes = $sql->fetchAll(PDO::FETCH_ASSOC);
+    // Aplicar traducción a nombres de clientes
+    foreach ($clientes as &$c) {
+        $c['nombre_completo'] = tr_content($c['nombre_completo']);
+    }
+    echo json_encode($clientes);
+    exit;
+}
+
+// =========================
+//      BÚSQUEDA PRODUCTO
+// =========================
+if (isset($_GET['buscar_producto'])) {
+    $texto = trim($_GET['buscar_producto']);
+
+    $sql = $pdo->prepare("
+        (SELECT 
+            p.cod_barras,
+            p.nom_producto,
+            p.descripcion,
+            p.marca,
+            p.imagen,
+            p.talla,
+            p.color,
+            p.sku,
+            p.cantidad,
+            p.precio,
+            c.nombre AS categoria
+        FROM productos p
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE 
+            (p.nom_producto LIKE ?
+            OR p.cod_barras LIKE ?
+            OR p.sku LIKE ?)
+            AND p.is_active = 1
+        LIMIT 15)
+        
+        UNION
+        
+        (SELECT 
+            p.cod_barras,
+            p.nom_producto,
+            p.descripcion,
+            p.marca,
+            v.imagen,
+            v.talla,
+            v.color,
+            v.sku,
+            v.cantidad,
+            v.precio,
+            c.nombre AS categoria
+        FROM variantes v
+        JOIN productos p ON v.cod_barras = p.cod_barras
+        LEFT JOIN categorias c ON c.id_categoria = p.id_categoria
+        WHERE 
+            (v.sku LIKE ?
+            OR v.cod_barras LIKE ?)
+            AND v.is_active = 1
+        LIMIT 15)
+    ");
+
+    $like = "%$texto%";
+    $sql->execute([$like, $like, $like, $like, $like]);
+
+    $resultados = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode($resultados);
+    exit;
+}
+
+
+
+
+// Traer productos con variantes
 $sql = "SELECT 
             p.cod_barras AS producto_cod_barras,
             p.nom_producto AS producto_nombre,
@@ -10,9 +99,7 @@ $sql = "SELECT
             p.talla AS producto_talla,
             p.color AS producto_color,
             p.precio AS producto_precio,
-            p.costo AS producto_costo,
             p.cantidad AS producto_cantidad,
-            p.cantidad_min AS producto_cantidad_min,
             c.nombre AS categoria,
             v.id_variante AS id_variante,
             v.cod_barras AS variante_cod_barras,
@@ -20,9 +107,7 @@ $sql = "SELECT
             v.color AS variante_color,
             v.imagen AS variante_imagen,
             v.precio AS variante_precio,
-            v.costo AS variante_costo,
-            v.cantidad AS variante_cantidad,
-            v.cantidad_min AS variante_cantidad_min
+            v.cantidad AS variante_cantidad
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
@@ -31,352 +116,404 @@ $sql = "SELECT
 $stmt = $pdo->query($sql);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Agrupar productos con sus variantes
+// Agrupar productos con variantes
+// Traer productos con variantes
+$sql = "SELECT 
+            p.cod_barras AS producto_cod_barras,
+            p.nom_producto AS producto_nombre,
+            p.descripcion,
+            p.imagen AS producto_imagen,
+            p.talla AS producto_talla,
+            p.color AS producto_color,
+            p.precio AS producto_precio,
+            p.cantidad AS producto_cantidad,
+            c.nombre AS categoria,
+            v.id_variante AS id_variante,
+            v.cod_barras AS variante_cod_barras,
+            v.talla AS variante_talla,
+            v.color AS variante_color,
+            v.imagen AS variante_imagen,
+            v.precio AS variante_precio,
+            v.cantidad AS variante_cantidad
+        FROM productos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN variantes v ON v.cod_barras = p.cod_barras
+        ORDER BY p.nom_producto ASC";
+
+$stmt = $pdo->query($sql);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupar productos con variantes
 $productos = [];
 foreach ($rows as $row) {
     $codigo = $row['producto_cod_barras'];
-    
-    // Si el producto no existe aún en el arreglo, se agrega
     if (!isset($productos[$codigo])) {
         $productos[$codigo] = [
-            'codigo' => $codigo,
+            'producto_cod_barras' => $codigo,
             'nombre' => $row['producto_nombre'],
             'descripcion' => $row['descripcion'],
             'imagen' => $row['producto_imagen'],
             'precio' => $row['producto_precio'] ?: 0,
-            'costo' => $row['producto_costo'] ?: 0,
-            'cantidad' => $row['producto_cantidad'] ?: 0,
-            'cantidad_min' => $row['producto_cantidad_min'] ?: 0,
             'categoria' => $row['categoria'] ?? 'Sin categoría',
             'variantes' => [],
-            'talla_default' => $row['producto_talla'] ?: 'Única',
+            'talla_default' => $row['producto_talla'] ?: 'N/A',
             'color_default' => $row['producto_color'] ?: 'Sin color',
+            'stock' => $row['producto_cantidad'] ?: 0,
         ];
     }
-
-    // Si tiene variantes, las agregamos al producto
     if ($row['id_variante'] !== null) {
         $productos[$codigo]['variantes'][] = [
-            'id' => $row['id_variante'],
-            'talla' => $row['variante_talla'] ?: $productos[$codigo]['talla_default'],
-            'color' => $row['variante_color'] ?: $productos[$codigo]['color_default'],
-            'precio' => $row['variante_precio'] ?: $productos[$codigo]['precio'],
-            'costo' => $row['variante_costo'] ?: $productos[$codigo]['costo'],
-            'cantidad' => $row['variante_cantidad'] ?: 0,
-            'cantidad_min' => $row['variante_cantidad_min'] ?: 0,
-            'imagen' => $row['variante_imagen'] ?: $productos[$codigo]['imagen'],
+            'id' => (int)$row['id_variante'],
             'cod_barras' => $row['variante_cod_barras'],
+            'talla' => $row['variante_talla'],
+            'color' => $row['variante_color'],
+            'precio' => $row['variante_precio'],
+            'imagen' => $row['variante_imagen'],
+            'cantidad' => $row['variante_cantidad'] ?: 0,
         ];
     }
 }
 
-// ✅ Traer categorías
+
+// Categorías
 $categorias = $pdo->query("SELECT * FROM categorias")->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Función para normalizar nombres de categoría
 function normalizeCategory($name) {
     return strtolower(trim(preg_replace('/\s+/', '', $name)));
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
-<title>Nueva Venta</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punto de Venta - Caja</title>
+
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-0">
 
-<!-- FILTROS DE CATEGORÍA -->
-<div class="flex flex-wrap justify-start gap-2 mb-8 px-6">
-  <button data-category="all" class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
-    Todos
-  </button>
-  <?php foreach($categorias as $cat): ?>
-    <button data-category="<?= normalizeCategory($cat['nombre']) ?>" 
-            class="category-btn px-6 py-2 rounded-full text-white font-medium hover:bg-red-600 transition" style="background-color:#ec3678; font-size: .9rem">
-      <?= htmlspecialchars($cat['nombre']) ?>
-    </button>
-  <?php endforeach; ?>
-</div>
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-<!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
-  <!-- GRID PRODUCTOS -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center px-6" id="productos-grid">
-  <?php foreach($productos as $prod): ?>
-    <?php 
-      // ✅ Convertir variantes a JSON para JS
-      $variantes = json_encode($prod['variantes'], JSON_UNESCAPED_UNICODE);
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      // ✅ Obtener tallas y colores (usando las claves correctas)
-      $sizes = array_unique(array_filter(array_map(fn($v)=>$v['talla'], $prod['variantes'])));
-      $colors = array_unique(array_filter(array_map(fn($v)=>$v['color'], $prod['variantes'])));
+<style>
+    :root {
+        --primary: #1e293b;      /* Slate 800 */
+        --primary-dark: #0f172a; /* Slate 900 */
+        --accent: #6366f1;       /* Indigo 500 */
+        --accent-hover: #4f46e5; /* Indigo 600 */
+        --bg-main: #f8fafc;      /* Slate 50 */
+        --surface: #ffffff;
+        --border: #e2e8f0;       /* Slate 200 */
+        --text-main: #334155;    /* Slate 700 */
+        --text-muted: #64748b;   /* Slate 500 */
+        --success: #10b981;      /* Emerald 500 */
+        --danger: #ef4444;       /* Red 500 */
+    }
 
-      // ✅ Si no hay variantes, usamos los valores por defecto
-      if (empty($sizes)) $sizes = [$prod['talla_default']];
-      if (empty($colors)) $colors = [$prod['color_default']];
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-      $imagen = !empty($prod['imagen']) ? $prod['imagen'] : 'sin-imagen.png';
-      $precio = $prod['precio'] ?: 0;
-    ?>
-    <article class="producto bg-white shadow rounded-lg p-4 text-center w-60"
-             data-name="<?= htmlspecialchars($prod['nombre']) ?>"
-             data-code="<?= htmlspecialchars($prod['codigo']) ?>"
-             data-img="../src/uploads/<?= htmlspecialchars($imagen) ?>"
-             data-price="<?= htmlspecialchars($precio) ?>"
-             data-category="<?= normalizeCategory($prod['categoria']) ?>"
-             data-variants='<?= htmlspecialchars($variantes, ENT_QUOTES, 'UTF-8') ?>'>
-
-      <img src="../src/uploads/<?= htmlspecialchars($imagen) ?>" 
-           alt="<?= htmlspecialchars($prod['nombre']) ?>" 
-           class="w-full h-40 object-cover rounded product-image">
-
-      <h3 class="mt-2 font-semibold"><?= htmlspecialchars($prod['nombre']) ?></h3>
-      <p class="text-gray-500 text-sm"><?= htmlspecialchars($prod['categoria']) ?></p>
-      <p class="text-lg font-bold mt-1 price">$<?= number_format($precio, 2) ?></p>
-
-      <!-- Selects de talla y color -->
-      <select class="variant-size border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-        <?php foreach ($sizes as $size): ?>
-          <option value="<?= htmlspecialchars($size) ?>"><?= htmlspecialchars($size) ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <select class="variant-color border rounded-lg px-2 py-1 text-sm font-medium text-center mt-2 w-full">
-        <?php foreach ($colors as $color): ?>
-          <option value="<?= htmlspecialchars($color) ?>"><?= htmlspecialchars($color) ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <button class="add-to-cart mt-3 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded w-full">Agregar</button>
-    </article>
-  <?php endforeach; ?>
-</div>
-
-</div>
-
-<!-- CARRITO LATERAL -->
-<aside id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg flex flex-col p-4 z-50">
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-lg font-bold">Orden</h2>
-    <div class="flex gap-2">
-      <button id="discount-btn" class="bg-yellow-300 p-2 text-white rounded-full hover:bg-yellow-400">%</button>
-      <button id="clear-cart" class="bg-red-100 p-2 rounded-full hover:bg-red-200">🗑</button>
-    </div>
-  </div>
-
-  <div id="cart-items" class="flex-1 overflow-y-auto space-y-4"></div>
-
-  <form id="checkout-form" method="POST" action="scripts/procesar_venta.php" class="mt-4">
-    <input type="hidden" name="cart_data" id="cart-data">
-    <div class="border-t pt-4 mt-4">
-      <div class="flex justify-between text-sm">
-        <span>Subtotal:</span><span id="subtotal">$0.00</span>
-      </div>
-      <div class="flex justify-between text-sm text-red-500">
-        <span>Descuento:</span><span id="discount">$0.00</span>
-      </div>
-      <div class="flex justify-between font-bold text-lg mt-2">
-        <span>Total:</span><span id="total">$0.00</span>
-      </div>
-     <button type="button" id="pay-btn" class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-2 rounded mt-4">
-      Realizar Pago
-    </button>
-
-    <!-- Botón oculto para enviar el formulario 
-    <button type="submit" id="submit-checkout" class="hidden"></button>-->
-    </div>
-  </form>
-</aside>
-
-<!-- ========================= -->
-<!-- MODAL: Selección de pago -->
-<!-- ========================= -->
-<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
-    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
     
-    <form id="payment-form" method="POST" action="../src/scripts/procesar_venta.php">
-      <input type="hidden" name="cart_data" id="cart-data-input">
-      <div class="space-y-3 mb-6">
-        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
-          <span>Efectivo 💵</span>
-        </label>
-      </div>
-      <div class="flex justify-end gap-3">
-        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
-      </div>
-    </form>
-  </div>
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-transition {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-transition:active {
+        transform: scale(0.98);
+    }
+
+    .row-hover:hover {
+        background-color: #f1f5f9; /* Slate 100 */
+    }
+
+    input:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        border-color: var(--accent);
+    }
+  /* ======== MODO OSCURO (GRIS REAL) ======== */
+body.dark-mode {
+    background: #121212 !important;
+    color: #e5e5e5 !important;
+}
+
+/* Inputs */
+body.dark-mode input {
+    background: #1e1e1e !important;
+    border-color: #2c2c2c !important;
+    color: #e5e5e5 !important;
+}
+
+body.dark-mode input::placeholder {
+    color: #7a7a7a !important;
+}
+
+/* Buscador */
+body.dark-mode #quick-search {
+    background: #1e1e1e !important;
+    border-color: #2c2c2c !important;
+    color: #f5f5f5 !important;
+}
+
+/* Tablas */
+body.dark-mode table thead {
+    background: #1e1e1e !important;
+    color: #cccccc !important;
+}
+
+body.dark-mode tbody tr {
+    background: #121212 !important;
+    color: #e5e5e5 !important;
+}
+
+body.dark-mode .row-hover:hover {
+    background: #1f1f1f !important;
+}
+
+/* Panel izquierdo */
+body.dark-mode .bg-white {
+    background: #1e1e1e !important;
+    color: #e5e5e5 !important;
+}
+
+body.dark-mode .border {
+    border-color: #2c2c2c !important;
+}
+
+/* Texto */
+body.dark-mode .text-slate-800,
+body.dark-mode .text-slate-700 {
+    color: #e5e5e5 !important;
+}
+
+body.dark-mode .text-slate-500,
+body.dark-mode .text-slate-400 {
+    color: #b3b3b3 !important;
+}
+
+/* Resultados de búsqueda */
+body.dark-mode #search-results {
+    background: #1e1e1e !important;
+    border-color: #2c2c2c !important;
+}
+
+/* Botones */
+body.dark-mode button {
+    border-color: #3a3a3a !important;
+    background: #1e1e1e !important;
+    color: #e5e5e5 !important;
+}
+
+body.dark-mode button:hover {
+    background: #2a2a2a !important;
+}
+
+/* Botón flotante de productos */
+body.dark-mode #open-product-modal {
+    background: #1e1e1e !important;
+}
+
+body.dark-mode #open-product-modal:hover {
+    background: #2a2a2a !important;
+}
+
+/* Panel Totales (derecha) */
+body.dark-mode .bg-slate-900,
+body.dark-mode .bg-slate-800,
+body.dark-mode .bg-slate-700 {
+    background: #1e1e1e !important;
+}
+
+/* Imagen preview */
+body.dark-mode #preview-producto {
+    background: #1e1e1e !important;
+    border-color: #2c2c2c !important;
+}
+body.dark-mode #pay-btn {
+    background: linear-gradient(to right, #10b981, #0d9488) !important; /* emerald-500 → teal-600 */
+    color: white !important;
+}
+
+body.dark-mode #pay-btn:hover {
+    background: linear-gradient(to right, #34d399, #14b8a6) !important; /* emerald-400 → teal-500 */
+}
+
+</style>
+
+<div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
+
+    <!-- PANEL IZQUIERDO (Buscador y Carrito) -->
+    <div class="flex-1 flex flex-col overflow-hidden gap-4">
+
+        <!-- Top: Buscador -->
+        <div class="flex gap-3 shrink-0">
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <input id="quick-search" type="text" placeholder="Buscar producto por código, nombre o SKU..." 
+                    class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-lg shadow-sm focus:outline-none transition-all placeholder-slate-400 font-medium">
+            </div>
+            <button id="open-product-modal" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3 rounded-2xl font-semibold shadow-lg btn-transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                Catálogo
+            </button>
+        </div>
+
+        <!-- Resultados búsqueda (Flotante) -->
+        <div id="search-results" class="hidden absolute top-28 left-6 right-[28%] z-50 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[400px] animate-fade-in-down">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider border-b border-slate-100">
+                    <tr>
+                        <th class="py-3 px-4">Código</th>
+                        <th class="py-3 px-4">Producto</th>
+                        <th class="py-3 px-4">Variante</th>
+                        <th class="py-3 px-4 text-right">Precio</th>
+                        <th class="py-3 px-4 text-center">Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="search-body" class="divide-y divide-slate-50"></tbody>
+            </table>
+        </div>
+
+        <!-- Ticket / Carrito -->
+        <div class="flex-1 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden card-shadow">
+            <!-- Header Ticket -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
+                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+                    Caja Principal
+                </div>
+            </div>
+
+            <!-- Tabla Header -->
+            <div class="bg-slate-50 border-b border-slate-100 px-2">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="py-3 px-4 text-left w-[15%]">Código</th>
+                            <th class="py-3 px-4 text-left w-[30%]">Descripción</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Precio</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Cant.</th>
+                            <th class="py-3 px-4 text-right w-[15%]">Total</th>
+                            <th class="py-3 px-4 text-center w-[10%]"></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <!-- Filas Carrito -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                <table class="w-full text-sm border-separate border-spacing-y-1">
+                    <tbody id="cart-rows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DERECHO (Totales y Acciones) -->
+    <div class="w-[340px] flex flex-col gap-4 shrink-0">
+
+        <!-- Tarjeta Cliente -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 card-shadow relative overflow-hidden group shrink-0">
+            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg class="w-20 h-20 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            
+            <div class="relative z-10">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Cliente Asignado</label>
+                <div class="flex justify-between items-start">
+                    <div class="truncate pr-2">
+                        <h3 id="client-name" class="text-lg font-bold text-slate-800 leading-tight truncate">Público General</h3>
+                        <p id="client-phone" class="text-xs text-slate-500 mt-0.5 font-medium h-4"></p>
+                    </div>
+                    <button id="remove-client" class="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <button id="client-btn" class="mt-3 w-full py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Cambiar Cliente
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview Producto -->
+        <div id="preview-producto" class="hidden bg-white rounded-2xl p-3 shadow-sm border border-slate-200 card-shadow text-center shrink-0">
+            <img id="preview-img" src="" class="h-32 w-full object-contain mx-auto rounded-lg">
+        </div>
+
+        <!-- Panel de Totales -->
+        <div class="flex-1 bg-slate-900 rounded-2xl p-5 text-white shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-0">
+            <!-- Decorative background -->
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-emerald-500 rounded-full blur-3xl opacity-20"></div>
+
+            <div class="relative z-10 space-y-3 overflow-y-auto custom-scrollbar pr-1">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="text-base font-medium">Subtotal</span>
+                    <span id="subtotal" class="text-lg font-semibold tracking-wide">$0.00</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-rose-300">
+                    <span class="flex items-center gap-2 text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        Descuento
+                    </span>
+                    <span id="discount" class="text-base font-semibold">-$0.00</span>
+                </div>
+
+                <div class="h-px bg-slate-700 my-3"></div>
+
+                <div class="flex justify-between items-end">
+                    <span class="text-slate-400 font-medium mb-1 text-sm">Total a Pagar</span>
+                    <span id="total" class="text-4xl font-bold tracking-tight text-white">$0.00</span>
+                </div>
+            </div>
+
+            <div class="relative z-10 mt-4 space-y-3 shrink-0">
+                <button id="discount-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-slate-700 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                    Aplicar Descuento
+                </button>
+
+                <button id="pay-btn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 btn-transition flex items-center justify-center gap-2">
+                    <span>Cobrar</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
 
-<!-- MODAL DESCUENTO GLOBAL -->
-<div id="discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
-    <h2 class="text-lg font-bold mb-3">Descuento General</h2>
-
-    <div class="flex gap-2 mb-3">
-      <select id="discount-type" class="border rounded-lg p-2 w-1/3 text-center">
-        <option value="percent">%</option>
-        <option value="amount">$</option>
-      </select>
-      <input type="number" id="discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button id="close-discount" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1">Cancelar</button>
-      <button id="apply-discount" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1">Aplicar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DESCUENTO INDIVIDUAL -->
-<div id="product-discount-modal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
-  <div class="bg-white rounded-2xl shadow-xl p-6 w-80">
-    <h2 class="text-lg font-bold mb-3">Descuento del Producto</h2>
-
-    <div class="flex gap-2 mb-3">
-      <select id="product-discount-type" class="border rounded-lg p-2 w-1/3 text-center">
-        <option value="percent">%</option>
-        <option value="amount">$</option>
-      </select>
-      <input type="number" id="product-discount-input" class="border rounded-lg p-2 w-2/3" placeholder="Valor">
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button id="product-discount-close" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-1">Cancelar</button>
-      <button id="product-discount-apply" class="bg-lime-500 hover:bg-lime-600 text-white rounded-lg px-3 py-1">Aplicar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ========================= -->
-<!-- MODAL: Selección de pago -->
-<!-- ========================= -->
-<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl shadow-lg p-6 w-96">
-    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">Método de Pago</h2>
-    
-    <form id="payment-form" method="POST" action="procesar_venta.php">
-      <input type="hidden" name="cart_data" id="cart-data-input">
-      
-      <div class="space-y-3 mb-6">
-        <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-          <input type="radio" name="tipo_pago" value="EFECTIVO" checked>
-          <span>Efectivo 💵</span>
-        </label>
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <button type="button" id="cancel-payment" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Confirmar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-<script>
-document.getElementById("pay-btn").addEventListener("click", () => {
-  const cart = localStorage.getItem("cart");
-  if (!cart || JSON.parse(cart).length === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-
-  // Asignamos el carrito al campo oculto
-  document.getElementById("cart-data").value = cart;
-
-  // Enviamos el formulario
-  document.getElementById("submit-checkout").click();
-
-  // Limpia carrito al finalizar (opcional)
-  // localStorage.removeItem("cart");
-});
-</script>
-
-
-
-<script>
-document.getElementById("pay-btn").addEventListener("click", () => {
-  const cart = localStorage.getItem("cart");
-  if (!cart || JSON.parse(cart).length === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-
-  // Asignamos el carrito al campo oculto
-  document.getElementById("cart-data").value = cart;
-
-  // Enviamos el formulario
-  document.getElementById("submit-checkout").click();
-
-  // Limpia carrito al finalizar (opcional)
-  // localStorage.removeItem("cart");
-});
-</script>
-
-
-
-<script>
-// Filtrado de productos por categoría
-document.addEventListener('DOMContentLoaded', () => {
-  const buttons = document.querySelectorAll('.category-btn');
-  const productos = document.querySelectorAll('.producto');
-
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const selectedCat = btn.dataset.category.toLowerCase().trim();
-
-      productos.forEach(prod => {
-        const prodCat = prod.dataset.category.toLowerCase().trim();
-        if (selectedCat === 'all' || prodCat === selectedCat) {
-          prod.style.display = 'block';
-        } else {
-          prod.style.display = 'none';
-        }
-      });
-    });
-  });
-});
-
-// Actualizar colores según talla seleccionada
-document.querySelectorAll('.producto').forEach(prod => {
-  const sizeSelect = prod.querySelector('.variant-size');
-  const colorSelect = prod.querySelector('.variant-color');
-  const variants = JSON.parse(prod.dataset.variants || '[]');
-
-  if (!variants.length) return;
-
-  const colorMap = {};
-  variants.forEach(v => {
-    if (!colorMap[v.size]) colorMap[v.size] = [];
-    if (!colorMap[v.size].includes(v.color)) colorMap[v.size].push(v.color);
-  });
-
-  const updateColors = () => {
-    const validColors = colorMap[sizeSelect.value] || [];
-    colorSelect.innerHTML = '';
-    validColors.forEach(color => {
-      const opt = document.createElement('option');
-      opt.value = color;
-      opt.textContent = color;
-      colorSelect.appendChild(opt);
-    });
-  };
-
-  sizeSelect.addEventListener('change', updateColors);
-  updateColors();
-});
-</script>
-
+<!-- SCRIPTS -->
 <script src="../src/scripts/cart.js"></script>
 <script src="../src/scripts/modal.js"></script>
-</body>
-</html>
+
+<?php require_once __DIR__ . "/../scripts/modales_venta.php"; ?>
