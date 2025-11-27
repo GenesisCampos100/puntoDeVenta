@@ -796,6 +796,29 @@ return [
     'register_withdrawal_title' => 'Registrar Retiro',
     'confirm_cash_cut_title' => '¿Confirmar Corte de Caja?',
     'yes_finalize_cut' => 'Sí, Finalizar Corte',
-    'cancel_btn' => 'Cancelar'
+    'cancel_btn' => 'Cancelar',
+
+    // Ventas Contenido
+    'sales_made' => 'Ventas Realizadas',
+    'manage_view_sales' => 'Gestiona y visualiza todas las ventas registradas',
+    'search_by_id_employee_date' => 'Buscar por ID, empleado o fecha...',
+    'date_recent' => 'Fecha (Recientes)',
+    'date_old' => 'Fecha (Antiguas)',
+    'total_higher' => 'Total (Mayor)',
+    'total_lower' => 'Total (Menor)',
+    'reset' => 'Resetear',
+    'total_sales' => 'Total Ventas',
+    'total_income' => 'Ingresos Totales',
+    'showing' => 'Mostrando',
+    'employee' => 'Empleado',
+    'date' => 'Fecha',
+    'actions' => 'Acciones',
+    'showing_from_to' => 'Mostrando',
+    'to' => 'a',
+    'of' => 'de',
+    'sales' => 'ventas',
+    'previous' => 'Anterior',
+    'next' => 'Siguiente',
+    'sale_detail' => 'Detalle de Venta'
 ];
 

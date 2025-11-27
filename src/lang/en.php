@@ -806,5 +806,32 @@ return [
     'register_withdrawal_title' => 'Register Withdrawal',
     'confirm_cash_cut_title' => 'Confirm Cash Cut?',
     'yes_finalize_cut' => 'Yes, Finalize Cut',
-    'cancel_btn' => 'Cancel'
+    'cancel_btn' => 'Cancel',
+
+    // Sales Content
+    'sales_made' => 'Sales Made',
+    'manage_view_sales' => 'Manage and view all registered sales',
+    'search_by_id_employee_date' => 'Search by ID, employee or date...',
+    'date_recent' => 'Date (Recent)',
+    'date_old' => 'Date (Old)',
+    'total_higher' => 'Total (Higher)',
+    'total_lower' => 'Total (Lower)',
+    'reset' => 'Reset',
+    'total_sales' => 'Total Sales',
+    'total_income' => 'Total Income',
+    'showing' => 'Showing',
+    'employee' => 'Employee',
+    'date' => 'Date',
+    'total' => 'Total',
+    'actions' => 'Actions',
+    'view' => 'View',
+    'delete' => 'Delete',
+    'showing_from_to' => 'Showing',
+    'to' => 'to',
+    'of' => 'of',
+    'sales' => 'sales',
+    'previous' => 'Previous',
+    'next' => 'Next',
+    'sale_detail' => 'Sale Detail',
+    'close' => 'Close'
 ];
