@@ -238,10 +238,27 @@ $fotoUsuario = $_SESSION['foto_perfil'] ?? '../public/img/1.png';
            onmouseout="this.style.transform='scale(1)';">
         <img src="../public/img/idiomaIcon.png" alt="Idioma" style="width:18px; height:18px; filter:invert(1);">
       </div>
-      <span id="languageCode" style="font-weight:600; font-size:14px; color:#0A2342;">ES</span>
+      <span id="languageCode" style="font-weight:600; font-size:14px; color:#0A2342;"><?php echo strtoupper(current_lang()); ?></span>
     </div>
   </div>
 </header>
+
+<script>
+// Función para cambiar el idioma
+function toggleLanguage() {
+  const currentLang = '<?php echo current_lang(); ?>';
+  const newLang = currentLang === 'es' ? 'en' : 'es';
+  
+  // Obtener parámetros actuales de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Actualizar o agregar el parámetro lang
+  urlParams.set('lang', newLang);
+  
+  // Recargar la página con el nuevo idioma
+  window.location.search = urlParams.toString();
+}
+</script>
 
 <!-- Sidebar Premium -->
 <nav id="sidebar" 
