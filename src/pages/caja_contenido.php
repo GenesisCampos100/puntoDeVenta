@@ -444,4 +444,34 @@ body.dark-mode .save-btn svg {
     </div>
 </div>
 
+<script>
+// Traducciones para JavaScript
+const i18n = {
+    register_income_title: '<?php echo __('register_income_title'); ?>',
+    register_withdrawal_title: '<?php echo __('register_withdrawal_title'); ?>',
+    invalid_amount: '<?php echo __('invalid_amount'); ?>',
+    enter_amount_greater_zero: '<?php echo __('enter_amount_greater_zero'); ?>',
+    reason_required: '<?php echo __('reason_required'); ?>',
+    must_specify_reason: '<?php echo __('must_specify_reason'); ?>',
+    income_registered: '<?php echo __('income_registered'); ?>',
+    withdrawal_registered: '<?php echo __('withdrawal_registered'); ?>',
+    movement_saved_successfully: '<?php echo __('movement_saved_successfully'); ?>',
+    error: '<?php echo __('error'); ?>',
+    could_not_register_movement: '<?php echo __('could_not_register_movement'); ?>',
+    connection_error: '<?php echo __('connection_error'); ?>',
+    could_not_connect_server: '<?php echo __('could_not_connect_server'); ?>',
+    confirm_cash_cut_title: '<?php echo __('confirm_cash_cut_title'); ?>',
+    expected_cash_label: '<?php echo __('expected_cash'); ?>',
+    counted_cash_label: '<?php echo __('counted_cash'); ?>',
+    expected_card_label: '<?php echo __('expected_card'); ?>',
+    counted_card_label: '<?php echo __('counted_card'); ?>',
+    difference: '<?php echo __('difference'); ?>',
+    yes_finalize_cut: '<?php echo __('yes_finalize_cut'); ?>',
+    cancel_btn: '<?php echo __('cancel_btn'); ?>',
+    cut_finalized: '<?php echo __('cut_finalized'); ?>',
+    cut_registered_successfully: '<?php echo __('cut_registered_successfully'); ?>',
+    could_not_register_cut: '<?php echo __('could_not_register_cut'); ?>',
+    no_previous_cuts: '<?php echo __('no_previous_cuts'); ?>'
+};
+</script>
 <script src="js/caja.js?v=<?= time() ?>"></script>

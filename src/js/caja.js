@@ -33,7 +33,7 @@ async function cargarTotales() {
             if (lastCutEl) {
                 lastCutEl.textContent = data.ultima_fecha_corte
                     ? formatearFecha(data.ultima_fecha_corte)
-                    : 'Sin cortes previos';
+                    : i18n.no_previous_cuts;
             }
         } else {
             console.error('Error al cargar totales:', data.message);
@@ -42,8 +42,8 @@ async function cargarTotales() {
         console.error('Error de conexión:', err);
         Swal.fire({
             icon: 'error',
-            title: 'Error de Conexión',
-            text: 'No se pudieron cargar los totales. Verifica tu conexión.',
+            title: i18n.connection_error,
+            text: i18n.could_not_connect_server,
             confirmButtonColor: '#2d4353'
         });
     }
@@ -71,12 +71,12 @@ function abrirModalMovimiento(tipo) {
     if (tipo === 'ingreso') {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#b4c24d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12l4 4 4-4"/></svg>
-            Registrar Ingreso`;
+            ${i18n.register_income_title}`;
         actionInput.value = 'ingreso';
     } else {
         title.innerHTML = `
             <svg class="w-6 h-6 text-[#e15871]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16V8M8 12l4-4 4 4"/></svg>
-            Registrar Retiro`;
+            ${i18n.register_withdrawal_title}`;
         actionInput.value = 'retiro';
     }
 
@@ -166,8 +166,8 @@ async function handleSubmitMovimiento(e) {
     if (!monto || monto <= 0) {
         Swal.fire({
             icon: 'error',
-            title: 'Monto Inválido',
-            text: 'Ingresa un monto mayor a cero.',
+            title: i18n.invalid_amount,
+            text: i18n.enter_amount_greater_zero,
             confirmButtonColor: '#2d4353'
         });
         return;
@@ -176,8 +176,8 @@ async function handleSubmitMovimiento(e) {
     if (!formData.get('motivo').trim()) {
         Swal.fire({
             icon: 'error',
-            title: 'Motivo Requerido',
-            text: 'Debes especificar un motivo para este movimiento.',
+            title: i18n.reason_required,
+            text: i18n.must_specify_reason,
             confirmButtonColor: '#2d4353'
         });
         return;
@@ -193,8 +193,8 @@ async function handleSubmitMovimiento(e) {
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
-                title: formData.get('action') === 'ingreso' ? 'Ingreso Registrado' : 'Retiro Registrado',
-                text: 'El movimiento se ha guardado correctamente.',
+                title: formData.get('action') === 'ingreso' ? i18n.income_registered : i18n.withdrawal_registered,
+                text: i18n.movement_saved_successfully,
                 confirmButtonColor: '#2d4353',
                 timer: 2000
             });
@@ -203,8 +203,8 @@ async function handleSubmitMovimiento(e) {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: data.message || 'No se pudo registrar el movimiento.',
+                title: i18n.error,
+                text: data.message || i18n.could_not_register_movement,
                 confirmButtonColor: '#2d4353'
             });
         }
@@ -212,8 +212,8 @@ async function handleSubmitMovimiento(e) {
         console.error(err);
         Swal.fire({
             icon: 'error',
-            title: 'Error de Conexión',
-            text: 'No se pudo conectar con el servidor.',
+            title: i18n.connection_error,
+            text: i18n.could_not_connect_server,
             confirmButtonColor: '#2d4353'
         });
     }
@@ -238,22 +238,22 @@ async function handleSubmitCorte(e) {
 
     const result = await Swal.fire({
         icon: 'warning',
-        title: '¿Confirmar Corte de Caja?',
+        title: i18n.confirm_cash_cut_title,
         html: `
             <div class="text-left space-y-2 text-sm">
-                <p><strong>Efectivo Esperado:</strong> ${formatCurrency(efectivoEsp)}</p>
-                <p><strong>Efectivo Contado:</strong> ${formatCurrency(efectivoCont)}</p>
+                <p><strong>${i18n.expected_cash_label}:</strong> ${formatCurrency(efectivoEsp)}</p>
+                <p><strong>${i18n.counted_cash_label}:</strong> ${formatCurrency(efectivoCont)}</p>
                 <hr class="my-2">
-                <p><strong>Tarjeta Esperado:</strong> ${formatCurrency(tarjetaEsp)}</p>
-                <p><strong>Tarjeta Contado:</strong> ${formatCurrency(tarjetaCont)}</p>
+                <p><strong>${i18n.expected_card_label}:</strong> ${formatCurrency(tarjetaEsp)}</p>
+                <p><strong>${i18n.counted_card_label}:</strong> ${formatCurrency(tarjetaCont)}</p>
                 <hr class="my-2">
                 <p class="text-lg font-bold ${diferencia < 0 ? 'text-red-600' : diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
-                    <strong>Diferencia:</strong> ${formatCurrency(diferencia)}
+                    <strong>${i18n.difference}:</strong> ${formatCurrency(diferencia)}
                 </p>
             </div>`,
         showCancelButton: true,
-        confirmButtonText: 'Sí, Finalizar Corte',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: i18n.yes_finalize_cut,
+        cancelButtonText: i18n.cancel_btn,
         confirmButtonColor: '#2d4353',
         cancelButtonColor: '#6b7280'
     });
@@ -270,11 +270,11 @@ async function handleSubmitCorte(e) {
         if (data.status === 'success') {
             await Swal.fire({
                 icon: 'success',
-                title: 'Corte Finalizado',
+                title: i18n.cut_finalized,
                 html: `
-                    <p class="text-lg mb-2">El corte de caja se ha registrado correctamente.</p>
+                    <p class="text-lg mb-2">${i18n.cut_registered_successfully}</p>
                     <p class="text-2xl font-bold ${data.diferencia < 0 ? 'text-red-600' : data.diferencia > 0 ? 'text-green-600' : 'text-gray-900'}">
-                        Diferencia: ${formatCurrency(data.diferencia)}
+                        ${i18n.difference}: ${formatCurrency(data.diferencia)}
                     </p>`,
                 confirmButtonColor: '#2d4353'
             });
@@ -283,8 +283,8 @@ async function handleSubmitCorte(e) {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: data.message || 'No se pudo registrar el corte.',
+                title: i18n.error,
+                text: data.message || i18n.could_not_register_cut,
                 confirmButtonColor: '#2d4353'
             });
         }
@@ -292,8 +292,8 @@ async function handleSubmitCorte(e) {
         console.error(err);
         Swal.fire({
             icon: 'error',
-            title: 'Error de Conexión',
-            text: 'No se pudo conectar con el servidor.',
+            title: i18n.connection_error,
+            text: i18n.could_not_connect_server,
             confirmButtonColor: '#2d4353'
         });
     }
