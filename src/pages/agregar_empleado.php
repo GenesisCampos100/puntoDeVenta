@@ -8,6 +8,16 @@ $id_empleado = '';
 $stmt = $pdo->query("SELECT * FROM roles");
 $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Función auxiliar para enviar respuestas JSON limpias
+function send_json_response($data) {
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data);
+    exit;
+}
+
 $estatus = 1;
 if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
     try {
@@ -27,8 +37,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
         foreach ($campos_obligatorios as $campo => $etiqueta) {
             if (empty($_POST[$campo])) {
-                echo json_encode(["error" => "El campo $etiqueta es obligatorio. Por favor, complételo.", "icon" => "warning"]);
-                exit;
+                send_json_response(["error" => "El campo $etiqueta es obligatorio. Por favor, complételo.", "icon" => "warning"]);
             }
         }
 
@@ -39,21 +48,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
         $regexNombre = "/^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$/u";
         if (!preg_match($regexNombre, $nombre) || !preg_match($regexNombre, $apellido_paterno)) {
-            echo json_encode(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => "Los nombres y apellidos solo deben contener letras.", "icon" => "warning"]);
         }
         
         // Validar apellido materno solo si no está vacío
         if ($apellido_materno !== "" && !preg_match($regexNombre, $apellido_materno)) {
-            echo json_encode(["error" => "El apellido materno solo debe contener letras.", "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => "El apellido materno solo debe contener letras.", "icon" => "warning"]);
         }
 
         /* --- Validar correo --- */
         $correo = trim(filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL));
         if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => "Por favor, ingresa una dirección de correo electrónico valido.", "icon" => "warning"]);
         } else {
             try {
                 $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
@@ -61,13 +67,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                 $existe = $stmt->fetchColumn();
                 
                 if ($existe > 0) {
-                    echo json_encode(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
-                    exit;
+                    send_json_response(["error" => "El correo electrónico ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
                 }
             } catch (PDOException $e) {
-                echo json_encode(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
-                exit;
-
+                send_json_response(["error" => "Error al verificar el correo electrónico: " . $e->getMessage(), "icon" => "error"]);
             }
         }
 
@@ -75,19 +78,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         $contraseña = trim($_POST['contra']);
 
         if (strlen($contraseña) < 8) {
-            echo json_encode(["error" => __('password_min_8'), "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => __('password_min_8'), "icon" => "warning"]);
         }
 
         if (!preg_match('/[A-Z]/', $contraseña)) {
-            echo json_encode(["error" => __('password_uppercase'), "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => __('password_uppercase'), "icon" => "warning"]);
         } else if (!preg_match('/[a-z]/', $contraseña)) {
-            echo json_encode(["error" => __('password_lowercase'), "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => __('password_lowercase'), "icon" => "warning"]);
         } else if (!preg_match('/[0-9)]/', $contraseña)) {
-            echo json_encode(["error" => __('password_number'), "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => __('password_number'), "icon" => "warning"]);
         }
 
         $hash = password_hash($contraseña, PASSWORD_DEFAULT);
@@ -97,8 +96,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
 
         $regexTelefono = "/^[0-9]{10}$/";
         if (!preg_match($regexTelefono, $telefono)) { 
-            echo json_encode(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => "El número de teléfono debe contener dígitos numéricos.", "icon" => "warning"]);
         }
 
         /* --- Validar domicilio  --- */
@@ -130,8 +128,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
         }
 
         if (count($errores) > 0) {
-            echo json_encode(["error" => $errores[0], "icon" => "warning"]);
-            exit;
+            send_json_response(["error" => $errores[0], "icon" => "warning"]);
         }
 
         /* --- Validar estatus  --- */
@@ -173,8 +170,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             $existeEmpleado = $stmt->fetchColumn();
 
             if ($existeEmpleado > 0) {
-                echo json_encode(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
-                exit;
+                send_json_response(["error" => "El número de empleado ya está registrado. Por favor, utiliza otro.", "icon" => "error"]);
             }
 
             // Consulta para insertar el empleado
@@ -242,15 +238,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
             } catch (Exception $e) {
                 error_log("Error al ejecutar enviar_correo.php: " . $e->getMessage());
             }
-            echo json_encode(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
-            exit();
+            send_json_response(["success" => "Empleado registrado correctamente.", "redirect" => "index.php?view=empleados", "icon" => "success"]);
         } catch (Exception $e) {
-            echo json_encode(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
-            exit();
+            send_json_response(["error" => "Error al verificar el número de empleado: " . $e->getMessage(), "icon" => "error"]);
         }
     } catch (Exception $e) {
-        echo json_encode(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
-        exit();
+        send_json_response(["error" => "Error al registrar al empleado: " . $e->getMessage(), "icon" => "error"]);
     }
 }
 ?>
@@ -838,23 +831,47 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                     url: "index.php?view=agregar_empleado",
                     type: "POST",
                     data: $(this).serialize(),
-                    success: function(response) {
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                title: '✅ ' + res.success,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                customClass: {
+                                    popup: 'swal2-popup-custom'
+                                }
+                            }).then(() => {
+                                if (res.redirect) {
+                                    window.location.href = res.redirect;
+                                }
+                            });
+                        } else if (res.error) {
+                            Swal.fire({
+                                title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
+                                html: res.error,
+                                icon: res.icon || 'error',
+                                confirmButtonText: '<?= __("ok") ?>',
+                                customClass: {
+                                    popup: 'swal2-popup-custom',
+                                    confirmButton: 'swal2-confirm-custom'
+                                }
+                            });
+                            submitBtn.disabled = false;
+                            btnText.textContent = originalText;
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error: ", status, error);
+                        console.log("Response Text:", xhr.responseText);
+                        
+                        // Intentar parsear la respuesta manualmente
                         try {
-                            const res = JSON.parse(response);
-                            if (res.success) {
+                            const res = JSON.parse(xhr.responseText);
+                            if (res.error) {
                                 Swal.fire({
-                                    title: res.success,
-                                    icon: res.icon || 'success',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    if (res.redirect) {
-                                        window.location.href = res.redirect;
-                                    }
-                                });
-                            } else if (res.error) {
-                                Swal.fire({
-                                    title: res.icon === 'warning' ? '⚠️ <?= __("incomplete_form") ?>' : '❌ <?= __("error_title") ?>',
+                                    title: res.icon === 'warning' ? '⚠️ Advertencia' : '❌ Error',
                                     html: res.error,
                                     icon: res.icon || 'error',
                                     confirmButtonText: '<?= __("ok") ?>',
@@ -863,29 +880,19 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
                                         confirmButton: 'swal2-confirm-custom'
                                     }
                                 });
-                                submitBtn.disabled = false;
-                                btnText.textContent = originalText;
                             }
                         } catch (e) {
-                            console.error("<?= __('json_processing_error') ?>: ", e, response);
                             Swal.fire({
-                                title: '<?= __('error_title') ?>',
-                                text: '<?= __('error_processing_response') ?>',
+                                title: '❌ <?= __('connection_error_title') ?>',
+                                text: '<?= __('connection_error_text') ?>',
                                 icon: 'error',
-                                showConfirmButton: true
+                                confirmButtonText: '<?= __("ok") ?>',
+                                customClass: {
+                                    popup: 'swal2-popup-custom',
+                                    confirmButton: 'swal2-confirm-custom'
+                                }
                             });
-                            submitBtn.disabled = false;
-                            btnText.textContent = originalText;
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("AJAX Error: ", status, error);
-                        Swal.fire({
-                            title: '<?= __('connection_error_title') ?>',
-                            text: '<?= __('connection_error_text') ?>',
-                            icon: 'error',
-                            showConfirmButton: true
-                        });
                         submitBtn.disabled = false;
                         btnText.textContent = originalText;
                     }
