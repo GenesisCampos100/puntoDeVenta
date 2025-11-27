@@ -302,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="flex items-center gap-4 pt-4">
                     <button type="button" onclick="window.location.href='index.php?view=productos'" class="flex-1 px-6 py-4 bg-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
-                        Cancelar y Volver a Productos
+                        Cancelar
                     </button>
                     <button type="submit" class="flex-1 px-6 py-4 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                         Guardar Cambios
