@@ -550,12 +550,12 @@ body.dark-mode .btn-add {
                             <th class="px-6 py-4 text-left">
                                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Negocio</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Representante</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Catálogo</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('business_col'); ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('representative_col'); ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('email_col'); ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('state_col'); ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('catalog_col'); ?></th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?php echo __('actions_col'); ?></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
