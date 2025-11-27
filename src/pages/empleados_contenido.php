@@ -742,6 +742,122 @@ body.dark-mode .btn-add {
     // Selection state
     let selectedIds = new Set();
 
+    // ** FUNCIONES DE CHECKLIST Y ELIMINACIÓN MÚLTIPLE **
+    function updateBulkActions() {
+      const bulkActions = document.getElementById('bulkActions');
+      const count = selectedIds.size;
+      
+      if (count > 0) {
+        bulkActions.classList.remove('hidden');
+        document.getElementById('bulkSelectedCount').textContent = count;
+      } else {
+        bulkActions.classList.add('hidden');
+      }
+    }
+
+    function clearSelection() {
+      selectedIds.clear();
+      const selectAll = document.getElementById('selectAll');
+      const selectAllHeader = document.getElementById('selectAllHeader');
+      if(selectAll) selectAll.checked = false;
+      if(selectAllHeader) selectAllHeader.checked = false;
+      
+      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+      updateBulkActions();
+    }
+
+    function bulkDelete() {
+      const count = selectedIds.size;
+      
+      Swal.fire({
+        title: '¿Eliminar empleados seleccionados?',
+        html: `¿Estás seguro de eliminar <strong>${count}</strong> empleado(s)?<br><span class="text-sm text-gray-500">Esta acción no se puede deshacer</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e15871',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar todos',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const ids = Array.from(selectedIds);
+          fetch(`index.php?view=eliminar_empleados_multiple`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ids: ids})
+          })
+          .then(r => r.json())
+          .then(json => {
+            if (json.success) {
+              Swal.fire({
+                title: 'Eliminados',
+                text: `${json.count || count} empleado(s) eliminado(s) correctamente`,
+                icon: 'success',
+                confirmButtonColor: '#b4c24d',
+                timer: 2000
+              });
+              clearSelection();
+              setTimeout(() => window.location.reload(), 1000);
+            } else {
+              Swal.fire('Error', json.error || 'No se pudo eliminar', 'error');
+            }
+          })
+          .catch(() => Swal.fire('Error', 'Error en el servidor', 'error'));
+        }
+      });
+    }
+
+    // Inicializar listeners de checkboxes
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectAllHeader = document.getElementById('selectAllHeader');
+        const selectAll = document.getElementById('selectAll');
+        
+        // Checkbox Header
+        if(selectAllHeader) {
+            selectAllHeader.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    if (cb.closest('tr').style.display !== 'none') {
+                        cb.checked = isChecked;
+                        if (isChecked) selectedIds.add(cb.dataset.id);
+                        else selectedIds.delete(cb.dataset.id);
+                    }
+                });
+                updateBulkActions();
+            });
+        }
+
+        // Checkbox Bulk Action
+        if(selectAll) {
+            selectAll.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                     if (cb.closest('tr').style.display !== 'none') {
+                        cb.checked = isChecked;
+                        if (isChecked) selectedIds.add(cb.dataset.id);
+                        else selectedIds.delete(cb.dataset.id);
+                    }
+                });
+                updateBulkActions();
+            });
+        }
+
+        // Row Checkboxes
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const id = this.dataset.id;
+                if (this.checked) {
+                    selectedIds.add(id);
+                } else {
+                    selectedIds.delete(id);
+                }
+                updateBulkActions();
+            });
+        });
+    });
+
+
     // Dropdown toggles
     const filterBtn = document.getElementById('filterBtn');
     const filterMenu = document.getElementById('filterMenu');
