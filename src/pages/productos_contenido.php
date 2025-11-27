@@ -1,8 +1,9 @@
 ﻿<?php
 // src/pages/productos_contenido.php
-// VersiÃ³n Premium - Estilo consistente con clientes_contenido.php
-// Mantiene TODA la lÃ³gica de backend intacta.
+// Versión Premium - Estilo consistente con clientes_contenido.php
+// Mantiene TODA la lógica de backend intacta.
 
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . "/../config/db.php";
 
 // -----------------------
@@ -401,7 +402,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
     <!-- Header Section -->
     <div class="mb-8 animate-slideDown">
         <div class="mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Inventario</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?php echo __('products_title'); ?></h1>
             <p class="text-gray-600 text-base">Administra tu catalogo y existencias de forma eficiente</p>
         </div>
         
@@ -411,7 +412,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
             <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm font-medium mb-1">Total Productos</p>
+                        <p class="text-gray-500 text-sm font-medium mb-1">Total <?php echo __('productos'); ?></p>
                         <p class="text-3xl font-bold text-gray-900" id="totalProductos"><?= $totalProductos ?></p>
                     </div>
                     <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -426,7 +427,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
             <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm font-medium mb-1">Stock Bajo</p>
+                        <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('stock'); ?> Bajo</p>
                         <p class="text-3xl font-bold" style="color: #e15871;"><?= $stockBajo ?></p>
                     </div>
                     <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #e15871 0%, #d14560 100%);">
@@ -450,7 +451,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                     <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input id="busqueda" type="text" placeholder="Buscar por nombre, cÃ³digo o SKU..." 
+                    <input id="busqueda" type="text" placeholder="<?php echo __('search_product_placeholder'); ?>" 
                            value="<?= htmlspecialchars($busqueda) ?>"
                            class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium">
                     <button id="clear-search" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
@@ -463,10 +464,10 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                 <!-- Tabs -->
                 <div class="flex bg-gray-100 p-1.5 rounded-xl">
                     <button data-status="activo" class="tab-btn active flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all">
-                        Activos
+                        <?php echo __('active'); ?>
                     </button>
                     <button data-status="descatalogado" class="tab-btn flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 transition-all">
-                        Descatalogados
+                        <?php echo __('discontinued'); ?>
                     </button>
                 </div>
             </div>
@@ -474,7 +475,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
             <!-- Filters & Actions -->
             <div class="flex flex-wrap md:flex-nowrap gap-3 justify-end">
                 <select id="categoria" class="px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:outline-none cursor-pointer hover:bg-gray-50 transition-all">
-                    <option value="">Todas las categorias</option>
+                    <option value=""><?php echo __('all_categories'); ?></option>
                     <?php foreach ($categorias as $cat): ?>
                         <option value="<?= htmlspecialchars($cat['id_categoria']) ?>" <?= ($categoria == $cat['id_categoria']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($cat['nombre']) ?>
@@ -483,10 +484,10 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                 </select>
 
                 <select id="orden" class="px-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-semibold focus:border-primary focus:outline-none cursor-pointer hover:bg-gray-50 transition-all hidden md:block">
-                    <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>>Nombre (A-Z)</option>
-                    <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>>Nombre (Z-A)</option>
-                    <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>>Precio: Menor</option>
-                    <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>>Precio: Mayor</option>
+                    <option value="nom_asc" <?= ($orden == 'nom_asc') ? 'selected' : '' ?>><?php echo __('name_az'); ?></option>
+                    <option value="nom_desc" <?= ($orden == 'nom_desc') ? 'selected' : '' ?>><?php echo __('name_za'); ?></option>
+                    <option value="precio_asc" <?= ($orden == 'precio_asc') ? 'selected' : '' ?>><?php echo __('price_asc'); ?></option>
+                    <option value="precio_desc" <?= ($orden == 'precio_desc') ? 'selected' : '' ?>><?php echo __('price_desc'); ?></option>
                 </select>
 
                 <?php if ($esCajero): ?>
@@ -514,11 +515,11 @@ body.dark-mode #modalDetalle .btn-editar-dark {
             <table class="min-w-full divide-y divide-gray-200">
                 <thead style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Stock</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell">Categori­a</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Precio</th>
-                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('product'); ?></th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider"><?php echo __('stock'); ?></th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider hidden sm:table-cell"><?php echo __('category'); ?></th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wider"><?php echo __('price'); ?></th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?php echo __('actions'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
@@ -552,7 +553,7 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                                         <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">' . __('no_products_found') . '</h3>
                                         <p class="text-gray-500">Intenta ajustar los filtros o tu busqueda</p>
                                     </div>
                                   </td></tr>';

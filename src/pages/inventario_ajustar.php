@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/../config/translation.php';
 header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => ''];

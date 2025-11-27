@@ -206,7 +206,26 @@ return [
     // Ventas
     'sales_title' => 'Ventas',
     'sales_h2' => 'VENTAS',
+    'sales_subtitle' => 'Gestiona y visualiza todas las ventas registradas',
     'search_sales_placeholder' => 'Buscar ventas...',
+    'search_by_id_employee_date' => 'Buscar por ID, empleado o fecha...',
+    'reset' => 'Resetear',
+    'date_recent' => 'Fecha (Recientes)',
+    'date_old' => 'Fecha (Antiguas)',
+    'total_high' => 'Total (Mayor)',
+    'total_low' => 'Total (Menor)',
+    'total_sales' => 'Total Ventas',
+    'total_income' => 'Ingresos Totales',
+    'showing' => 'Mostrando',
+    'of' => 'de',
+    'to' => 'a',
+    'sales' => 'ventas',
+    'previous' => 'Anterior',
+    'next' => 'Siguiente',
+    'employee' => 'Empleado',
+    'date' => 'Fecha',
+    'total' => 'Total',
+    'actions' => 'Acciones',
     'filter' => 'Filtrar',
     'all_statuses' => '-- Todos los estados --',
     'sort' => 'Ordenar',
@@ -237,6 +256,8 @@ return [
     'name_za' => 'Nombre Z-A',
     'employee_no_asc' => 'No. Empleado A-Z',
     'employee_no_desc' => 'No. Empleado Z-A',
+    'employee_no_az' => 'No. Empleado A-Z',
+    'employee_no_za' => 'No. Empleado Z-A',
     'add_employee' => 'Agregar empleado',
     'employee_no_col' => 'No.',
     'full_name_col' => 'Nombre Completo',
@@ -820,6 +841,21 @@ return [
     'sales' => 'ventas',
     'previous' => 'Anterior',
     'next' => 'Siguiente',
-    'sale_detail' => 'Detalle de Venta'
-];
+    'sale_detail' => 'Detalle de Venta',
 
+    // Reportes
+    'reports_statistics' => 'Reportes y Estadísticas',
+    'reports_subtitle' => 'Análisis financiero y rendimiento del negocio en tiempo real.',
+    'today' => 'Hoy',
+    'this_week' => 'Esta Semana',
+    'this_month' => 'Este Mes',
+    'gross_income' => 'Ingresos Brutos',
+
+    // Caja - Adicionales
+    'cash_register' => 'Caja Principal',
+    'register_open' => 'Caja Abierta',
+    'try_adjusting_filters_or_add' => 'Intenta ajustar los filtros o agregar un nuevo registro',
+
+    // Edit
+    'edit' => 'Editar'
+];

@@ -1,5 +1,6 @@
 <?php
 // clientes_contenido_v5.php - Premium Modern Design (FINAL)
+require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . '/../config/db.php';
 
 // AJAX: obtener cliente por id
@@ -83,11 +84,11 @@ $stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>
-<html lang="es">
+<html lang="<?php echo current_lang(); ?>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestión de Clientes</title>
+  <title><?php echo __('customers_management'); ?></title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
@@ -388,8 +389,8 @@ body.dark-mode .btn-add {
     <!-- Header -->
     <div class="mb-8 animate-slideDown">
       <div class="mb-6">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Gestión de Clientes</h1>
-        <p class="text-gray-600 text-base">Administra y organiza tu base de clientes de forma eficiente</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2"><?php echo __('customers_management'); ?></h1>
+        <p class="text-gray-600 text-base"><?php echo __('customers_subtitle'); ?></p>
       </div>
 
       <!-- Stats Cards -->
@@ -397,7 +398,7 @@ body.dark-mode .btn-add {
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Total Clientes</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('total_customers'); ?></p>
               <p id="totalClientes" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -411,7 +412,7 @@ body.dark-mode .btn-add {
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-100 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Seleccionados</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('selected'); ?></p>
               <p id="selectedCount" class="text-3xl font-bold" style="color: #b4c24d;">0</p>
             </div>
             <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
@@ -425,7 +426,7 @@ body.dark-mode .btn-add {
         <div class="bg-white rounded-2xl p-5 shadow-lg hover-lift animate-slideUp delay-200 border border-gray-100">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm font-medium mb-1">Resultados</p>
+              <p class="text-gray-500 text-sm font-medium mb-1"><?php echo __('results'); ?></p>
               <p id="filteredCount" class="text-3xl font-bold text-gray-900"><?= count($clientes) ?></p>
             </div>
             <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -452,7 +453,7 @@ body.dark-mode .btn-add {
             <input 
               id="searchInput" 
               type="text" 
-              placeholder="Buscar por nombre, correo o teléfono..." 
+              placeholder="<?php echo __('search_customer_placeholder'); ?>" 
               class="search-input w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-medium"
             />
             <button type="button" id="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors hidden">
@@ -468,7 +469,7 @@ body.dark-mode .btn-add {
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
-              Ordenar
+              <?php echo __('sort'); ?>
               <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
@@ -476,10 +477,10 @@ body.dark-mode .btn-add {
 
             <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
               <div>
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?php echo __('sort_by'); ?></p>
                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
-                  <option value="nombre ASC" <?= ($orden == 'nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
-                  <option value="nombre DESC" <?= ($orden == 'nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
+                  <option value="nombre ASC" <?= ($orden == 'nombre ASC') ? 'selected' : '' ?>><?php echo __('name_az'); ?></option>
+                  <option value="nombre DESC" <?= ($orden == 'nombre DESC') ? 'selected' : '' ?>><?php echo __('name_za'); ?></option>
                 </select>
               </div>
             </div>
@@ -490,7 +491,7 @@ body.dark-mode .btn-add {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Agregar
+            <?php echo __('add_customer'); ?>
           </button>
         </div>
       </form>
@@ -501,7 +502,7 @@ body.dark-mode .btn-add {
           <div class="flex items-center gap-3">
             <input type="checkbox" id="selectAll" class="custom-checkbox" />
             <span class="text-sm font-semibold text-gray-700">
-              <span id="bulkSelectedCount">0</span> cliente(s) seleccionado(s)
+              <span id="bulkSelectedCount">0</span> <?php echo __('customers_selected'); ?>
             </span>
           </div>
           <div class="flex gap-2">
@@ -509,10 +510,10 @@ body.dark-mode .btn-add {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              Eliminar
+              <?php echo __('delete'); ?>
             </button>
             <button onclick="clearSelection()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all shadow-sm">
-              Cancelar
+              <?php echo __('cancel'); ?>
             </button>
           </div>
         </div>
@@ -528,12 +529,12 @@ body.dark-mode .btn-add {
               <th class="px-6 py-4 text-left">
                 <input type="checkbox" id="selectAllHeader" class="custom-checkbox" />
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">#</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Celular</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Correo</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Dirección</th>
-              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('hash_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('name_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('phone_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('email_col'); ?></th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><?php echo __('address_col'); ?></th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider"><?php echo __('actions_col'); ?></th>
             </tr>
           </thead>
           <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
@@ -546,8 +547,8 @@ body.dark-mode .btn-add {
         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
         </svg>
-        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron clientes</h3>
-        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo cliente</p>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2"><?php echo __('no_customers_found'); ?></h3>
+        <p class="text-gray-500"><?php echo __('try_adjusting_filters_or_add'); ?></p>
       </div>
     </div>
 

@@ -1,4 +1,5 @@
 <?php
+    require_once __DIR__ . '/../config/translation.php';
     require_once __DIR__ . "/../config/db.php";
 
     // Obtener el id del proveedor a editar (permitir GET al cargar y POST al enviar)

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/translation.php';
 
 // Bloquear el acceso público a esta página
 $_SESSION['error'] = 'El registro de nuevos usuarios está deshabilitado.';

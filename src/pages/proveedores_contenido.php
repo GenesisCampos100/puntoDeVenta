@@ -1,4 +1,5 @@
 <?php
+    require_once __DIR__ . '/../config/translation.php';
     require_once __DIR__ . '/../config/db.php';
 
     if (isset($_GET['action']) && $_GET['action'] === 'getProveedores') {
@@ -77,11 +78,11 @@
     $esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo current_lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Proveedores</title>
+    <title><?php echo __('suppliers_title'); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -476,7 +477,7 @@ body.dark-mode .btn-add {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
                             </svg>
-                            Ordenar
+                            <?php echo __('sort'); ?>
                             <svg class="w-4 h-4 transition-transform duration-300" id="orderIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
@@ -484,7 +485,7 @@ body.dark-mode .btn-add {
 
                         <div id="orderMenu" class="dropdown-menu" style="top: auto; bottom: calc(100% + 0.75rem);">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ordenar por</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3"><?php echo __('sort_by'); ?></p>
                                 <select name="orden" onchange="document.getElementById('toolbar-form').submit()" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-primary focus:outline-none">
                                     <option value="p.nombre ASC" <?= ($orden == 'p.nombre ASC') ? 'selected' : '' ?>>Nombre A-Z</option>
                                     <option value="p.nombre DESC" <?= ($orden == 'p.nombre DESC') ? 'selected' : '' ?>>Nombre Z-A</option>
@@ -501,14 +502,14 @@ body.dark-mode .btn-add {
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
-                            Agregar
+                            <?php echo __('add_supplier'); ?>
                         </button>
                     <?php else: ?>
                         <button type="button" onclick="window.location.href='index.php?view=agregar_proveedor'" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200" style="background: linear-gradient(135deg, #2d4353 0%, #1e2d38 100%);">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
-                            Agregar
+                            <?php echo __('add_supplier'); ?>
                         </button>
                     <?php endif; ?>
                 </div>
@@ -627,8 +628,8 @@ body.dark-mode .btn-add {
                                         <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                         </svg>
-                                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron proveedores</h3>
-                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar un nuevo proveedor</p>
+                                        <h3 class="text-xl font-semibold text-gray-700 mb-2"><?php echo __('no_suppliers_found'); ?></h3>
+                                        <p class="text-gray-500"><?php echo __('try_adjusting_filters_or_add'); ?></p>
                                     </div>
                                 </td>
                             </tr>

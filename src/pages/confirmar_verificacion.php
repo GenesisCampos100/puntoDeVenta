@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../config/translation.php';
 require __DIR__ . '/../config/db.php';
 
 $token = $_GET['token'] ?? '';
