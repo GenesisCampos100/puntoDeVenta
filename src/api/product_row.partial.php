@@ -81,25 +81,10 @@ $esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero'
         </span>
     </td>
     
-    <td class="px-6 py-4 text-right">
-        <div class="inline-flex gap-2">
-            <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
-                    title="Ver Detalles"
-                    data-id="<?= $pid ?>"
-                    data-details='<?= $jsonProducto ?>'>
-                Ver
-            </button>
-            
-            <?php if (!$tieneVariantes): ?>
-                <button class="btn-ajuste px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
-                    title="Ajustar Stock"
-                    data-id="<?= $pid ?>"
-                    data-type="producto"
-                    data-nombre="<?= htmlspecialchars($nombre) ?>">
-                    Ajustar
-                </button>
-            <?php endif; ?>
-            
+ <td class="px-6 py-4 text-right">
+    <div class="inline-flex gap-2">
+        <?php if ($tieneVariantes): ?>
+            <!-- Si el producto tiene variantes, solo mostrar descatalogar/activar -->
             <button class="toggle-active px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 <?= $is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' ?>" 
                     title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
                     data-id="<?= $pid ?>" 
@@ -107,7 +92,34 @@ $esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero'
                     data-active="<?= $is_active ? 'true' : 'false' ?>">
                 <?= $is_active ? 'Descatalogar' : 'Activar' ?>
             </button>
-        </div>
-    </td>
+        <?php else: ?>
+            <!-- Si NO tiene variantes, mostrar Ver, Ajustar y Activar/Descatalogar -->
+            <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
+                    title="Ver Detalles"
+                    data-id="<?= $pid ?>"
+                    data-details='<?= $jsonProducto ?>'>
+                Ver
+            </button>
+
+            <button class="btn-ajuste px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
+                title="Ajustar Stock"
+                data-id="<?= $pid ?>"
+                data-type="producto"
+                data-nombre="<?= htmlspecialchars($nombre) ?>">
+                Ajustar
+            </button>
+
+            <button class="toggle-active px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 <?= $is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100' ?>" 
+                    title="<?= $is_active ? 'Descatalogar' : 'Activar' ?>"
+                    data-id="<?= $pid ?>" 
+                    data-type="producto" 
+                    data-active="<?= $is_active ? 'true' : 'false' ?>">
+                <?= $is_active ? 'Descatalogar' : 'Activar' ?>
+            </button>
+        <?php endif; ?>
+    </div>
+</td>
+
+
 </tr>
 

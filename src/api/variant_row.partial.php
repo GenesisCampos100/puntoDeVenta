@@ -63,5 +63,28 @@ $esCajero = isset($_SESSION['rol']) && strtolower($_SESSION['rol']) === 'cajero'
         <div class="inline-flex gap-2">
         </div>
     </td>
+
+    <td class="px-6 py-3 text-right">
+    <div class="inline-flex gap-2">
+        <button class="open-modal-btn px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
+                title="Ver Detalles"
+                data-id="<?= $vid ?>"
+                data-details='<?= $jsonVariante ?>'>
+            Ver
+        </button>
+
+ <?php if (!$esCajero): 
+            // $vid debe contener el id_variante.
+            // La variable $jsonVariante ya no es necesaria si navegamos a una nueva página.
+        ?>
+            <button onclick="window.location.href='index.php?view=editar_variante&id=<?= htmlspecialchars($vid) ?>'"
+                    class="edit-variante px-3 py-1.5 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-semibold hover:bg-yellow-100 transition-all duration-200 hover:shadow-md hover:scale-105" 
+                    title="Editar Variante">
+                Editar
+            </button>
+        <?php endif; ?>
+    </div>
+</td>
+
 </tr>
 
