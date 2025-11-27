@@ -12,8 +12,8 @@
                     <tr>
                         <th class="p-3 border-b-2 font-semibold">ID</th>
                         <th class="p-3 border-b-2 font-semibold">Cliente</th>
-                        <th class="p-3 border-b-2 font-semibold">Tel├®fono</th>
-                        <th class="p-3 border-b-2 font-semibold">Acci├│n</th>
+                        <th class="p-3 border-b-2 font-semibold">Teléfono</th>
+                        <th class="p-3 border-b-2 font-semibold">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="tablaClientes">
@@ -44,9 +44,9 @@
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 animate-slide
                 border border-gray-200">
 
-        <!-- T├ìTULO -->
+        <!-- TÍTULO -->
         <h2 class="text-xl font-bold mb-4 text-center text-secondary tracking-wide">
-            Seleccionar M├®todo de Pago
+            Seleccionar Método de Pago
         </h2>
 
         <form id="payment-form" class="space-y-5">
@@ -59,14 +59,16 @@
             <input type="hidden" name="subtotal" id="subtotal-input">
             <input type="hidden" name="total" id="total-input">
 
-            <!-- M├ëTODOS DE PAGO POS -->
+            <!-- MÉTODOS DE PAGO POS -->
             <div class="grid grid-cols-3 gap-2">
 
                 <label class="flex flex-col items-center justify-center p-3 border rounded-lg
                                cursor-pointer hover:bg-gray-50 transition text-center">
                     <input type="radio" id="metodo-efectivo" name="metodo" value="efectivo"
                            class="payment-method hidden" checked>
-                    <span class="text-2xl">­ƒÆÁ</span>
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
                     <span class="text-xs font-semibold mt-1">Efectivo</span>
                 </label>
 
@@ -74,7 +76,9 @@
                                cursor-pointer hover:bg-gray-50 transition text-center">
                     <input type="radio" id="metodo-tarjeta" name="metodo" value="tarjeta"
                            class="payment-method hidden">
-                    <span class="text-2xl">­ƒÆ│</span>
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
                     <span class="text-xs font-semibold mt-1">Tarjeta</span>
                 </label>
 
@@ -82,13 +86,15 @@
                                cursor-pointer hover:bg-gray-50 transition text-center">
                     <input type="radio" id="metodo-mixto" name="metodo" value="mixto"
                            class="payment-method hidden">
-                    <span class="text-2xl">­ƒÆÁ­ƒÆ│</span>
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                     <span class="text-xs font-semibold mt-1">Mixto</span>
                 </label>
 
             </div>
 
-            <!-- SECCI├ôN: EFECTIVO -->
+            <!-- SECCIÓN: EFECTIVO -->
             <div id="efectivo-section" class="space-y-1">
 
                 <label class="text-sm font-semibold">Monto recibido</label>
@@ -108,7 +114,7 @@
 
             </div>
 
-            <!-- SECCI├ôN: TARJETA -->
+            <!-- SECCIÓN: TARJETA -->
             <div id="tarjeta-section" class="space-y-2 hidden">
 
                 <label class="text-sm font-semibold">Referencia</label>
@@ -120,7 +126,7 @@
 
             </div>
 
-            <!-- SECCI├ôN: MIXTO -->
+            <!-- SECCIÓN: MIXTO -->
             <div id="mixto-section" class="space-y-2 hidden">
 
                 <div>
@@ -239,7 +245,7 @@
     </div>
 </div>
 
-<!-- Modal de b├║squeda de productos -->
+<!-- Modal de búsqueda de productos -->
 <div id="modalProductos" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
 
     <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl p-6 m-4 animate-slide">
@@ -247,16 +253,16 @@
             <h2 class="text-2xl font-bold text-primary">Buscar Producto</h2>
             <button id="cerrar-modal-producto" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
-        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar producto por nombre, c├│digo o SKU...">
+        <input type="text" id="buscarProductoModal" class="w-full border-2 px-4 py-3 rounded-xl mb-4 focus:border-primary focus:outline-none" placeholder="Buscar producto por nombre, código o SKU...">
         <div class="overflow-y-auto max-h-96">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100 sticky top-0">
                     <tr>
-                        <th class="p-3 border-b-2 font-semibold">C├│digo</th>
+                        <th class="p-3 border-b-2 font-semibold">Código</th>
                         <th class="p-3 border-b-2 font-semibold">Producto</th>
                         <th class="p-3 border-b-2 font-semibold">Precio</th>
                         <th class="p-3 border-b-2 font-semibold">Stock</th>
-                        <th class="p-3 border-b-2 font-semibold">Acci├│n</th>
+                        <th class="p-3 border-b-2 font-semibold">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="tablaProductosModal"></tbody>
