@@ -291,8 +291,8 @@
         <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
                     border-radius:24px; padding:32px;">
           
-          <!-- Preview con borde premium -->
-          <div style="background:linear-gradient(135deg, var(--accent) 0%, #dc2f4b 100%); 
+          <!-- Preview con borde premium -->  
+          <div style="background:linear-gradient(135deg, var(--accent) 0%, #ffffffff 100%); 
                       border-radius:50%; width:140px; height:140px;
                       display:flex; justify-content:center; align-items:center; 
                       margin:0 auto 20px; padding:5px; box-shadow:0 12px 40px rgba(225, 88, 113, 0.3);">

@@ -81,7 +81,7 @@ if (isset($_SESSION['usuario_id'])) {
                                 </svg>
                                 <input type="password" id="password" name="password" required style="padding-left: 40px; padding-right: 40px; width: 100%;">
                                 
-                                <div class="icon_right js-password-toggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+                                <div class="icon_right js-password-toggle" style="position: absolute; right: 20px; top: 20%; transform: translateY(-40%); cursor: pointer;">
                                     <svg class="input-icon toggle-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 20px; display: block;">
                                         <path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM22.676 12.553a11.249 11.249 0 0 1-2.631 4.31l-3.099-3.099a5.25 5.25 0 0 0-6.71-6.71L7.759 4.577a11.217 11.217 0 0 1 4.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113Z" />
                                         <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12ZM12.53 15.713l-4.243-4.244a3.75 3.75 0 0 0 4.244 4.243Z" />
