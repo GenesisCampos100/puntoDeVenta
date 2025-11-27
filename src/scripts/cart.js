@@ -50,9 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setSelectedClient(null);
     }
 
-    // ==============================
     // Selección desde el modal
-    // ==============================
     $(document).on('click', '.seleccionarCliente', function () {
         const cliente = {
             id_cliente: $(this).data('id'),
@@ -66,9 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         $('#modalClientes').addClass('hidden');
     });
 
-    // ==============================
     // Eliminar cliente seleccionado
-    // ==============================
     $('#remove-client').on('click', function () {
         setSelectedClient(null);
     });
@@ -115,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         cantidad: 1,                          // cantidad inicial
                         imagen: exacto.imagen ?? null,       // imagen
                         categoria: exacto.categoria ?? '',    // categoría
-                        discount: null                        // descuento inicial
+                        discount: null,                       // descuento inicial
+                        stock: exacto.cantidad ?? 0           // stock disponible
                     });
 
                     $('#quick-search').val('');
@@ -137,10 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-
-
-
-
 
 
     let selectedClient = null;
@@ -224,12 +217,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const tdQty = document.createElement("td");
             tdQty.className = "py-2 px-3 text-center";
             tdQty.innerHTML = `
-            <div class="flex items-center justify-center gap-1">
-                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="decreaseQuantity(${index})">-</button>
-                <span class="px-2 font-semibold">${item.quantity}</span>
-                <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="increaseQuantity(${index})">+</button>
-            </div>
-        `;
+    <div class="flex items-center justify-center gap-1">
+        <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="decreaseQuantity(${index})">-</button>
+
+        <input type="number" 
+               class="w-12 text-center border rounded quantity-input" 
+               min="1" 
+               max="${item.stock}" 
+               value="${item.quantity}" 
+               data-index="${index}" />
+
+        <button class="px-2 py-1 bg-gray-200 rounded text-xs" onclick="increaseQuantity(${index})">+</button>
+    </div>
+`;
+
 
             const itemTotal = item.price * item.quantity - getItemDiscountAmount(item);
             const tdTotal = document.createElement("td");
@@ -257,7 +258,51 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateCart() { renderCart(); }
 
     // FUNCIONES PARA BOTONES (+ / - / X)
-    window.increaseQuantity = function (index) { cart[index].quantity++; saveCart(); };
+
+    // CAMBIAR CANTIDAD MANUALMENTE (INPUT)
+    document.addEventListener("input", function (e) {
+        if (e.target.classList.contains("quantity-input")) {
+            const index = parseInt(e.target.dataset.index);
+            let nuevaCantidad = parseInt(e.target.value);
+
+            if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+                e.target.value = cart[index].quantity;
+                return;
+            }
+
+            if (nuevaCantidad > cart[index].stock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${cart[index].stock} unidades disponibles.`
+                });
+                e.target.value = cart[index].stock;
+                nuevaCantidad = cart[index].stock;
+            }
+
+            cart[index].quantity = nuevaCantidad;
+            saveCart();
+        }
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.target.classList.contains("quantity-input") && e.key === "Enter") {
+            e.target.blur(); // dispara el input event
+        }
+    });
+
+    window.increaseQuantity = function (index) {
+        if (cart[index].quantity + 1 > cart[index].stock) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock insuficiente',
+                text: `Solo hay ${cart[index].stock} unidades disponibles.`
+            });
+            return;
+        }
+        cart[index].quantity++;
+        saveCart();
+    };
     window.decreaseQuantity = function (index) { if (cart[index].quantity > 1) cart[index].quantity--; saveCart(); };
     window.removeItem = function (index) { cart.splice(index, 1); saveCart(); };
     window.editItemDiscount = function (index) {
@@ -339,8 +384,24 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (existente) {
+            if (existente.quantity + 1 > existente.stock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${existente.stock} unidades disponibles de este producto.`
+                });
+                return;
+            }
             existente.quantity++;
         } else {
+            if (prod.quantity > prod.stock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${prod.stock} unidades disponibles de este producto.`
+                });
+                return;
+            }
             cart.push({
                 cod_barras: prod.cod_barras,
                 name: prod.name,
@@ -350,7 +411,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 color: prod.color ?? '',
                 categoria: prod.categoria ?? '',
                 imagen: prod.imagen ?? null,
-                discount: null
+                discount: null,
+                stock: prod.stock ?? 0
             });
         }
 
@@ -475,7 +537,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         quantity: 1,                        // ← siempre quantity
                         imagen: prod.imagen ?? null,
                         categoria: prod.categoria ?? '',
-                        discount: null
+                        discount: null,
+                        stock: prod.stock ?? 0
                     }));
 
                     searchBody.appendChild(tr);
