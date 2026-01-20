@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/translation.php';
 require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/translation.php";
 
 // Búsqueda de cliente (AJAX)
 if (isset($_GET['buscar_cliente'])) {
@@ -183,11 +183,11 @@ function normalizeCategory($name) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo current_lang(); ?>">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php echo __('pos_title'); ?></title>
+<title>Punto de Venta - Caja</title>
 
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -244,115 +244,13 @@ function normalizeCategory($name) {
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         border-color: var(--accent);
     }
-  /* ======== MODO OSCURO (GRIS REAL) ======== */
-body.dark-mode {
-    background: #121212 !important;
-    color: #e5e5e5 !important;
-}
 
-/* Inputs */
-body.dark-mode input {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode input::placeholder {
-    color: #7a7a7a !important;
-}
-
-/* Buscador */
-body.dark-mode #quick-search {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-    color: #f5f5f5 !important;
-}
-
-/* Tablas */
-body.dark-mode table thead {
-    background: #1e1e1e !important;
-    color: #cccccc !important;
-}
-
-body.dark-mode tbody tr {
-    background: #121212 !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .row-hover:hover {
-    background: #1f1f1f !important;
-}
-
-/* Panel izquierdo */
-body.dark-mode .bg-white {
-    background: #1e1e1e !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .border {
-    border-color: #2c2c2c !important;
-}
-
-/* Texto */
-body.dark-mode .text-slate-800,
-body.dark-mode .text-slate-700 {
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode .text-slate-500,
-body.dark-mode .text-slate-400 {
-    color: #b3b3b3 !important;
-}
-
-/* Resultados de búsqueda */
-body.dark-mode #search-results {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-}
-
-/* Botones */
-body.dark-mode button {
-    border-color: #3a3a3a !important;
-    background: #1e1e1e !important;
-    color: #e5e5e5 !important;
-}
-
-body.dark-mode button:hover {
-    background: #2a2a2a !important;
-}
-
-/* Botón flotante de productos */
-body.dark-mode #open-product-modal {
-    background: #1e1e1e !important;
-}
-
-body.dark-mode #open-product-modal:hover {
-    background: #2a2a2a !important;
-}
-
-/* Panel Totales (derecha) */
-body.dark-mode .bg-slate-900,
-body.dark-mode .bg-slate-800,
-body.dark-mode .bg-slate-700 {
-    background: #1e1e1e !important;
-}
-
-/* Imagen preview */
-body.dark-mode #preview-producto {
-    background: #1e1e1e !important;
-    border-color: #2c2c2c !important;
-}
-body.dark-mode #pay-btn {
-    background: linear-gradient(to right, #10b981, #0d9488) !important; /* emerald-500 → teal-600 */
-    color: white !important;
-}
-
-body.dark-mode #pay-btn:hover {
-    background: linear-gradient(to right, #34d399, #14b8a6) !important; /* emerald-400 → teal-500 */
-}
+    .apply-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
 </style>
-
 
 <div class="flex w-full gap-4 pb-4 overflow-hidden" style="height: calc(100vh - 9rem);">
 
@@ -367,12 +265,12 @@ body.dark-mode #pay-btn:hover {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
-                <input id="quick-search" type="text" placeholder="<?php echo __('search_product_by_code_name_sku'); ?>" 
+                <input id="quick-search" type="text" placeholder="Buscar producto por código, nombre o SKU..." 
                     class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-lg shadow-sm focus:outline-none transition-all placeholder-slate-400 font-medium">
             </div>
             <button id="open-product-modal" class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3 rounded-2xl font-semibold shadow-lg btn-transition flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-                <?php echo __('catalog'); ?>
+                Catálogo
             </button>
         </div>
 
@@ -381,11 +279,11 @@ body.dark-mode #pay-btn:hover {
             <table class="w-full text-sm text-left">
                 <thead class="bg-slate-50 text-slate-500 font-semibold uppercase text-xs tracking-wider border-b border-slate-100">
                     <tr>
-                        <th class="py-3 px-4"><?php echo __('code'); ?></th>
-                        <th class="py-3 px-4"><?php echo __('product'); ?></th>
-                        <th class="py-3 px-4"><?php echo __('variant'); ?></th>
-                        <th class="py-3 px-4 text-right"><?php echo __('price'); ?></th>
-                        <th class="py-3 px-4 text-center"><?php echo __('stock'); ?></th>
+                        <th class="py-3 px-4">Código</th>
+                        <th class="py-3 px-4">Producto</th>
+                        <th class="py-3 px-4">Variante</th>
+                        <th class="py-3 px-4 text-right">Precio</th>
+                        <th class="py-3 px-4 text-center">Stock</th>
                     </tr>
                 </thead>
                 <tbody id="search-body" class="divide-y divide-slate-50"></tbody>
@@ -401,12 +299,12 @@ body.dark-mode #pay-btn:hover {
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800"><?php echo __('sale_ticket'); ?></h2>
-                        <p class="text-xs text-slate-500 font-medium"><?php echo __('folio'); ?>: #NEW</p>
+                        <h2 class="text-lg font-bold text-slate-800">Ticket de Venta</h2>
+                        <p class="text-xs text-slate-500 font-medium">Folio: #NEW</p>
                     </div>
                 </div>
                 <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-                    <?php echo __('main_register'); ?>
+                    Caja Principal
                 </div>
             </div>
 
@@ -415,11 +313,11 @@ body.dark-mode #pay-btn:hover {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-slate-500 text-xs uppercase tracking-wider font-semibold">
-                            <th class="py-3 px-4 text-left w-[15%]"><?php echo __('code'); ?></th>
-                            <th class="py-3 px-4 text-left w-[30%]"><?php echo __('description'); ?></th>
-                            <th class="py-3 px-4 text-center w-[15%]"><?php echo __('price'); ?></th>
-                            <th class="py-3 px-4 text-center w-[15%]"><?php echo __('quantity_short'); ?></th>
-                            <th class="py-3 px-4 text-right w-[15%]"><?php echo __('total'); ?></th>
+                            <th class="py-3 px-4 text-left w-[15%]">Código</th>
+                            <th class="py-3 px-4 text-left w-[30%]">Descripción</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Precio</th>
+                            <th class="py-3 px-4 text-center w-[15%]">Cant.</th>
+                            <th class="py-3 px-4 text-right w-[15%]">Total</th>
                             <th class="py-3 px-4 text-center w-[10%]"></th>
                         </tr>
                     </thead>
@@ -445,7 +343,7 @@ body.dark-mode #pay-btn:hover {
             </div>
             
             <div class="relative z-10">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"><?php echo __('assigned_client'); ?></label>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Cliente Asignado</label>
                 <div class="flex justify-between items-start">
                     <div class="truncate pr-2">
                         <h3 id="client-name" class="text-lg font-bold text-slate-800 leading-tight truncate">Público General</h3>
@@ -457,15 +355,12 @@ body.dark-mode #pay-btn:hover {
                 </div>
                 <button id="client-btn" class="mt-3 w-full py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <?php echo __('change_customer'); ?>
+                    Cambiar Cliente
                 </button>
             </div>
         </div>
 
-        <!-- Preview Producto -->
-        <div id="preview-producto" class="hidden bg-white rounded-2xl p-3 shadow-sm border border-slate-200 card-shadow text-center shrink-0">
-            <img id="preview-img" src="" class="h-32 w-full object-contain mx-auto rounded-lg">
-        </div>
+        
 
         <!-- Panel de Totales -->
         <div class="flex-1 bg-slate-900 rounded-2xl p-5 text-white shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-0">
@@ -475,14 +370,14 @@ body.dark-mode #pay-btn:hover {
 
             <div class="relative z-10 space-y-3 overflow-y-auto custom-scrollbar pr-1">
                 <div class="flex justify-between items-center text-slate-300">
-                    <span class="text-base font-medium"><?php echo __('subtotal_label'); ?></span>
+                    <span class="text-base font-medium">Subtotal</span>
                     <span id="subtotal" class="text-lg font-semibold tracking-wide">$0.00</span>
                 </div>
                 
                 <div class="flex justify-between items-center text-rose-300">
                     <span class="flex items-center gap-2 text-sm font-medium">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                        <?php echo __('discount_label'); ?>
+                        Descuento
                     </span>
                     <span id="discount" class="text-base font-semibold">-$0.00</span>
                 </div>
@@ -490,7 +385,7 @@ body.dark-mode #pay-btn:hover {
                 <div class="h-px bg-slate-700 my-3"></div>
 
                 <div class="flex justify-between items-end">
-                    <span class="text-slate-400 font-medium mb-1 text-sm"><?php echo __('total_to_pay'); ?></span>
+                    <span class="text-slate-400 font-medium mb-1 text-sm">Total a Pagar</span>
                     <span id="total" class="text-4xl font-bold tracking-tight text-white">$0.00</span>
                 </div>
             </div>
@@ -498,11 +393,11 @@ body.dark-mode #pay-btn:hover {
             <div class="relative z-10 mt-4 space-y-3 shrink-0">
                 <button id="discount-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 border border-slate-700 text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
-                    <?php echo __('apply_discount_btn'); ?>
+                    Aplicar Descuento
                 </button>
 
                 <button id="pay-btn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 btn-transition flex items-center justify-center gap-2">
-                    <span><?php echo __('charge_btn'); ?></span>
+                    <span>Cobrar</span>
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </button>
             </div>

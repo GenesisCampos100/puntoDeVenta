@@ -9,7 +9,7 @@ $color = htmlspecialchars($var['color'] ?? '-');
 $cantidadVar = (int)($var['cantidad'] ?? 0);
 $cantidadMinVar = (int)($var['cantidad_min'] ?? 0);
 $precioVar = $var['precio'] ?? 0;
-$imagenVar = !empty($var['imagen']) ? "uploads/".htmlspecialchars($var['imagen']) : "../uploads/sin-imagen.png";
+$imagenVar = !empty($var['imagen']) ? "/puntoDeVenta/src/uploads/".htmlspecialchars($var['imagen']) : "/puntoDeVenta/src/uploads/sin-imagen.png";
 
 // Lógica de color para stock
 if ($cantidadVar > $cantidadMinVar) {

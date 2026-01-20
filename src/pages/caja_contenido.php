@@ -214,7 +214,7 @@ body.dark-mode .save-btn svg {
 
 </style>
 
-<div class="max-w-7xl mx-auto p-4 md:p-6 pb-32">
+<div class="min-h-screen max-w-7xl mx-auto p-4 md:p-6 pb-32">
 
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-slideUp">

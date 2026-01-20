@@ -3,19 +3,42 @@
   document.addEventListener('DOMContentLoaded', () => {
 
     /* ===========================
-         DESCUENTO GLOBAL
-    ============================ */
+   DESCUENTO GLOBAL
+============================ */
     const discountModal = document.getElementById("discount-modal");
     const discountType = document.getElementById("discount-type");
     const discountInput = document.getElementById("discount-input");
     const discountApply = document.getElementById("apply-discount");
     const discountClose = document.getElementById("close-discount");
+    const discountWarning = document.getElementById("discount-warning");
 
     document.getElementById("discount-btn")?.addEventListener("click", () => {
       discountModal?.classList.remove("hidden");
+      discountApply.disabled = false;
+      discountWarning.classList.add("hidden");
+      discountInput.value = "";
     });
 
     discountClose?.addEventListener("click", () => discountModal?.classList.add("hidden"));
+
+    // Validación en tiempo real
+    discountInput?.addEventListener("input", () => {
+      const val = parseFloat(discountInput.value) || 0;
+      const type = discountType.value;
+
+      let maxValid = type === "percent" ? 100 : parseFloat(localStorage.getItem("lastTotal")) || 999999;
+
+      if (val < 0 || val > maxValid) {
+        discountWarning.textContent = type === "percent"
+          ? "El descuento no puede ser mayor al 100%"
+          : `El descuento no puede superar el total: $${maxValid.toFixed(2)}`;
+        discountWarning.classList.remove("hidden");
+        discountApply.disabled = true;
+      } else {
+        discountWarning.classList.add("hidden");
+        discountApply.disabled = false;
+      }
+    });
 
     discountApply?.addEventListener("click", () => {
       const value = parseFloat(discountInput.value) || 0;
@@ -26,26 +49,59 @@
       document.dispatchEvent(new CustomEvent("applyGlobalDiscount", { detail: { value, type } }));
     });
 
+
     /* ===========================
-         DESCUENTO INDIVIDUAL
+       DESCUENTO INDIVIDUAL
     ============================ */
     const productDiscountModal = document.getElementById("product-discount-modal");
     const productDiscountType = document.getElementById("product-discount-type");
     const productDiscountInput = document.getElementById("product-discount-input");
     const productDiscountApply = document.getElementById("product-discount-apply");
     const productDiscountClose = document.getElementById("product-discount-close");
+    const productDiscountWarning = document.getElementById("product-discount-warning");
 
     let currentItemIndex = null;
 
     window.openProductDiscountModal = function (index, currentDiscount = 0) {
       currentItemIndex = index;
+
+      const item = cart[index];
+      if (!item) return;
+
+      // Total del producto
+      const itemTotal = (item.price * item.quantity) - getItemDiscountAmount(item);
+
       productDiscountInput.value = currentDiscount || 0;
+      productDiscountInput.dataset.itemTotal = itemTotal; // guardamos para la validación
+
       productDiscountModal?.classList.remove("hidden");
+      productDiscountApply.disabled = false;
+      productDiscountWarning.classList.add("hidden");
     };
 
     productDiscountClose?.addEventListener("click", () => {
       productDiscountModal?.classList.add("hidden");
       currentItemIndex = null;
+    });
+
+    // Validación en tiempo real
+    productDiscountInput?.addEventListener("input", () => {
+      const val = parseFloat(productDiscountInput.value) || 0;
+      const type = productDiscountType.value;
+      const maxValid = type === "percent"
+        ? 100
+        : parseFloat(productDiscountInput.dataset.itemTotal || 999999);
+
+      if (val < 0 || val > maxValid) {
+        productDiscountWarning.textContent = type === "percent"
+          ? "El descuento no puede ser mayor al 100%"
+          : `El descuento no puede superar el total del producto: $${maxValid.toFixed(2)}`;
+        productDiscountWarning.classList.remove("hidden");
+        productDiscountApply.disabled = true;
+      } else {
+        productDiscountWarning.classList.add("hidden");
+        productDiscountApply.disabled = false;
+      }
     });
 
     productDiscountApply?.addEventListener("click", () => {
@@ -58,9 +114,9 @@
       }
     });
 
-    /* ===========================
-         MODAL CLIENTE
-    ============================ */
+
+    /*
+         MODAL CLIENTE*/
     const clientBtn = document.getElementById('client-btn');
     const modalClientes = document.getElementById('modalClientes');
     const cerrarModalClienteBtn = document.getElementById('cerrar-modal-cliente');
@@ -109,9 +165,9 @@
       });
     });
 
-    /* ===========================
+    /*
          MODAL PRODUCTOS
-    ============================ */
+  = */
     $('#open-product-modal').on('click', function () {
       $('#modalProductos').removeClass('hidden');
       $('#buscarProductoModal').val('').focus();
@@ -190,9 +246,9 @@
 
 
 
-    /* ===========================
+    /*
          MODAL PAGO
-    ============================ */
+  = */
     const payBtn = document.getElementById('pay-btn');
     const paymentModal = document.getElementById('payment-modal');
     const cancelPayment = document.getElementById('cancel-payment');
@@ -357,6 +413,7 @@
         }
       });
 
+
       // 3. Enfocar el input correspondiente
       if (method === "efectivo") {
         setTimeout(() => montoEfectivo?.focus(), 100);
@@ -480,9 +537,8 @@
       }
     });
 
-    /* ===========================
-     DETALLE DE VENTA
-============================ */
+    /*
+     DETALLE DE VENTA= */
     const ventaModal = document.getElementById('venta-modal');
     const ventaDetalles = document.getElementById('venta-detalles');
     const closeVentaModal = document.getElementById('close-venta-modal');
@@ -573,7 +629,6 @@
         }
       }
     });
-
 
 
   }); // fin DOMContentLoaded

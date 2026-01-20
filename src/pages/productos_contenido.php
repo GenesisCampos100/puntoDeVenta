@@ -498,12 +498,12 @@ body.dark-mode #modalDetalle .btn-editar-dark {
                         <span class="hidden sm:inline"><?php echo __('add_product_title'); ?></span>
                     </button>
                 <?php else: ?>
-                    <button id="btnAgregarProducto" class="btn-agregarProducto inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
+                    <a href="index.php?view=agregar_producto" class="btn-agregarProducto inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1" style="background: linear-gradient(135deg, #b4c24d 0%, #9fb03d 100%);">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         <span class="hidden sm:inline"><?php echo __('add_product_title'); ?></span>
-                    </button>
+                    </a>
                 <?php endif; ?>
             </div>
         </div>

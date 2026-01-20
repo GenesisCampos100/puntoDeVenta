@@ -30,8 +30,8 @@ function abrirModal(producto, directId = null) {
     const modalBtnEditar = document.getElementById('modal-btn-editar');
     const modalBtnEliminar = document.getElementById('modal-btn-eliminar');
 
-    // Imagen
-    const imagen = producto.imagen ? `uploads/${producto.imagen}` : '../uploads/sin-imagen.png';
+    // Imagen - usar ruta correcta desde la raíz del proyecto
+    const imagen = producto.imagen ? `/puntoDeVenta/src/uploads/${producto.imagen}` : '/puntoDeVenta/src/uploads/sin-imagen.png';
     if (modalImg) modalImg.src = imagen;
 
     // Nombre y categoría
@@ -127,9 +127,9 @@ function abrirModalEditar(producto) {
     document.getElementById('edit-costo').value = producto.costo || 0;
     document.getElementById('edit-precio').value = producto.precio || 0;
 
-    // Imagen previa
+    // Imagen previa - usar ruta correcta desde la raíz del proyecto
     const imgPreview = document.getElementById('edit-img-preview');
-    const imagen = producto.imagen ? `uploads/${producto.imagen}` : '../uploads/sin-imagen.png';
+    const imagen = producto.imagen ? `/puntoDeVenta/src/uploads/${producto.imagen}` : '/puntoDeVenta/src/uploads/sin-imagen.png';
     if (imgPreview) imgPreview.src = imagen;
 
     // Mostrar modal

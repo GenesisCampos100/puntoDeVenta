@@ -23,7 +23,7 @@ if ($cantidad > $cantidad_min) {
     $stockClass = 'bg-red-50 text-red-700 ring-1 ring-red-600/20';
 }
 
-$imagen = !empty($producto['imagen']) ? "uploads/".htmlspecialchars($producto['imagen']) : "../uploads/sin-imagen.png";
+$imagen = !empty($producto['imagen']) ? "/puntoDeVenta/src/uploads/".htmlspecialchars($producto['imagen']) : "/puntoDeVenta/src/uploads/sin-imagen.png";
 $jsonProducto = htmlspecialchars(json_encode($producto), ENT_QUOTES, 'UTF-8');
 
 // Detectar si el usuario es Cajero (solo puede ver detalles)
