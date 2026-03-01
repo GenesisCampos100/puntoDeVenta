@@ -58,7 +58,8 @@ $sql = "SELECT
             p.descripcion,
             c.nombre AS categoria,
             p.cantidad,
-            p.precio
+            p.precio,
+            (SELECT COUNT(*) FROM variantes v2 WHERE v2.cod_barras = p.cod_barras) AS tiene_variante
         FROM productos p
         LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
         WHERE p.id_proveedor = :proveedor
@@ -67,6 +68,49 @@ $sql = "SELECT
 $stmt = $pdo->prepare($sql);
 $stmt->execute([':proveedor' => $proveedor_id]);
 $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Precargar variantes y agrupar por producto (cod_barras / id_producto)
+$variantesPorProducto = [];
+$codigos = array_column($productos, 'id_producto');
+if (!empty($codigos)) {
+    // Preparar la cláusula IN con placeholders
+    $placeholders = implode(',', array_fill(0, count($codigos), '?'));
+    $variantesSql = "SELECT v.cod_barras AS id_producto, v.id_variante, v.sku, v.talla, v.color, v.cantidad, v.precio, v.costo, v.imagen FROM variantes v WHERE v.cod_barras IN ($placeholders)";
+    $variantesStmt = $pdo->prepare($variantesSql);
+    $variantesStmt->execute($codigos);
+    $variantesRaw = $variantesStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($variantesRaw as $v) {
+        $variantesPorProducto[$v['id_producto']][] = $v;
+    }
+}
+
+// Construir la lista final de filas a mostrar: si un producto tiene variantes, mostrar cada variante como fila "normal" y ocultar el producto padre
+$displayProductos = [];
+foreach ($productos as $p) {
+    $pid = $p['id_producto'];
+    // Determinar si tiene variantes (por subconsulta o por precarga)
+    $tieneVar = isset($p['tiene_variante']) ? (int)$p['tiene_variante'] : 0;
+    if (($tieneVar > 0 || isset($variantesPorProducto[$pid])) && isset($variantesPorProducto[$pid]) && count($variantesPorProducto[$pid]) > 0) {
+        foreach ($variantesPorProducto[$pid] as $v) {
+            $row = [];
+            // Nombre: producto padre + identificación de variante (talla/color o SKU)
+            $ident = trim((($v['talla'] ?? '') . ' ' . ($v['color'] ?? '')));
+            if ($ident === '') $ident = ($v['sku'] ?? 'Variante');
+            $row['nom_producto'] = $p['nom_producto'] . ' — ' . $ident;
+            $row['imagen'] = !empty($v['imagen']) ? $v['imagen'] : $p['imagen'];
+            $row['marca'] = $p['marca'];
+            $row['descripcion'] = $p['descripcion'];
+            $row['categoria'] = $p['categoria'];
+            $row['cantidad'] = $v['cantidad'] ?? $p['cantidad'];
+            $row['precio'] = $v['precio'] ?? $p['precio'];
+            $row['id_producto'] = $v['id_variante']; // usar id_variante para identificar la fila
+            $displayProductos[] = $row;
+        }
+    } else {
+        // Producto sin variantes -> mostrar normal
+        $displayProductos[] = $p;
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -113,8 +157,8 @@ $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <?php if (!empty($productos)): ?>
-                            <?php foreach ($productos as $p): ?>
+                        <?php if (!empty($displayProductos)): ?>
+                            <?php foreach ($displayProductos as $p): ?>
                                 <tr>
                                     <td class="px-6 py-4 flex items-center gap-4">
                                         <?php if (!empty($p['imagen'])): ?>
